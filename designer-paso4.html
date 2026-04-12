@@ -13,15 +13,15 @@
 	<script src="./js/supabase-config.js"></script>
 	<script src="./js/designer-integration.js"></script>
 <script>
-    window.addEventListener('load', () => {
-        getSupabase().auth.getSession().then(({ data: { session } }) => {
-            if (!session) {
-                sessionStorage.setItem('redirectAfterLogin', window.location.href);
-                window.location.href = './login.html';
-            }
-        });
-        initHeaderAuth();
-    });
+	initWhenReady(() => {
+		getSupabase().auth.getSession().then(({ data: { session } }) => {
+			if (!session) {
+				sessionStorage.setItem('redirectAfterLogin', window.location.href);
+				window.location.href = './login.html';
+			}
+		});
+		initHeaderAuth();
+	});
 </script>
 </head>
 <body>
