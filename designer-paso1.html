@@ -1,211 +1,163 @@
 <!DOCTYPE html>
-<!-- saved from url=(0033)https://rometjoyeria.com/designer -->
-<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-		
-		<link rel="icon" type="image/svg+xml" href="https://rometjoyeria.com/vite.svg">
-		<meta name="generator" content="Hostinger Horizons">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>Diseñador - Romet Joyería IA</title>
-		<script type="module" crossorigin="" src="./designer-paso1_files/index-8FY5Tnxd.js?v=2"></script>
-		<link rel="stylesheet" crossorigin="" href="./designer-paso1_files/index-xtSdOPat.css?v=2">
-		<script type="module">
-window.onerror = (message, source, lineno, colno, errorObj) => {
-	const errorDetails = errorObj ? JSON.stringify({
-		name: errorObj.name,
-		message: errorObj.message,
-		stack: errorObj.stack,
-		source,
-		lineno,
-		colno,
-	}) : null;
+<html lang="es">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="icon" type="image/svg+xml" href="https://rometjoyeria.com/vite.svg">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Diseñador - Romet Joyería IA</title>
+	<script type="module" crossorigin="" src="./designer-paso1_files/index-8FY5Tnxd.js?v=2"></script>
+	<link rel="stylesheet" crossorigin="" href="./designer-paso1_files/index-xtSdOPat.css?v=2">
 
-	window.parent.postMessage({
-		type: 'horizons-runtime-error',
-		message,
-		error: errorDetails
-	}, '*');
-};
-</script>
-		<script type="module">
-const observer = new MutationObserver((mutations) => {
-	for (const mutation of mutations) {
-		for (const addedNode of mutation.addedNodes) {
-			if (
-				addedNode.nodeType === Node.ELEMENT_NODE &&
-				(
-					addedNode.tagName?.toLowerCase() === 'vite-error-overlay' ||
-					addedNode.classList?.contains('backdrop')
-				)
-			) {
-				handleViteOverlay(addedNode);
-			}
-		}
-	}
-});
-
-observer.observe(document.documentElement, {
-	childList: true,
-	subtree: true
-});
-
-function handleViteOverlay(node) {
-	if (!node.shadowRoot) {
-		return;
-	}
-
-	const backdrop = node.shadowRoot.querySelector('.backdrop');
-
-	if (backdrop) {
-		const overlayHtml = backdrop.outerHTML;
-		const parser = new DOMParser();
-		const doc = parser.parseFromString(overlayHtml, 'text/html');
-		const messageBodyElement = doc.querySelector('.message-body');
-		const fileElement = doc.querySelector('.file');
-		const messageText = messageBodyElement ? messageBodyElement.textContent.trim() : '';
-		const fileText = fileElement ? fileElement.textContent.trim() : '';
-		const error = messageText + (fileText ? ' File:' + fileText : '');
-
-		window.parent.postMessage({
-			type: 'horizons-vite-error',
-			error,
-		}, '*');
-	}
-}
-</script>
-		<script type="module">
-const originalConsoleError = console.error;
-const MATCH_LINE_COL_REGEX = /:(\d+):(\d+)\)?\s*$/; // regex to match the :lineNum:colNum
-const MATCH_AT_REGEX = /^\s*at\s+(?:async\s+)?(?:.*?\s+)?\(?/; // regex to remove the 'at' keyword and any 'async' or function name
-const MATCH_PATH_REGEX = /^\//; // regex to remove the leading slash
-
-function parseStackFrameLine(line) {
-	const lineColMatch = line.match(MATCH_LINE_COL_REGEX);
-	if (!lineColMatch) return null;
-	const [, lineNum, colNum] = lineColMatch;
-	const suffix = `:${lineNum}:${colNum}`;
-	const idx = line.lastIndexOf(suffix);
-	if (idx === -1) return null;
-	const before = line.substring(0, idx);
-	const path = before.replace(MATCH_AT_REGEX, '').trim();
-	
-	if (!path) return null;
-
-	try {
-		const pathname = new URL(path).pathname;
-		const filePath = pathname.replace(MATCH_PATH_REGEX, '') || pathname;
-		return `${filePath}:${lineNum}:${colNum}`;
-	} catch (e) {
-		const filePath = path.replace(MATCH_PATH_REGEX, '') || path;
-		return `${filePath}:${lineNum}:${colNum}`;
-	}
-}
-
-function getFilePathFromStack(stack, skipFrames = 0) {
-	if (!stack || typeof stack !== 'string') return null;
-	const lines = stack.split('\n').slice(1);
-
-	const frames = lines.map(line => parseStackFrameLine(line.replace(/\r$/, ''))).filter(Boolean);
-
-	return frames[skipFrames] ?? null;
-}
-
-console.error = function(...args) {
-	originalConsoleError.apply(console, args);
-
-	let errorString = '';
-	let filePath = null;
-
-	for (let i = 0; i < args.length; i++) {
-		const arg = args[i];
-		if (arg instanceof Error) {
-			filePath = getFilePathFromStack(arg.stack, 0);
-			errorString = `${arg.name}: ${arg.message}`;
-			if (filePath) {
-				errorString = `${errorString} at ${filePath}`;
-			}
-			break;
-		}
-	}
-
-	if (!errorString) {
-		errorString = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
-		const stack = new Error().stack;
-		filePath = getFilePathFromStack(stack, 1);
-		if (filePath) {
-			errorString = `${errorString} at ${filePath}`;
-		}
-	}
-
-	window.parent.postMessage({
-		type: 'horizons-console-error',
-		error: errorString
-	}, '*');
-};
-</script>
-		<script type="module">
-const originalFetch = window.fetch;
-
-window.fetch = function(...args) {
-	const url = args[0] instanceof Request ? args[0].url : args[0];
-
-	// Skip WebSocket URLs
-	if (url.startsWith('ws:') || url.startsWith('wss:')) {
-		return originalFetch.apply(this, args);
-	}
-
-	return originalFetch.apply(this, args)
-		.then(async response => {
-			const contentType = response.headers.get('Content-Type') || '';
-
-			// Exclude HTML document responses
-			const isDocumentResponse =
-				contentType.includes('text/html') ||
-				contentType.includes('application/xhtml+xml');
-
-			if (!response.ok && !isDocumentResponse) {
-					const responseClone = response.clone();
-					const errorFromRes = await responseClone.text();
-					const requestUrl = response.url;
-					console.error(`Fetch error from ${requestUrl}: ${errorFromRes}`);
-			}
-
-			return response;
-		})
-		.catch(error => {
-			if (!url.match(/.html?$/i)) {
-				console.error(error);
-			}
-
-			throw error;
+	<!-- Supabase + integración -->
+	<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+	<script src="./js/supabase-config.js"></script>
+	<script src="./js/designer-integration.js"></script>
+	<script>
+		document.addEventListener('DOMContentLoaded', () => {
+			getSupabase().auth.getSession().then(({ data: { session } }) => {
+				if (!session) {
+					sessionStorage.setItem('redirectAfterLogin', window.location.href);
+					window.location.href = './login.html';
+				}
+			});
+			initHeaderAuth();
 		});
-};
-</script>
-		<script type="module">
-if (window.navigation && window.self !== window.top) {
-	window.navigation.addEventListener('navigate', (event) => {
-		const url = event.destination.url;
+	</script>
+</head>
+<body>
+	<div id="root">
+		<div class="min-h-screen bg-background flex flex-col pb-32 font-serif">
 
-		try {
-			const destinationUrl = new URL(url);
-			const destinationOrigin = destinationUrl.origin;
-			const currentOrigin = window.location.origin;
+			<!-- Header -->
+			<header class="bg-background border-b border-border px-8 py-6 flex justify-between items-center sticky top-0 z-50 shadow-sm">
+				<a class="hover:opacity-70 transition-opacity" href="https://rometjoyeria.com/">
+					<span class="font-bold text-2xl md:text-3xl tracking-[0.2em] uppercase text-foreground">ROMET IA</span>
+				</a>
+				<nav class="flex items-center gap-8">
+					<a href="https://rometjoyeria.com/designer"
+					   class="text-sm md:text-base tracking-[0.15em] uppercase text-foreground hover:text-muted-foreground transition-colors font-medium"
+					   style="text-decoration:none;">
+						Diseñar Joya
+					</a>
+					<a href="./login.html" id="header-auth-link"
+					   class="text-sm md:text-base tracking-[0.15em] uppercase text-foreground hover:text-muted-foreground transition-colors font-medium"
+					   style="text-decoration:none;">
+						Mi Cuenta
+					</a>
+				</nav>
+			</header>
 
-			if (destinationOrigin === currentOrigin) {
-				return;
-			}
-		} catch (error) {
-			return;
+			<!-- Barra de progreso -->
+			<div class="w-full bg-muted h-1.5 sticky top-[84px] z-40">
+				<div class="bg-primary h-full transition-all duration-500 ease-out" style="width: 14.28%;"></div>
+			</div>
+
+			<!-- Main -->
+			<main class="flex-1 container mx-auto px-4 py-12 flex flex-col relative mt-4">
+				<div class="text-center mb-16">
+					<span class="text-sm tracking-[0.2em] uppercase text-muted-foreground mb-4 block font-sans">Paso 1 de 7</span>
+					<h1 class="text-4xl md:text-5xl text-foreground tracking-widest uppercase font-medium">Categoría de Producto</h1>
+				</div>
+
+				<div class="flex-1 relative">
+					<div class="w-full" style="opacity: 1; transform: none;">
+						<div class="grid grid-cols-2 md:grid-cols-5 gap-8 max-w-5xl mx-auto">
+
+							<div class="cursor-pointer flex flex-col items-center justify-center transition-all duration-300 hover:scale-105" onclick="selectOption(this, 'category', 'anillo')">
+								<div class="w-[100px] h-[100px] rounded-full mb-6 relative transition-all duration-300 ring-1 ring-border shadow-md hover:shadow-lg overflow-hidden">
+									<img src="./designer-paso1_files/photo-1680049118554-b2e40e2eef.jpg" alt="Anillo" class="w-full h-full object-cover">
+								</div>
+								<span class="text-foreground text-base tracking-widest uppercase font-medium text-center">Anillo</span>
+							</div>
+
+							<div class="cursor-pointer flex flex-col items-center justify-center transition-all duration-300 hover:scale-105" onclick="selectOption(this, 'category', 'colgante')">
+								<div class="w-[100px] h-[100px] rounded-full mb-6 relative transition-all duration-300 ring-1 ring-border shadow-md hover:shadow-lg overflow-hidden">
+									<img src="./designer-paso1_files/photo-1680849919147-e00707f1e0.jpg" alt="Colgante" class="w-full h-full object-cover">
+								</div>
+								<span class="text-foreground text-base tracking-widest uppercase font-medium text-center">Colgante</span>
+							</div>
+
+							<div class="cursor-pointer flex flex-col items-center justify-center transition-all duration-300 hover:scale-105" onclick="selectOption(this, 'category', 'pendientes')">
+								<div class="w-[100px] h-[100px] rounded-full mb-6 relative transition-all duration-300 ring-1 ring-border shadow-md hover:shadow-lg overflow-hidden">
+									<img src="./designer-paso1_files/photo-1685884626002-b9e7e932e.jpg" alt="Pendientes" class="w-full h-full object-cover">
+								</div>
+								<span class="text-foreground text-base tracking-widest uppercase font-medium text-center">Pendientes</span>
+							</div>
+
+							<div class="cursor-pointer flex flex-col items-center justify-center transition-all duration-300 hover:scale-105" onclick="selectOption(this, 'category', 'pulsera')">
+								<div class="w-[100px] h-[100px] rounded-full mb-6 relative transition-all duration-300 ring-1 ring-border shadow-md hover:shadow-lg overflow-hidden">
+									<img src="./designer-paso1_files/photo-1702365202603-362ef031e.jpg" alt="Pulsera" class="w-full h-full object-cover">
+								</div>
+								<span class="text-foreground text-base tracking-widest uppercase font-medium text-center">Pulsera</span>
+							</div>
+
+							<div class="cursor-pointer flex flex-col items-center justify-center transition-all duration-300 hover:scale-105" onclick="selectOption(this, 'category', 'gemelos')">
+								<div class="w-[100px] h-[100px] rounded-full mb-6 relative transition-all duration-300 ring-1 ring-border shadow-md hover:shadow-lg overflow-hidden">
+									<img src="./designer-paso1_files/photo-1702365202603-362ef031e.jpg" alt="Gemelos" class="w-full h-full object-cover">
+								</div>
+								<span class="text-foreground text-base tracking-widest uppercase font-medium text-center">Gemelos</span>
+							</div>
+
+						</div>
+					</div>
+				</div>
+			</main>
+
+			<!-- Navegación inferior -->
+			<div class="fixed bottom-0 left-0 w-full p-4 md:p-6 pointer-events-none z-40">
+				<div class="container mx-auto flex justify-between items-center">
+					<button onclick="history.back()"
+					        class="pointer-events-auto flex items-center gap-2 md:gap-3 text-muted-foreground hover:text-foreground transition-colors bg-background/90 backdrop-blur-sm py-2.5 px-5 md:py-3 md:px-6 rounded-full shadow-md border border-border/50">
+						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 md:w-5 md:h-5">
+							<path d="m12 19-7-7 7-7"></path>
+							<path d="M19 12H5"></path>
+						</svg>
+						<span class="text-xs md:text-sm tracking-widest uppercase font-sans font-medium">Volver</span>
+					</button>
+					<button id="nextBtn" onclick="goToNext('./designer-paso2.html')" disabled
+					        class="pointer-events-auto flex items-center gap-2 md:gap-3 bg-primary text-primary-foreground hover:bg-foreground transition-colors py-2.5 px-6 md:py-3 md:px-8 rounded-full shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
+						<span class="text-xs md:text-sm tracking-widest uppercase font-sans font-medium">Siguiente</span>
+						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 md:w-5 md:h-5">
+							<path d="M5 12h14"></path>
+							<path d="m12 5 7 7-7 7"></path>
+						</svg>
+					</button>
+				</div>
+			</div>
+
+		</div>
+	</div>
+
+	<script>
+		function selectOption(el, key, value) {
+			// Quitar selección anterior
+			document.querySelectorAll('[data-selection-key="' + key + '"]').forEach(e => {
+				e.querySelector('.w-\\[100px\\]').style.outline = '';
+				e.style.opacity = '1';
+			});
+
+			// Marcar todos con data-selection-key
+			document.querySelectorAll('.cursor-pointer').forEach(e => {
+				e.setAttribute('data-selection-key', key);
+				e.style.opacity = '0.5';
+			});
+
+			// Resaltar el seleccionado
+			el.style.opacity = '1';
+			el.querySelector('.w-\\[100px\\]').style.outline = '3px solid hsl(var(--primary))';
+
+			// Guardar en state
+			const state = window.RometDesigner?.loadState() || {};
+			state[key === 'category' ? 'category' : key] = value;
+			window.RometDesigner?.saveState(state);
+
+			// Activar botón siguiente
+			document.getElementById('nextBtn').disabled = false;
 		}
 
-		window.parent.postMessage({
-			type: 'horizons-navigation-error',
-			url,
-		}, '*');
-	});
-}
-</script>
-	</head>
-	<body>
-		<div id="root"><div class="min-h-screen bg-background flex flex-col pb-32 font-serif"><header class="bg-background border-b border-border px-8 py-6 flex justify-between items-center sticky top-0 z-50 shadow-sm"><a class="hover:opacity-70 transition-opacity" href="https://rometjoyeria.com/" data-discover="true"><span class="font-bold text-2xl md:text-3xl tracking-[0.2em] uppercase text-foreground">ROMET IA</span></a><nav class="flex items-center gap-8"><button class="text-sm md:text-base tracking-[0.15em] uppercase text-foreground hover:text-muted-foreground transition-colors font-medium">Diseñar Joya</button></nav></header><div class="w-full bg-muted h-1.5 sticky top-[84px] z-40"><div class="bg-primary h-full transition-all duration-500 ease-out" style="width: 28.5714%;"></div></div><main class="flex-1 container mx-auto px-4 py-12 flex flex-col relative mt-4"><div class="text-center mb-16"><span class="text-sm tracking-[0.2em] uppercase text-muted-foreground mb-4 block font-sans">Paso 2 de 7</span><h1 class="text-4xl md:text-5xl text-foreground tracking-widest uppercase font-medium">Selección de Material</h1></div><div class="flex-1 relative"><div class="w-full" style="opacity: 0; transform: translateY(0.207757px);"><div class="grid grid-cols-2 md:grid-cols-5 gap-8 max-w-5xl mx-auto"><div class="cursor-pointer flex flex-col items-center justify-center transition-all duration-300 hover:scale-105"><div class="w-[100px] h-[100px] rounded-full mb-6 relative transition-all duration-300 ring-1 ring-border shadow-md hover:shadow-lg" style="background-color: rgb(255, 215, 0);"></div><span class="text-foreground text-base tracking-widest uppercase font-medium text-center">Oro Amarillo</span></div><div class="cursor-pointer flex flex-col items-center justify-center transition-all duration-300 hover:scale-105"><div class="w-[100px] h-[100px] rounded-full mb-6 relative transition-all duration-300 ring-1 ring-border shadow-md hover:shadow-lg" style="background-color: rgb(248, 249, 250);"></div><span class="text-foreground text-base tracking-widest uppercase font-medium text-center">Oro Blanco</span></div><div class="cursor-pointer flex flex-col items-center justify-center transition-all duration-300 hover:scale-105"><div class="w-[100px] h-[100px] rounded-full mb-6 relative transition-all duration-300 ring-1 ring-border shadow-md hover:shadow-lg" style="background-color: rgb(224, 191, 184);"></div><span class="text-foreground text-base tracking-widest uppercase font-medium text-center">Oro Rosa</span></div><div class="cursor-pointer flex flex-col items-center justify-center transition-all duration-300 hover:scale-105"><div class="w-[100px] h-[100px] rounded-full mb-6 relative transition-all duration-300 ring-1 ring-border shadow-md hover:shadow-lg" style="background-color: rgb(229, 228, 226);"></div><span class="text-foreground text-base tracking-widest uppercase font-medium text-center">Platino</span></div><div class="cursor-pointer flex flex-col items-center justify-center transition-all duration-300 hover:scale-105"><div class="w-[100px] h-[100px] rounded-full mb-6 relative transition-all duration-300 ring-1 ring-border shadow-md hover:shadow-lg" style="background-color: rgb(192, 192, 192);"></div><span class="text-foreground text-base tracking-widest uppercase font-medium text-center">Plata</span></div></div></div></div></main><div class="fixed bottom-0 left-0 w-full p-4 md:p-6 pointer-events-none z-40"><div class="container mx-auto flex justify-between items-center"><button class="pointer-events-auto flex items-center gap-2 md:gap-3 text-muted-foreground hover:text-foreground transition-colors bg-background/90 backdrop-blur-sm py-2.5 px-5 md:py-3 md:px-6 rounded-full shadow-md border border-border/50"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left w-4 h-4 md:w-5 md:h-5"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg><span class="text-xs md:text-sm tracking-widest uppercase font-sans font-medium">Volver</span></button><button class="pointer-events-auto flex items-center gap-2 md:gap-3 bg-primary text-primary-foreground hover:bg-foreground transition-colors py-2.5 px-6 md:py-3 md:px-8 rounded-full shadow-md disabled:opacity-50 disabled:cursor-not-allowed" disabled=""><span class="text-xs md:text-sm tracking-widest uppercase font-sans font-medium">Siguiente</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right w-4 h-4 md:w-5 md:h-5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></button></div></div></div><div role="region" aria-label="Notifications (F8)" tabindex="-1" style="pointer-events: none;"><ol tabindex="-1" class="fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px]"></ol></div></div>
-	
-</body></html>
+		function goToNext(url) {
+			window.location.href = url;
+		}
+	</script>
+</body>
+</html>
