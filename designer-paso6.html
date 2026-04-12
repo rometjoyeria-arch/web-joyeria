@@ -13,7 +13,7 @@
 	<script src="./js/supabase-config.js"></script>
 	<script src="./js/designer-integration.js"></script>
 <script>
-	window.addEventListener('load', () => {
+	initWhenReady(() => {
 		getSupabase().auth.getSession().then(({ data: { session } }) => {
 			if (!session) {
 				sessionStorage.setItem('redirectAfterLogin', window.location.href);
@@ -22,7 +22,6 @@
 		});
 		initHeaderAuth();
 
-		// Restaurar valores guardados
 		const state = window.RometDesigner?.loadState() || {};
 		const inputs = document.querySelectorAll('input');
 		if (inputs[0] && state.budget) inputs[0].value = state.budget;
