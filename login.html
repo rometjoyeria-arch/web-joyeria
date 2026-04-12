@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="icon" type="image/svg+xml" href="https://rometjoyeria.com/vite.svg">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Acceso - Romet Joyería IA</title>
+	<meta name="description" content="Accede a tu cuenta de Romet Joyería IA para diseñar joyas personalizadas con inteligencia artificial.">
+	<link rel="stylesheet" crossorigin="" href="./index_files/index-xtSdOPat.css?v=2">
+
+	<!-- Firebase SDK -->
+	<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+
+	<style>
+		@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap');
+
+		* { box-sizing: border-box; margin: 0; padding: 0; }
+
+		body {
+			font-family: 'Cormorant Garamond', serif;
+			background-color: hsl(0 0% 91%);
+			color: hsl(0 0% 15%);
+			min-height: 100vh;
+			display: flex;
+			flex-direction: column;
+			-webkit-font-smoothing: antialiased;
+			-moz-osx-font-smoothing: grayscale;
+		}
+
+		/* ─── Header ─── */
+		.site-header {
+			background-color: hsl(0 0% 91%);
+			border-bottom: 1px solid hsl(0 0% 80%);
+			padding: 1.5rem 2rem;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			position: sticky;
+			top: 0;
+			z-index: 50;
+			box-shadow: 0 1px 2px 0 rgb(0 0 0 / .05);
+		}
+
+		.site-header a {
+			text-decoration: none;
+			color: inherit;
+			transition: opacity 0.3s;
+		}
+
+		.site-header a:hover { opacity: 0.7; }
+
+		.logo-text {
+			font-weight: 700;
+			font-size: 1.5rem;
+			letter-spacing: 0.2em;
+			text-transform: uppercase;
+		}
+
+		/* ─── Main Container ─── */
+		.login-wrapper {
+			flex: 1;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			padding: 2rem 1.5rem;
+			position: relative;
+			overflow: hidden;
+		}
+
+		/* Subtle background glow */
+		.login-wrapper::before {
+			content: '';
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			width: 600px;
+			height: 600px;
+			background: white;
+			border-radius: 50%;
+			filter: blur(120px);
+			opacity: 0.5;
+			pointer-events: none;
+		}
+
+		/* ─── Login Card ─── */
+		.login-card {
+			position: relative;
+			z-index: 10;
+			width: 100%;
+			max-width: 440px;
+			background: hsl(0 0% 95%);
+			border: 1px solid hsl(0 0% 80%);
+			padding: 3rem 2.5rem;
+			box-shadow: 0 20px 50px rgba(0, 0, 0, 0.06);
+			animation: cardFadeIn 0.8s ease-out;
+		}
+
+		@keyframes cardFadeIn {
+			from {
+				opacity: 0;
+				transform: translateY(16px);
+			}
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		.login-card h1 {
+			font-size: 2rem;
+			font-weight: 600;
+			letter-spacing: 0.15em;
+			text-transform: uppercase;
+			text-align: center;
+			margin-bottom: 0.5rem;
+		}
+
+		.login-card .subtitle {
+			text-align: center;
+			color: hsl(0 0% 40%);
+			font-size: 1rem;
+			letter-spacing: 0.1em;
+			margin-bottom: 2.5rem;
+			font-weight: 300;
+		}
+
+		/* ─── Tabs ─── */
+		.auth-tabs {
+			display: flex;
+			border-bottom: 1px solid hsl(0 0% 80%);
+			margin-bottom: 2rem;
+		}
+
+		.auth-tab {
+			flex: 1;
+			padding: 0.75rem 0;
+			background: none;
+			border: none;
+			font-family: 'Cormorant Garamond', serif;
+			font-size: 0.95rem;
+			font-weight: 500;
+			letter-spacing: 0.15em;
+			text-transform: uppercase;
+			color: hsl(0 0% 40%);
+			cursor: pointer;
+			position: relative;
+			transition: color 0.3s;
+		}
+
+		.auth-tab:hover { color: hsl(0 0% 20%); }
+
+		.auth-tab.active {
+			color: hsl(0 0% 15%);
+			font-weight: 600;
+		}
+
+		.auth-tab.active::after {
+			content: '';
+			position: absolute;
+			bottom: -1px;
+			left: 0;
+			right: 0;
+			height: 2px;
+			background: hsl(0 0% 15%);
+		}
+
+		/* ─── Form ─── */
+		.auth-form { display: flex; flex-direction: column; gap: 1.25rem; }
+
+		.form-group { position: relative; }
+
+		.form-group label {
+			display: block;
+			font-size: 0.8rem;
+			font-weight: 500;
+			letter-spacing: 0.15em;
+			text-transform: uppercase;
+			color: hsl(0 0% 40%);
+			margin-bottom: 0.5rem;
+			font-family: ui-sans-serif, system-ui, sans-serif;
+		}
+
+		.form-group input {
+			width: 100%;
+			padding: 0.85rem 1rem;
+			border: 1px solid hsl(0 0% 80%);
+			background: hsl(0 0% 91%);
+			font-family: 'Cormorant Garamond', serif;
+			font-size: 1.05rem;
+			color: hsl(0 0% 15%);
+			transition: all 0.3s;
+			outline: none;
+		}
+
+		.form-group input:focus {
+			border-color: hsl(0 0% 20%);
+			box-shadow: 0 0 0 1px hsl(0 0% 20%);
+		}
+
+		.form-group input::placeholder {
+			color: hsl(0 0% 65%);
+		}
+
+		.password-toggle {
+			position: absolute;
+			right: 1rem;
+			bottom: 0.85rem;
+			background: none;
+			border: none;
+			cursor: pointer;
+			color: hsl(0 0% 50%);
+			transition: color 0.3s;
+			display: flex;
+			align-items: center;
+		}
+
+		.password-toggle:hover { color: hsl(0 0% 20%); }
+
+		.forgot-link {
+			text-align: right;
+			margin-top: -0.5rem;
+		}
+
+		.forgot-link a {
+			font-size: 0.85rem;
+			color: hsl(0 0% 40%);
+			text-decoration: none;
+			font-family: ui-sans-serif, system-ui, sans-serif;
+			transition: color 0.3s;
+		}
+
+		.forgot-link a:hover { color: hsl(0 0% 15%); text-decoration: underline; }
+
+		/* ─── Submit Button ─── */
+		.btn-submit {
+			width: 100%;
+			padding: 1rem;
+			background: hsl(0 0% 0%);
+			color: hsl(0 0% 100%);
+			border: none;
+			font-family: 'Cormorant Garamond', serif;
+			font-size: 1rem;
+			font-weight: 600;
+			letter-spacing: 0.2em;
+			text-transform: uppercase;
+			cursor: pointer;
+			transition: all 0.4s;
+			margin-top: 0.5rem;
+			position: relative;
+			overflow: hidden;
+		}
+
+		.btn-submit:hover { background: hsl(0 0% 15%); }
+
+		.btn-submit:disabled {
+			opacity: 0.6;
+			cursor: not-allowed;
+		}
+
+		.btn-submit .spinner {
+			display: inline-block;
+			width: 18px;
+			height: 18px;
+			border: 2px solid transparent;
+			border-top-color: white;
+			border-radius: 50%;
+			animation: spin 0.7s linear infinite;
+			vertical-align: middle;
+			margin-right: 0.5rem;
+		}
+
+		@keyframes spin { to { transform: rotate(360deg); } }
+
+		/* ─── Divider ─── */
+		.auth-divider {
+			display: flex;
+			align-items: center;
+			margin: 1.75rem 0;
+			gap: 1rem;
+		}
+
+		.auth-divider::before,
+		.auth-divider::after {
+			content: '';
+			flex: 1;
+			height: 1px;
+			background: hsl(0 0% 80%);
+		}
+
+		.auth-divider span {
+			font-size: 0.8rem;
+			letter-spacing: 0.12em;
+			text-transform: uppercase;
+			color: hsl(0 0% 50%);
+			font-family: ui-sans-serif, system-ui, sans-serif;
+			white-space: nowrap;
+		}
+
+		/* ─── OAuth Buttons ─── */
+		.oauth-buttons { display: flex; flex-direction: column; gap: 0.75rem; }
+
+		.btn-oauth {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 0.75rem;
+			width: 100%;
+			padding: 0.85rem 1rem;
+			border: 1px solid hsl(0 0% 80%);
+			background: white;
+			font-family: ui-sans-serif, system-ui, sans-serif;
+			font-size: 0.9rem;
+			font-weight: 500;
+			color: hsl(0 0% 25%);
+			cursor: pointer;
+			transition: all 0.3s;
+			letter-spacing: 0.03em;
+		}
+
+		.btn-oauth:hover {
+			border-color: hsl(0 0% 60%);
+			box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+			transform: translateY(-1px);
+		}
+
+		.btn-oauth:active { transform: translateY(0); }
+
+		.btn-oauth svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+		/* ─── Error / Success Messages ─── */
+		.auth-message {
+			padding: 0.85rem 1rem;
+			font-size: 0.9rem;
+			font-family: ui-sans-serif, system-ui, sans-serif;
+			border: 1px solid;
+			margin-bottom: 1rem;
+			display: none;
+			animation: msgFade 0.3s ease-out;
+		}
+
+		@keyframes msgFade {
+			from { opacity: 0; transform: translateY(-4px); }
+			to { opacity: 1; transform: translateY(0); }
+		}
+
+		.auth-message.error {
+			display: block;
+			background: hsl(0 84% 97%);
+			color: hsl(0 84% 40%);
+			border-color: hsl(0 84% 85%);
+		}
+
+		.auth-message.success {
+			display: block;
+			background: hsl(120 40% 96%);
+			color: hsl(120 40% 30%);
+			border-color: hsl(120 40% 80%);
+		}
+
+		/* ─── Footer text ─── */
+		.auth-footer {
+			text-align: center;
+			margin-top: 2rem;
+			padding-top: 1.5rem;
+			border-top: 1px solid hsl(0 0% 85%);
+			font-size: 0.85rem;
+			color: hsl(0 0% 50%);
+			font-family: ui-sans-serif, system-ui, sans-serif;
+		}
+
+		.auth-footer a {
+			color: hsl(0 0% 20%);
+			text-decoration: none;
+			font-weight: 600;
+			transition: color 0.3s;
+		}
+
+		.auth-footer a:hover { text-decoration: underline; }
+
+		/* ─── Hidden elements ─── */
+		.hidden { display: none !important; }
+
+		/* ─── Responsive ─── */
+		@media (max-width: 480px) {
+			.login-card {
+				padding: 2rem 1.5rem;
+			}
+
+			.login-card h1 {
+				font-size: 1.6rem;
+			}
+
+			.logo-text {
+				font-size: 1.25rem;
+			}
+		}
+
+		/* ─── Name fields grid ─── */
+		.name-fields {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 1rem;
+		}
+
+		@media (max-width: 480px) {
+			.name-fields {
+				grid-template-columns: 1fr;
+			}
+		}
+
+		/* ─── Reset password form ─── */
+		.back-to-login {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.4rem;
+			font-size: 0.85rem;
+			color: hsl(0 0% 40%);
+			text-decoration: none;
+			font-family: ui-sans-serif, system-ui, sans-serif;
+			margin-bottom: 1.5rem;
+			cursor: pointer;
+			background: none;
+			border: none;
+			transition: color 0.3s;
+		}
+
+		.back-to-login:hover { color: hsl(0 0% 15%); }
+
+		/* Decorative accents */
+		.accent-line {
+			width: 40px;
+			height: 1px;
+			background: hsl(0 0% 40%);
+			margin: 0 auto 1.5rem;
+		}
+	</style>
+</head>
+<body>
+	<!-- Header -->
+	<header class="site-header">
+		<a href="./index.html">
+			<span class="logo-text">ROMET IA</span>
+		</a>
+		<nav></nav>
+	</header>
+
+	<!-- Main -->
+	<main class="login-wrapper">
+		<div class="login-card" id="loginCard">
+			<h1>Bienvenido</h1>
+			<div class="accent-line"></div>
+			<p class="subtitle">Accede a tu espacio de creación</p>
+
+			<!-- Message area -->
+			<div id="authMessage" class="auth-message"></div>
+
+			<!-- ═══════ LOGIN VIEW ═══════ -->
+			<div id="loginView">
+				<div class="auth-tabs">
+					<button class="auth-tab active" id="tabLogin" onclick="switchTab('login')">Iniciar Sesión</button>
+					<button class="auth-tab" id="tabRegister" onclick="switchTab('register')">Crear Cuenta</button>
+				</div>
+
+				<!-- Login Form -->
+				<form id="loginForm" class="auth-form" onsubmit="handleLogin(event)">
+					<div class="form-group">
+						<label for="loginEmail">Correo electrónico</label>
+						<input type="email" id="loginEmail" placeholder="tu@email.com" required autocomplete="email">
+					</div>
+					<div class="form-group">
+						<label for="loginPassword">Contraseña</label>
+						<input type="password" id="loginPassword" placeholder="••••••••" required autocomplete="current-password">
+						<button type="button" class="password-toggle" onclick="togglePassword('loginPassword', this)" aria-label="Mostrar contraseña">
+							<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+						</button>
+					</div>
+					<div class="forgot-link">
+						<a href="#" onclick="showResetPassword(event)">¿Olvidaste tu contraseña?</a>
+					</div>
+					<button type="submit" class="btn-submit" id="loginBtn">
+						Iniciar Sesión
+					</button>
+				</form>
+
+				<!-- Register Form -->
+				<form id="registerForm" class="auth-form hidden" onsubmit="handleRegister(event)">
+					<div class="name-fields">
+						<div class="form-group">
+							<label for="regName">Nombre</label>
+							<input type="text" id="regName" placeholder="Nombre" required autocomplete="given-name">
+						</div>
+						<div class="form-group">
+							<label for="regSurname">Apellido</label>
+							<input type="text" id="regSurname" placeholder="Apellido" required autocomplete="family-name">
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="regEmail">Correo electrónico</label>
+						<input type="email" id="regEmail" placeholder="tu@email.com" required autocomplete="email">
+					</div>
+					<div class="form-group">
+						<label for="regPassword">Contraseña</label>
+						<input type="password" id="regPassword" placeholder="Mínimo 6 caracteres" required minlength="6" autocomplete="new-password">
+						<button type="button" class="password-toggle" onclick="togglePassword('regPassword', this)" aria-label="Mostrar contraseña">
+							<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+						</button>
+					</div>
+					<div class="form-group">
+						<label for="regPasswordConfirm">Confirmar contraseña</label>
+						<input type="password" id="regPasswordConfirm" placeholder="Repite la contraseña" required minlength="6" autocomplete="new-password">
+					</div>
+					<button type="submit" class="btn-submit" id="registerBtn">
+						Crear Cuenta
+					</button>
+				</form>
+
+				<!-- OAuth Divider -->
+				<div class="auth-divider">
+					<span>o continúa con</span>
+				</div>
+
+				<!-- OAuth Buttons -->
+				<div class="oauth-buttons">
+					<button class="btn-oauth" onclick="loginWithGoogle()" id="googleBtn">
+						<!-- Google Icon -->
+						<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+							<path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+							<path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+							<path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+							<path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+						</svg>
+						Continuar con Google
+					</button>
+					<button class="btn-oauth" onclick="loginWithMicrosoft()" id="microsoftBtn">
+						<!-- Microsoft Icon -->
+						<svg viewBox="0 0 23 23" xmlns="http://www.w3.org/2000/svg">
+							<rect x="1" y="1" width="10" height="10" fill="#F25022"/>
+							<rect x="12" y="1" width="10" height="10" fill="#7FBA00"/>
+							<rect x="1" y="12" width="10" height="10" fill="#00A4EF"/>
+							<rect x="12" y="12" width="10" height="10" fill="#FFB900"/>
+						</svg>
+						Continuar con Microsoft
+					</button>
+				</div>
+			</div>
+
+			<!-- ═══════ RESET PASSWORD VIEW ═══════ -->
+			<div id="resetView" class="hidden">
+				<button class="back-to-login" onclick="hideResetPassword()">
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+					Volver al inicio de sesión
+				</button>
+				<h1 style="font-size:1.6rem; margin-bottom:0.5rem;">Restablecer Contraseña</h1>
+				<p class="subtitle" style="margin-bottom:2rem;">Introduce tu correo y te enviaremos un enlace para restablecer tu contraseña.</p>
+				<form class="auth-form" onsubmit="handleResetPassword(event)">
+					<div class="form-group">
+						<label for="resetEmail">Correo electrónico</label>
+						<input type="email" id="resetEmail" placeholder="tu@email.com" required autocomplete="email">
+					</div>
+					<button type="submit" class="btn-submit" id="resetBtn">
+						Enviar Enlace
+					</button>
+				</form>
+			</div>
+
+			<!-- Footer -->
+			<div class="auth-footer" id="authFooter">
+				Al continuar, aceptas nuestros <a href="#">Términos de Uso</a> y <a href="#">Política de Privacidad</a>
+			</div>
+		</div>
+	</main>
+
+	<script>
+		// ═══════════════════════════════════════════════
+		// FIREBASE CONFIGURATION
+		// ═══════════════════════════════════════════════
+		// ⚠️ IMPORTANTE: Reemplaza esta configuración con
+		// los datos de tu proyecto Firebase.
+		// Ve a https://console.firebase.google.com
+		// 1. Crea un proyecto (o usa uno existente)
+		// 2. Activa Authentication > Proveedores:
+		//    - Correo/Contraseña
+		//    - Google
+		//    - Microsoft
+		// 3. Copia la configuración de tu app web aquí:
+		// ═══════════════════════════════════════════════
+
+		const firebaseConfig = {
+			apiKey: "TU_API_KEY",
+			authDomain: "TU_PROYECTO.firebaseapp.com",
+			projectId: "TU_PROYECTO",
+			storageBucket: "TU_PROYECTO.appspot.com",
+			messagingSenderId: "TU_SENDER_ID",
+			appId: "TU_APP_ID"
+		};
+
+		// Initialize Firebase
+		firebase.initializeApp(firebaseConfig);
+		const auth = firebase.auth();
+
+		// Auth providers
+		const googleProvider = new firebase.auth.GoogleAuthProvider();
+		const microsoftProvider = new firebase.auth.OAuthProvider('microsoft.com');
+
+		// Configure Microsoft provider (optional scopes)
+		microsoftProvider.setCustomParameters({
+			prompt: 'select_account'
+		});
+
+		// ═══════════════════════════════════════
+		// UI STATE MANAGEMENT
+		// ═══════════════════════════════════════
+
+		function switchTab(tab) {
+			const loginForm = document.getElementById('loginForm');
+			const registerForm = document.getElementById('registerForm');
+			const tabLogin = document.getElementById('tabLogin');
+			const tabRegister = document.getElementById('tabRegister');
+
+			clearMessage();
+
+			if (tab === 'login') {
+				loginForm.classList.remove('hidden');
+				registerForm.classList.add('hidden');
+				tabLogin.classList.add('active');
+				tabRegister.classList.remove('active');
+			} else {
+				loginForm.classList.add('hidden');
+				registerForm.classList.remove('hidden');
+				tabLogin.classList.remove('active');
+				tabRegister.classList.add('active');
+			}
+		}
+
+		function togglePassword(inputId, btn) {
+			const input = document.getElementById(inputId);
+			const isPassword = input.type === 'password';
+			input.type = isPassword ? 'text' : 'password';
+
+			btn.innerHTML = isPassword
+				? '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>'
+				: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
+		}
+
+		function showResetPassword(e) {
+			e.preventDefault();
+			clearMessage();
+			document.getElementById('loginView').classList.add('hidden');
+			document.getElementById('resetView').classList.remove('hidden');
+		}
+
+		function hideResetPassword() {
+			clearMessage();
+			document.getElementById('resetView').classList.add('hidden');
+			document.getElementById('loginView').classList.remove('hidden');
+		}
+
+		function showMessage(text, type) {
+			const msg = document.getElementById('authMessage');
+			msg.textContent = text;
+			msg.className = 'auth-message ' + type;
+		}
+
+		function clearMessage() {
+			const msg = document.getElementById('authMessage');
+			msg.className = 'auth-message';
+			msg.textContent = '';
+		}
+
+		function setLoading(btnId, loading) {
+			const btn = document.getElementById(btnId);
+			if (loading) {
+				btn.disabled = true;
+				btn.dataset.originalText = btn.textContent;
+				btn.innerHTML = '<span class="spinner"></span>Procesando...';
+			} else {
+				btn.disabled = false;
+				btn.textContent = btn.dataset.originalText || btn.textContent;
+			}
+		}
+
+		// Translate Firebase error codes to Spanish
+		function translateError(code) {
+			const errors = {
+				'auth/email-already-in-use': 'Este correo ya está registrado. Intenta iniciar sesión.',
+				'auth/invalid-email': 'El correo electrónico no es válido.',
+				'auth/user-disabled': 'Esta cuenta ha sido desactivada.',
+				'auth/user-not-found': 'No existe una cuenta con este correo.',
+				'auth/wrong-password': 'La contraseña es incorrecta.',
+				'auth/invalid-credential': 'Las credenciales son incorrectas. Revisa tu correo y contraseña.',
+				'auth/weak-password': 'La contraseña debe tener al menos 6 caracteres.',
+				'auth/too-many-requests': 'Demasiados intentos. Espera unos minutos.',
+				'auth/popup-closed-by-user': 'La ventana de autenticación fue cerrada.',
+				'auth/popup-blocked': 'El navegador bloqueó la ventana emergente. Permite las ventanas emergentes e inténtalo de nuevo.',
+				'auth/account-exists-with-different-credential': 'Ya existe una cuenta con este correo usando otro método de inicio de sesión.',
+				'auth/network-request-failed': 'Error de red. Comprueba tu conexión a internet.',
+				'auth/cancelled-popup-request': 'Se canceló la solicitud de autenticación.',
+				'auth/operation-not-allowed': 'Este método de inicio de sesión no está habilitado.',
+			};
+			return errors[code] || 'Ha ocurrido un error. Inténtalo de nuevo.';
+		}
+
+		// ═══════════════════════════════════════
+		// AUTHENTICATION HANDLERS
+		// ═══════════════════════════════════════
+
+		// Redirect after successful login
+		function onLoginSuccess(user) {
+			showMessage('¡Bienvenido, ' + (user.displayName || user.email) + '!', 'success');
+			setTimeout(() => {
+				window.location.href = './index.html';
+			}, 1000);
+		}
+
+		// Email/Password Login
+		async function handleLogin(e) {
+			e.preventDefault();
+			clearMessage();
+			setLoading('loginBtn', true);
+
+			const email = document.getElementById('loginEmail').value;
+			const password = document.getElementById('loginPassword').value;
+
+			try {
+				const result = await auth.signInWithEmailAndPassword(email, password);
+				onLoginSuccess(result.user);
+			} catch (error) {
+				showMessage(translateError(error.code), 'error');
+				setLoading('loginBtn', false);
+			}
+		}
+
+		// Email/Password Register
+		async function handleRegister(e) {
+			e.preventDefault();
+			clearMessage();
+
+			const name = document.getElementById('regName').value;
+			const surname = document.getElementById('regSurname').value;
+			const email = document.getElementById('regEmail').value;
+			const password = document.getElementById('regPassword').value;
+			const passwordConfirm = document.getElementById('regPasswordConfirm').value;
+
+			if (password !== passwordConfirm) {
+				showMessage('Las contraseñas no coinciden.', 'error');
+				return;
+			}
+
+			setLoading('registerBtn', true);
+
+			try {
+				const result = await auth.createUserWithEmailAndPassword(email, password);
+
+				// Update display name
+				await result.user.updateProfile({
+					displayName: name + ' ' + surname
+				});
+
+				onLoginSuccess(result.user);
+			} catch (error) {
+				showMessage(translateError(error.code), 'error');
+				setLoading('registerBtn', false);
+			}
+		}
+
+		// Google OAuth
+		async function loginWithGoogle() {
+			clearMessage();
+			try {
+				const result = await auth.signInWithPopup(googleProvider);
+				onLoginSuccess(result.user);
+			} catch (error) {
+				if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+					showMessage(translateError(error.code), 'error');
+				}
+			}
+		}
+
+		// Microsoft OAuth
+		async function loginWithMicrosoft() {
+			clearMessage();
+			try {
+				const result = await auth.signInWithPopup(microsoftProvider);
+				onLoginSuccess(result.user);
+			} catch (error) {
+				if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+					showMessage(translateError(error.code), 'error');
+				}
+			}
+		}
+
+		// Password Reset
+		async function handleResetPassword(e) {
+			e.preventDefault();
+			clearMessage();
+			setLoading('resetBtn', true);
+
+			const email = document.getElementById('resetEmail').value;
+
+			try {
+				await auth.sendPasswordResetEmail(email);
+				showMessage('Se ha enviado un enlace de restablecimiento a tu correo.', 'success');
+				setLoading('resetBtn', false);
+			} catch (error) {
+				showMessage(translateError(error.code), 'error');
+				setLoading('resetBtn', false);
+			}
+		}
+
+		// ═══════════════════════════════════════
+		// AUTH STATE LISTENER
+		// ═══════════════════════════════════════
+		// If user is already logged in, redirect to home
+		auth.onAuthStateChanged((user) => {
+			if (user) {
+				// User is signed in - redirect unless we just showed success
+				const msg = document.getElementById('authMessage');
+				if (!msg.classList.contains('success')) {
+					window.location.href = './index.html';
+				}
+			}
+		});
+	</script>
+</body>
+</html>
