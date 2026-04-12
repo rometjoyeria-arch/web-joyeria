@@ -1,25 +1,328 @@
-// 2. Llamar a la Edge Function Joyas (genera imagen + guarda en DB + envía emails)
-		let aiResult = null;
+(function() {
+	'use strict';
+
+	const STORAGE_KEY = 'romet_design_state';
+
+	const defaultState = {
+		step: 1,
+		category: null,
+		material: null,
+		profile: null,
+		gemstone: null,
+		style: null,
+		budget: null,
+		weight: null,
+		size: null,
+		name: null,
+		phone: null,
+		email: null,
+		notes: null,
+	};
+
+	function loadState() {
 		try {
-			aiResult = await callEdgeFunction('Joyas', {
-				nombre: state.name,
-				telefono: state.phone,
-				email: state.email,
-				categoria_producto: state.category,
-				material: state.material,
-				perfil_usuario: state.profile,
-				gema_principal: state.gemstone,
-				estilo: state.style,
-				presupuesto: state.budget,
-				peso_estimado: state.weight,
-				talla_medida: state.size,
-				sugerencias: state.notes,
-			});
-		} catch (aiError) {
-			console.warn('[Romet] Edge function call failed:', aiError);
-			aiResult = { imagenUrl: null };
+			const saved = sessionStorage.getItem(STORAGE_KEY);
+			return saved ? { ...defaultState, ...JSON.parse(saved) } : { ...defaultState };
+		} catch (e) {
+			return { ...defaultState };
+		}
+	}
+
+	function saveState(state) {
+		sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+	}
+
+	function clearState() {
+		sessionStorage.removeItem(STORAGE_KEY);
+	}
+
+	function detectCurrentStep() {
+		const bodyText = document.body.textContent || '';
+		if (bodyText.includes('Paso 1 de 7') || bodyText.includes('Categoría')) return 1;
+		if (bodyText.includes('Paso 2 de 7') || bodyText.includes('Material')) return 2;
+		if (bodyText.includes('Paso 3 de 7') || bodyText.includes('Perfil')) return 3;
+		if (bodyText.includes('Paso 4 de 7') || bodyText.includes('Gema')) return 4;
+		if (bodyText.includes('Paso 5 de 7') || bodyText.includes('Estilo')) return 5;
+		if (bodyText.includes('Paso 6 de 7') || bodyText.includes('Especificaciones')) return 6;
+		if (bodyText.includes('Paso 7 de 7') || bodyText.includes('Registro')) return 7;
+		return null;
+	}
+
+	function hookFormInputs(step) {
+		const state = loadState();
+
+		if (step === 6) {
+			const inputs = document.querySelectorAll('input');
+			if (inputs[0]) {
+				inputs[0].addEventListener('input', function() { state.budget = this.value; saveState(state); });
+				if (state.budget) inputs[0].value = state.budget;
+			}
+			if (inputs[1]) {
+				inputs[1].addEventListener('input', function() { state.weight = this.value; saveState(state); });
+				if (state.weight) inputs[1].value = state.weight;
+			}
+			if (inputs[2]) {
+				inputs[2].addEventListener('input', function() { state.size = this.value; saveState(state); });
+				if (state.size) inputs[2].value = state.size;
+			}
 		}
 
-		// 3. Mostrar pantalla de éxito
-		showSuccessScreen(state, aiResult);
-		clearState();
+		if (step === 7) {
+			const allInputs = document.querySelectorAll('input, textarea');
+			allInputs.forEach((input) => {
+				const type = input.type;
+				const label = input.closest('.space-y-2')?.querySelector('label')?.textContent?.toLowerCase() || '';
+
+				input.addEventListener('input', function() {
+					if (label.includes('nombre') || (type === 'text' && !label.includes('talla'))) {
+						state.name = input.value;
+					} else if (label.includes('telefono') || label.includes('teléfono') || type === 'tel') {
+						state.phone = input.value;
+					} else if (label.includes('correo') || label.includes('email') || type === 'email') {
+						state.email = input.value;
+					} else if (input.tagName === 'TEXTAREA') {
+						state.notes = input.value;
+					}
+					saveState(state);
+					checkSubmitValidity();
+				});
+
+				// Restaurar valores
+				if ((label.includes('nombre') || type === 'text') && state.name) input.value = state.name;
+				if ((label.includes('telefono') || type === 'tel') && state.phone) input.value = state.phone;
+				if ((label.includes('correo') || type === 'email') && state.email) input.value = state.email;
+				if (input.tagName === 'TEXTAREA' && state.notes) input.value = state.notes;
+			});
+
+			autoFillFromSession(state);
+			checkSubmitValidity();
+		}
+	}
+
+	async function autoFillFromSession(state) {
+		try {
+			const session = await getSession();
+			if (!session) return;
+			const user = session.user;
+
+			const nameInput = document.querySelector('input[type="text"]');
+			const emailInput = document.querySelector('input[type="email"]');
+
+			if (nameInput && !nameInput.value) {
+				nameInput.value = user.user_metadata?.full_name ||
+				                  ((user.user_metadata?.first_name || '') + ' ' + (user.user_metadata?.last_name || '')).trim();
+				state.name = nameInput.value;
+			}
+			if (emailInput && !emailInput.value) {
+				emailInput.value = user.email || '';
+				state.email = emailInput.value;
+			}
+			saveState(state);
+			checkSubmitValidity();
+		} catch(e) {
+			console.warn('autoFillFromSession error:', e);
+		}
+	}
+
+	function checkSubmitValidity() {
+		const submitBtn = document.querySelector('button[type="submit"]');
+		if (!submitBtn) return;
+		const state = loadState();
+		const valid = state.name && state.email && state.phone;
+		submitBtn.disabled = !valid;
+	}
+
+	function hookSubmitButton() {
+		const form = document.querySelector('form');
+		const submitBtn = document.querySelector('button[type="submit"]');
+		if (!submitBtn) return;
+
+		if (form) {
+			form.addEventListener('submit', handleDesignSubmit);
+		} else {
+			submitBtn.addEventListener('click', handleDesignSubmit);
+		}
+	}
+
+	async function handleDesignSubmit(e) {
+		e.preventDefault();
+		const state = loadState();
+		const submitBtn = document.querySelector('button[type="submit"]');
+
+		if (!state.name || !state.email) {
+			showNotification('Por favor, completa tu nombre y correo electrónico.', 'error');
+			return;
+		}
+
+		submitBtn.disabled = true;
+		const originalText = submitBtn.textContent;
+		submitBtn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px;"><svg class="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>Generando tu diseño con IA...</span>';
+
+		try {
+			// Llamar a la Edge Function Joyas
+			let aiResult = null;
+			try {
+				aiResult = await callEdgeFunction('Joyas', {
+					nombre: state.name,
+					telefono: state.phone,
+					email: state.email,
+					categoria_producto: state.category,
+					material: state.material,
+					perfil_usuario: state.profile,
+					gema_principal: state.gemstone,
+					estilo: state.style,
+					presupuesto: state.budget,
+					peso_estimado: state.weight,
+					talla_medida: state.size,
+					sugerencias: state.notes,
+				});
+			} catch (aiError) {
+				console.warn('[Romet] Edge function call failed:', aiError);
+				aiResult = { imagenUrl: null };
+			}
+
+			showSuccessScreen(state, aiResult);
+			clearState();
+
+		} catch (error) {
+			console.error('[Romet] Design submission error:', error);
+			showNotification('Ha ocurrido un error. Por favor, inténtalo de nuevo.', 'error');
+			submitBtn.disabled = false;
+			submitBtn.textContent = originalText;
+		}
+	}
+
+	function showSuccessScreen(state, aiResult) {
+		const main = document.querySelector('main') || document.querySelector('.flex-1');
+		if (!main) return;
+
+		const imagenUrl = aiResult?.imagenUrl || null;
+
+		main.innerHTML = `
+			<div class="max-w-3xl mx-auto px-4 py-12 text-center" style="animation: fadeInUp 0.8s ease-out;">
+				<div class="mb-8">
+					<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none"
+					     stroke="hsl(120, 40%, 40%)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+					     style="margin: 0 auto 1.5rem;">
+						<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+						<polyline points="22 4 12 14.01 9 11.01"/>
+					</svg>
+					<h1 class="text-4xl md:text-5xl text-foreground tracking-widest uppercase font-medium mb-4">
+						¡Diseño Creado!
+					</h1>
+					<p class="text-muted-foreground font-sans tracking-wide max-w-lg mx-auto text-lg">
+						Hemos recibido tu solicitud, <strong>${state.name}</strong>.
+						Te contactaremos pronto en <strong>${state.email}</strong>.
+					</p>
+				</div>
+
+				${imagenUrl ? `
+				<div class="bg-white p-8 rounded-2xl shadow-lg border border-border/50 mb-8"
+				     style="animation: fadeInUp 0.8s ease-out 0.2s both;">
+					<h2 class="text-xl tracking-widest uppercase text-foreground font-medium mb-4">Tu Diseño Generado</h2>
+					<img src="${imagenUrl}" style="max-width:100%; border-radius:8px;" />
+				</div>` : `
+				<div class="bg-white p-8 rounded-2xl shadow-lg border border-border/50 mb-8"
+				     style="animation: fadeInUp 0.8s ease-out 0.2s both;">
+					<p class="text-muted-foreground font-sans">
+						Tu diseño está siendo procesado. Recibirás un email con el resultado en breve.
+					</p>
+				</div>`}
+
+				<div class="bg-white p-6 rounded-2xl shadow-lg border border-border/50 text-left mb-8"
+				     style="animation: fadeInUp 0.8s ease-out 0.4s both;">
+					<h2 class="text-xl tracking-widest uppercase text-foreground font-medium mb-4">Resumen del Diseño</h2>
+					<div class="grid grid-cols-2 gap-4 font-sans text-sm">
+						${state.category ? `<div><span class="text-muted-foreground">Tipo:</span> <strong class="capitalize">${state.category}</strong></div>` : ''}
+						${state.material ? `<div><span class="text-muted-foreground">Material:</span> <strong class="capitalize">${state.material.replace(/_/g, ' ')}</strong></div>` : ''}
+						${state.gemstone ? `<div><span class="text-muted-foreground">Gema:</span> <strong class="capitalize">${state.gemstone}</strong></div>` : ''}
+						${state.style ? `<div><span class="text-muted-foreground">Estilo:</span> <strong class="capitalize">${state.style}</strong></div>` : ''}
+						${state.budget ? `<div><span class="text-muted-foreground">Presupuesto:</span> <strong>${state.budget}€</strong></div>` : ''}
+						${state.size ? `<div><span class="text-muted-foreground">Talla:</span> <strong>${state.size}</strong></div>` : ''}
+					</div>
+				</div>
+
+				<div class="flex gap-4 justify-center" style="animation: fadeInUp 0.8s ease-out 0.6s both;">
+					<a href="./index.html"
+					   class="px-8 py-4 bg-[hsl(var(--button-bg,0_0%_0%))] text-[hsl(var(--button-text,0_0%_100%))]
+					          text-sm tracking-[0.2em] uppercase hover:opacity-90 transition-all duration-300
+					          font-medium no-underline inline-block">
+						Volver al Inicio
+					</a>
+					<a href="./designer-paso1.html"
+					   class="px-8 py-4 border border-border text-foreground
+					          text-sm tracking-[0.2em] uppercase hover:bg-muted transition-all duration-300
+					          font-medium no-underline inline-block">
+						Nuevo Diseño
+					</a>
+				</div>
+			</div>
+		`;
+
+		if (!document.getElementById('romet-animations')) {
+			const style = document.createElement('style');
+			style.id = 'romet-animations';
+			style.textContent = `
+				@keyframes fadeInUp {
+					from { opacity: 0; transform: translateY(20px); }
+					to { opacity: 1; transform: translateY(0); }
+				}
+				.animate-spin { animation: spin 1s linear infinite; }
+				@keyframes spin { to { transform: rotate(360deg); } }
+			`;
+			document.head.appendChild(style);
+		}
+
+		const bottomNav = document.querySelector('.fixed.bottom-0');
+		if (bottomNav) bottomNav.style.display = 'none';
+	}
+
+	function showNotification(message, type = 'info') {
+		document.querySelector('.romet-notification')?.remove();
+
+		const colors = {
+			success: { bg: 'hsl(120, 40%, 96%)', border: 'hsl(120, 40%, 80%)', text: 'hsl(120, 40%, 30%)' },
+			error: { bg: 'hsl(0, 84%, 97%)', border: 'hsl(0, 84%, 85%)', text: 'hsl(0, 84%, 40%)' },
+			info: { bg: 'hsl(210, 40%, 96%)', border: 'hsl(210, 40%, 80%)', text: 'hsl(210, 40%, 30%)' },
+		};
+
+		const c = colors[type] || colors.info;
+		const notification = document.createElement('div');
+		notification.className = 'romet-notification';
+		notification.style.cssText = `
+			position: fixed; top: 24px; right: 24px; z-index: 9999;
+			padding: 16px 24px; max-width: 400px;
+			background: ${c.bg}; border: 1px solid ${c.border}; color: ${c.text};
+			font-family: ui-sans-serif, system-ui, sans-serif; font-size: 14px;
+			border-radius: 8px; box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+		`;
+		notification.textContent = message;
+		document.body.appendChild(notification);
+		setTimeout(() => notification.remove(), 5000);
+	}
+
+	function init() {
+		const step = detectCurrentStep();
+		if (step === null) return;
+
+		if (step === 6) hookFormInputs(6);
+		if (step === 7) {
+			hookFormInputs(7);
+			hookSubmitButton();
+		}
+	}
+
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', init);
+	} else {
+		setTimeout(init, 300);
+	}
+
+	window.RometDesigner = {
+		loadState,
+		saveState,
+		clearState,
+		showNotification,
+	};
+
+})();
