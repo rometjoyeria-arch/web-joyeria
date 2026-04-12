@@ -1,7 +1,7 @@
 (function() {
 	'use strict';
 
-	const GEMINI_API_KEY = 'AIzaSyANfg8B0SVekGEy54T0B_SPOa5Xt2_iYMU';
+	const GEMINI_API_KEY = 'AIzaSyA9866usVj8EDVg_E21iuaHYiw8mw6_pyo';
 
 	const STORAGE_KEY = 'romet_design_state';
 
