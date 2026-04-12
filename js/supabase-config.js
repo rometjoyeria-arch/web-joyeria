@@ -151,3 +151,15 @@ async function uploadImage(file, bucket = 'disenos') {
 
 	return urlData.publicUrl;
 }
+
+// ═══════════════════════════════════════
+// Inicialización con reintento automático
+// Espera a que el SDK de Supabase esté disponible
+// ═══════════════════════════════════════
+function initWhenReady(callback) {
+	if (typeof window.supabase !== 'undefined') {
+		callback();
+	} else {
+		setTimeout(() => initWhenReady(callback), 100);
+	}
+}
