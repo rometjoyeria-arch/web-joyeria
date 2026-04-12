@@ -6,9 +6,14 @@ const SUPABASE_URL = 'https://ktysptwemewbyanagdwu.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0eXNwdHdlbWV3YnlhbmFnZHd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NDgwNTcsImV4cCI6MjA5MTIyNDA1N30.TMngS67DASOUD1s6VH8MZa_XDEwMEIG1VSowkc8yx0E';
 
 let _supabaseClient = null;
+
 function getSupabase() {
 	if (!_supabaseClient) {
-		const { createClient } = supabase;
+		const supabaseLib = window.supabase;
+		if (!supabaseLib) {
+			throw new Error('Supabase SDK no cargado aún');
+		}
+		const { createClient } = supabaseLib;
 		_supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 	}
 	return _supabaseClient;
@@ -41,29 +46,33 @@ async function signOut() {
 }
 
 async function initHeaderAuth() {
-	const session = await getSession();
-	const authLink = document.getElementById('header-auth-link');
-	if (!authLink) return;
+	try {
+		const session = await getSession();
+		const authLink = document.getElementById('header-auth-link');
+		if (!authLink) return;
 
-	if (session) {
-		const name = session.user.user_metadata?.first_name 
-			|| session.user.user_metadata?.full_name
-			|| session.user.email.split('@')[0];
+		if (session) {
+			const name = session.user.user_metadata?.first_name
+				|| session.user.user_metadata?.full_name
+				|| session.user.email.split('@')[0];
 
-		authLink.textContent = 'Cerrar Sesion';
-		authLink.href = '#';
-		authLink.onclick = async (e) => {
-			e.preventDefault();
-			await signOut();
-		};
+			authLink.textContent = 'Cerrar Sesión';
+			authLink.href = '#';
+			authLink.onclick = async (e) => {
+				e.preventDefault();
+				await signOut();
+			};
 
-		const nav = authLink.parentElement;
-		if (nav && !nav.querySelector('.user-greeting')) {
-			const greeting = document.createElement('span');
-			greeting.className = 'user-greeting text-xs md:text-sm tracking-[0.1em] text-muted-foreground uppercase hidden md:inline';
-			greeting.textContent = 'Hola, ' + name;
-			nav.insertBefore(greeting, authLink);
+			const nav = authLink.parentElement;
+			if (nav && !nav.querySelector('.user-greeting')) {
+				const greeting = document.createElement('span');
+				greeting.className = 'user-greeting text-xs md:text-sm tracking-[0.1em] text-muted-foreground uppercase hidden md:inline';
+				greeting.textContent = 'Hola, ' + name;
+				nav.insertBefore(greeting, authLink);
+			}
 		}
+	} catch(e) {
+		console.warn('initHeaderAuth error:', e);
 	}
 }
 
