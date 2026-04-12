@@ -8,9 +8,8 @@
 	<meta name="description" content="Accede a tu cuenta de Romet Joyería IA para diseñar joyas personalizadas con inteligencia artificial.">
 	<link rel="stylesheet" crossorigin="" href="./index_files/index-xtSdOPat.css?v=2">
 
-	<!-- Firebase SDK -->
-	<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-	<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+	<!-- Supabase SDK -->
+	<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
 	<style>
 		@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap');
@@ -98,14 +97,8 @@
 		}
 
 		@keyframes cardFadeIn {
-			from {
-				opacity: 0;
-				transform: translateY(16px);
-			}
-			to {
-				opacity: 1;
-				transform: translateY(0);
-			}
+			from { opacity: 0; transform: translateY(16px); }
+			to { opacity: 1; transform: translateY(0); }
 		}
 
 		.login-card h1 {
@@ -199,9 +192,7 @@
 			box-shadow: 0 0 0 1px hsl(0 0% 20%);
 		}
 
-		.form-group input::placeholder {
-			color: hsl(0 0% 65%);
-		}
+		.form-group input::placeholder { color: hsl(0 0% 65%); }
 
 		.password-toggle {
 			position: absolute;
@@ -218,10 +209,7 @@
 
 		.password-toggle:hover { color: hsl(0 0% 20%); }
 
-		.forgot-link {
-			text-align: right;
-			margin-top: -0.5rem;
-		}
+		.forgot-link { text-align: right; margin-top: -0.5rem; }
 
 		.forgot-link a {
 			font-size: 0.85rem;
@@ -254,10 +242,7 @@
 
 		.btn-submit:hover { background: hsl(0 0% 15%); }
 
-		.btn-submit:disabled {
-			opacity: 0.6;
-			cursor: not-allowed;
-		}
+		.btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
 
 		.btn-submit .spinner {
 			display: inline-block;
@@ -382,21 +367,6 @@
 		/* ─── Hidden elements ─── */
 		.hidden { display: none !important; }
 
-		/* ─── Responsive ─── */
-		@media (max-width: 480px) {
-			.login-card {
-				padding: 2rem 1.5rem;
-			}
-
-			.login-card h1 {
-				font-size: 1.6rem;
-			}
-
-			.logo-text {
-				font-size: 1.25rem;
-			}
-		}
-
 		/* ─── Name fields grid ─── */
 		.name-fields {
 			display: grid;
@@ -404,13 +374,7 @@
 			gap: 1rem;
 		}
 
-		@media (max-width: 480px) {
-			.name-fields {
-				grid-template-columns: 1fr;
-			}
-		}
-
-		/* ─── Reset password form ─── */
+		/* ─── Back button ─── */
 		.back-to-login {
 			display: inline-flex;
 			align-items: center;
@@ -428,12 +392,20 @@
 
 		.back-to-login:hover { color: hsl(0 0% 15%); }
 
-		/* Decorative accents */
+		/* Decorative accent */
 		.accent-line {
 			width: 40px;
 			height: 1px;
 			background: hsl(0 0% 40%);
 			margin: 0 auto 1.5rem;
+		}
+
+		/* ─── Responsive ─── */
+		@media (max-width: 480px) {
+			.login-card { padding: 2rem 1.5rem; }
+			.login-card h1 { font-size: 1.6rem; }
+			.logo-text { font-size: 1.25rem; }
+			.name-fields { grid-template-columns: 1fr; }
 		}
 	</style>
 </head>
@@ -524,7 +496,6 @@
 				<!-- OAuth Buttons -->
 				<div class="oauth-buttons">
 					<button class="btn-oauth" onclick="loginWithGoogle()" id="googleBtn">
-						<!-- Google Icon -->
 						<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
 							<path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
 							<path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -534,7 +505,6 @@
 						Continuar con Google
 					</button>
 					<button class="btn-oauth" onclick="loginWithMicrosoft()" id="microsoftBtn">
-						<!-- Microsoft Icon -->
 						<svg viewBox="0 0 23 23" xmlns="http://www.w3.org/2000/svg">
 							<rect x="1" y="1" width="10" height="10" fill="#F25022"/>
 							<rect x="12" y="1" width="10" height="10" fill="#7FBA00"/>
@@ -574,40 +544,21 @@
 
 	<script>
 		// ═══════════════════════════════════════════════
-		// FIREBASE CONFIGURATION
+		// SUPABASE CONFIGURATION
 		// ═══════════════════════════════════════════════
-		// ⚠️ IMPORTANTE: Reemplaza esta configuración con
-		// los datos de tu proyecto Firebase.
-		// Ve a https://console.firebase.google.com
-		// 1. Crea un proyecto (o usa uno existente)
-		// 2. Activa Authentication > Proveedores:
-		//    - Correo/Contraseña
-		//    - Google
-		//    - Microsoft
-		// 3. Copia la configuración de tu app web aquí:
+		// Reemplaza estos valores con los de tu proyecto Supabase.
+		// Los encuentras en: Settings > API en tu dashboard de Supabase.
 		// ═══════════════════════════════════════════════
 
-		const firebaseConfig = {
-			apiKey: "TU_API_KEY",
-			authDomain: "TU_PROYECTO.firebaseapp.com",
-			projectId: "TU_PROYECTO",
-			storageBucket: "TU_PROYECTO.appspot.com",
-			messagingSenderId: "TU_SENDER_ID",
-			appId: "TU_APP_ID"
-		};
+		const SUPABASE_URL = 'https://TU_PROYECTO.supabase.co';
+		const SUPABASE_ANON_KEY = 'TU_ANON_KEY';
 
-		// Initialize Firebase
-		firebase.initializeApp(firebaseConfig);
-		const auth = firebase.auth();
+		// Initialize Supabase client
+		const { createClient } = supabase;
+		const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-		// Auth providers
-		const googleProvider = new firebase.auth.GoogleAuthProvider();
-		const microsoftProvider = new firebase.auth.OAuthProvider('microsoft.com');
-
-		// Configure Microsoft provider (optional scopes)
-		microsoftProvider.setCustomParameters({
-			prompt: 'select_account'
-		});
+		// Redirect URL for OAuth (adjust to your deployed domain)
+		const REDIRECT_URL = window.location.origin + '/login.html';
 
 		// ═══════════════════════════════════════
 		// UI STATE MANAGEMENT
@@ -618,7 +569,6 @@
 			const registerForm = document.getElementById('registerForm');
 			const tabLogin = document.getElementById('tabLogin');
 			const tabRegister = document.getElementById('tabRegister');
-
 			clearMessage();
 
 			if (tab === 'login') {
@@ -638,7 +588,6 @@
 			const input = document.getElementById(inputId);
 			const isPassword = input.type === 'password';
 			input.type = isPassword ? 'text' : 'password';
-
 			btn.innerHTML = isPassword
 				? '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>'
 				: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
@@ -681,40 +630,36 @@
 			}
 		}
 
-		// Translate Firebase error codes to Spanish
-		function translateError(code) {
-			const errors = {
-				'auth/email-already-in-use': 'Este correo ya está registrado. Intenta iniciar sesión.',
-				'auth/invalid-email': 'El correo electrónico no es válido.',
-				'auth/user-disabled': 'Esta cuenta ha sido desactivada.',
-				'auth/user-not-found': 'No existe una cuenta con este correo.',
-				'auth/wrong-password': 'La contraseña es incorrecta.',
-				'auth/invalid-credential': 'Las credenciales son incorrectas. Revisa tu correo y contraseña.',
-				'auth/weak-password': 'La contraseña debe tener al menos 6 caracteres.',
-				'auth/too-many-requests': 'Demasiados intentos. Espera unos minutos.',
-				'auth/popup-closed-by-user': 'La ventana de autenticación fue cerrada.',
-				'auth/popup-blocked': 'El navegador bloqueó la ventana emergente. Permite las ventanas emergentes e inténtalo de nuevo.',
-				'auth/account-exists-with-different-credential': 'Ya existe una cuenta con este correo usando otro método de inicio de sesión.',
-				'auth/network-request-failed': 'Error de red. Comprueba tu conexión a internet.',
-				'auth/cancelled-popup-request': 'Se canceló la solicitud de autenticación.',
-				'auth/operation-not-allowed': 'Este método de inicio de sesión no está habilitado.',
-			};
-			return errors[code] || 'Ha ocurrido un error. Inténtalo de nuevo.';
+		// Translate Supabase error messages to Spanish
+		function translateError(message) {
+			const lc = (message || '').toLowerCase();
+			if (lc.includes('invalid login credentials')) return 'Las credenciales son incorrectas. Revisa tu correo y contraseña.';
+			if (lc.includes('email not confirmed')) return 'Debes confirmar tu correo electrónico. Revisa tu bandeja de entrada.';
+			if (lc.includes('user already registered')) return 'Este correo ya está registrado. Intenta iniciar sesión.';
+			if (lc.includes('password should be at least')) return 'La contraseña debe tener al menos 6 caracteres.';
+			if (lc.includes('email rate limit exceeded') || lc.includes('rate limit')) return 'Demasiados intentos. Espera unos minutos.';
+			if (lc.includes('invalid email')) return 'El correo electrónico no es válido.';
+			if (lc.includes('signup is disabled') || lc.includes('signups not allowed')) return 'El registro de nuevos usuarios no está habilitado actualmente.';
+			if (lc.includes('user not found')) return 'No existe una cuenta con este correo.';
+			if (lc.includes('new password should be different')) return 'La nueva contraseña debe ser diferente a la anterior.';
+			if (lc.includes('provider is not enabled')) return 'Este método de inicio de sesión no está habilitado. Contacta al administrador.';
+			if (lc.includes('popup_closed') || lc.includes('user cancelled')) return 'La ventana de autenticación fue cerrada.';
+			return message || 'Ha ocurrido un error. Inténtalo de nuevo.';
 		}
 
 		// ═══════════════════════════════════════
 		// AUTHENTICATION HANDLERS
 		// ═══════════════════════════════════════
 
-		// Redirect after successful login
 		function onLoginSuccess(user) {
-			showMessage('¡Bienvenido, ' + (user.displayName || user.email) + '!', 'success');
+			const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email;
+			showMessage('¡Bienvenido, ' + name + '!', 'success');
 			setTimeout(() => {
 				window.location.href = './index.html';
 			}, 1000);
 		}
 
-		// Email/Password Login
+		// ─── Email/Password Login ───
 		async function handleLogin(e) {
 			e.preventDefault();
 			clearMessage();
@@ -723,16 +668,21 @@
 			const email = document.getElementById('loginEmail').value;
 			const password = document.getElementById('loginPassword').value;
 
-			try {
-				const result = await auth.signInWithEmailAndPassword(email, password);
-				onLoginSuccess(result.user);
-			} catch (error) {
-				showMessage(translateError(error.code), 'error');
+			const { data, error } = await _supabase.auth.signInWithPassword({
+				email: email,
+				password: password,
+			});
+
+			if (error) {
+				showMessage(translateError(error.message), 'error');
 				setLoading('loginBtn', false);
+				return;
 			}
+
+			onLoginSuccess(data.user);
 		}
 
-		// Email/Password Register
+		// ─── Email/Password Register ───
 		async function handleRegister(e) {
 			e.preventDefault();
 			clearMessage();
@@ -750,48 +700,77 @@
 
 			setLoading('registerBtn', true);
 
-			try {
-				const result = await auth.createUserWithEmailAndPassword(email, password);
+			const { data, error } = await _supabase.auth.signUp({
+				email: email,
+				password: password,
+				options: {
+					data: {
+						full_name: name + ' ' + surname,
+						first_name: name,
+						last_name: surname,
+					},
+					emailRedirectTo: REDIRECT_URL,
+				}
+			});
 
-				// Update display name
-				await result.user.updateProfile({
-					displayName: name + ' ' + surname
-				});
+			if (error) {
+				showMessage(translateError(error.message), 'error');
+				setLoading('registerBtn', false);
+				return;
+			}
 
-				onLoginSuccess(result.user);
-			} catch (error) {
-				showMessage(translateError(error.code), 'error');
+			// Check if email confirmation is required
+			if (data.user && data.user.identities && data.user.identities.length === 0) {
+				// User already exists
+				showMessage('Este correo ya está registrado. Intenta iniciar sesión.', 'error');
+				setLoading('registerBtn', false);
+				return;
+			}
+
+			if (data.session) {
+				// Auto-confirmed (email confirmation disabled in Supabase)
+				onLoginSuccess(data.user);
+			} else {
+				// Email confirmation required
+				showMessage('¡Cuenta creada! Revisa tu correo electrónico para confirmar tu cuenta.', 'success');
 				setLoading('registerBtn', false);
 			}
 		}
 
-		// Google OAuth
+		// ─── Google OAuth ───
 		async function loginWithGoogle() {
 			clearMessage();
-			try {
-				const result = await auth.signInWithPopup(googleProvider);
-				onLoginSuccess(result.user);
-			} catch (error) {
-				if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
-					showMessage(translateError(error.code), 'error');
+			const { data, error } = await _supabase.auth.signInWithOAuth({
+				provider: 'google',
+				options: {
+					redirectTo: REDIRECT_URL,
 				}
+			});
+
+			if (error) {
+				showMessage(translateError(error.message), 'error');
 			}
+			// Supabase will redirect the browser to Google; no further action needed
 		}
 
-		// Microsoft OAuth
+		// ─── Microsoft OAuth ───
 		async function loginWithMicrosoft() {
 			clearMessage();
-			try {
-				const result = await auth.signInWithPopup(microsoftProvider);
-				onLoginSuccess(result.user);
-			} catch (error) {
-				if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
-					showMessage(translateError(error.code), 'error');
+			const { data, error } = await _supabase.auth.signInWithOAuth({
+				provider: 'azure',
+				options: {
+					redirectTo: REDIRECT_URL,
+					scopes: 'email profile openid',
 				}
+			});
+
+			if (error) {
+				showMessage(translateError(error.message), 'error');
 			}
+			// Supabase will redirect the browser to Microsoft; no further action needed
 		}
 
-		// Password Reset
+		// ─── Password Reset ───
 		async function handleResetPassword(e) {
 			e.preventDefault();
 			clearMessage();
@@ -799,29 +778,40 @@
 
 			const email = document.getElementById('resetEmail').value;
 
-			try {
-				await auth.sendPasswordResetEmail(email);
+			const { error } = await _supabase.auth.resetPasswordForEmail(email, {
+				redirectTo: REDIRECT_URL,
+			});
+
+			if (error) {
+				showMessage(translateError(error.message), 'error');
+			} else {
 				showMessage('Se ha enviado un enlace de restablecimiento a tu correo.', 'success');
-				setLoading('resetBtn', false);
-			} catch (error) {
-				showMessage(translateError(error.code), 'error');
-				setLoading('resetBtn', false);
 			}
+
+			setLoading('resetBtn', false);
 		}
 
 		// ═══════════════════════════════════════
 		// AUTH STATE LISTENER
 		// ═══════════════════════════════════════
-		// If user is already logged in, redirect to home
-		auth.onAuthStateChanged((user) => {
-			if (user) {
-				// User is signed in - redirect unless we just showed success
-				const msg = document.getElementById('authMessage');
-				if (!msg.classList.contains('success')) {
-					window.location.href = './index.html';
-				}
+
+		// Check if user is already logged in
+		async function checkSession() {
+			const { data: { session } } = await _supabase.auth.getSession();
+			if (session) {
+				window.location.href = './index.html';
+			}
+		}
+
+		// Listen for auth state changes (handles OAuth redirect return)
+		_supabase.auth.onAuthStateChange((event, session) => {
+			if (event === 'SIGNED_IN' && session) {
+				onLoginSuccess(session.user);
 			}
 		});
+
+		// On page load, check if already authenticated
+		checkSession();
 	</script>
 </body>
 </html>
