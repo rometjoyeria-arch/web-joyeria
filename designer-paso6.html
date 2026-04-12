@@ -12,24 +12,24 @@
 	<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 	<script src="./js/supabase-config.js"></script>
 	<script src="./js/designer-integration.js"></script>
-	<script>
-		document.addEventListener('DOMContentLoaded', () => {
-			getSupabase().auth.getSession().then(({ data: { session } }) => {
-				if (!session) {
-					sessionStorage.setItem('redirectAfterLogin', window.location.href);
-					window.location.href = './login.html';
-				}
-			});
-			initHeaderAuth();
-
-			// Restaurar valores guardados
-			const state = window.RometDesigner?.loadState() || {};
-			const inputs = document.querySelectorAll('input');
-			if (inputs[0] && state.budget) inputs[0].value = state.budget;
-			if (inputs[1] && state.weight) inputs[1].value = state.weight;
-			if (inputs[2] && state.size) inputs[2].value = state.size;
+<script>
+	window.addEventListener('load', () => {
+		getSupabase().auth.getSession().then(({ data: { session } }) => {
+			if (!session) {
+				sessionStorage.setItem('redirectAfterLogin', window.location.href);
+				window.location.href = './login.html';
+			}
 		});
-	</script>
+		initHeaderAuth();
+
+		// Restaurar valores guardados
+		const state = window.RometDesigner?.loadState() || {};
+		const inputs = document.querySelectorAll('input');
+		if (inputs[0] && state.budget) inputs[0].value = state.budget;
+		if (inputs[1] && state.weight) inputs[1].value = state.weight;
+		if (inputs[2] && state.size) inputs[2].value = state.size;
+	});
+</script>
 </head>
 <body>
 	<div id="root">
