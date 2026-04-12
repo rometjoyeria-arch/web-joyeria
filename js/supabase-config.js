@@ -19,7 +19,7 @@ function getSupabase() {
 	return _supabaseClient;
 }
 
-function ensureSupabaseReady() {
+async function ensureSupabaseReady() {
 	return new Promise((resolve) => {
 		function check() {
 			if (typeof window.supabase !== 'undefined') {
@@ -94,20 +94,17 @@ async function initHeaderAuth() {
 	}
 }
 
+// ═══════════════════════════════════════
+// Llamada directa a Edge Function sin SDK
+// ═══════════════════════════════════════
 async function callEdgeFunction(functionName, payload) {
-	await ensureSupabaseReady();
-	const session = await getSession();
-	const headers = {
-		'Content-Type': 'application/json',
-		'apikey': SUPABASE_ANON_KEY,
-	};
-	if (session) {
-		headers['Authorization'] = 'Bearer ' + session.access_token;
-	}
-
 	const response = await fetch(`${SUPABASE_URL}/functions/v1/${functionName}`, {
 		method: 'POST',
-		headers,
+		headers: {
+			'Content-Type': 'application/json',
+			'apikey': SUPABASE_ANON_KEY,
+			'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+		},
 		body: JSON.stringify(payload),
 	});
 
@@ -187,5 +184,4 @@ function initWhenReady(callback) {
 	}
 }
 
-// Auto-inicializar en cuanto el SDK esté disponible
 window.addEventListener('load', () => initWhenReady(null));
