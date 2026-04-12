@@ -27,7 +27,6 @@
 			-moz-osx-font-smoothing: grayscale;
 		}
 
-		/* ─── Header ─── */
 		.site-header {
 			background-color: hsl(0 0% 91%);
 			border-bottom: 1px solid hsl(0 0% 80%);
@@ -56,7 +55,6 @@
 			text-transform: uppercase;
 		}
 
-		/* ─── Main Container ─── */
 		.login-wrapper {
 			flex: 1;
 			display: flex;
@@ -67,7 +65,6 @@
 			overflow: hidden;
 		}
 
-		/* Subtle background glow */
 		.login-wrapper::before {
 			content: '';
 			position: absolute;
@@ -83,7 +80,6 @@
 			pointer-events: none;
 		}
 
-		/* ─── Login Card ─── */
 		.login-card {
 			position: relative;
 			z-index: 10;
@@ -119,7 +115,6 @@
 			font-weight: 300;
 		}
 
-		/* ─── Tabs ─── */
 		.auth-tabs {
 			display: flex;
 			border-bottom: 1px solid hsl(0 0% 80%);
@@ -159,7 +154,6 @@
 			background: hsl(0 0% 15%);
 		}
 
-		/* ─── Form ─── */
 		.auth-form { display: flex; flex-direction: column; gap: 1.25rem; }
 
 		.form-group { position: relative; }
@@ -221,7 +215,6 @@
 
 		.forgot-link a:hover { color: hsl(0 0% 15%); text-decoration: underline; }
 
-		/* ─── Submit Button ─── */
 		.btn-submit {
 			width: 100%;
 			padding: 1rem;
@@ -241,7 +234,6 @@
 		}
 
 		.btn-submit:hover { background: hsl(0 0% 15%); }
-
 		.btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
 
 		.btn-submit .spinner {
@@ -258,7 +250,6 @@
 
 		@keyframes spin { to { transform: rotate(360deg); } }
 
-		/* ─── Divider ─── */
 		.auth-divider {
 			display: flex;
 			align-items: center;
@@ -283,7 +274,6 @@
 			white-space: nowrap;
 		}
 
-		/* ─── OAuth Buttons ─── */
 		.oauth-buttons { display: flex; flex-direction: column; gap: 0.75rem; }
 
 		.btn-oauth {
@@ -310,11 +300,15 @@
 			transform: translateY(-1px);
 		}
 
-		.btn-oauth:active { transform: translateY(0); }
+		.btn-oauth:disabled {
+			opacity: 0.6;
+			cursor: not-allowed;
+			transform: none;
+		}
 
+		.btn-oauth:active { transform: translateY(0); }
 		.btn-oauth svg { width: 20px; height: 20px; flex-shrink: 0; }
 
-		/* ─── Error / Success Messages ─── */
 		.auth-message {
 			padding: 0.85rem 1rem;
 			font-size: 0.9rem;
@@ -323,6 +317,7 @@
 			margin-bottom: 1rem;
 			display: none;
 			animation: msgFade 0.3s ease-out;
+			line-height: 1.5;
 		}
 
 		@keyframes msgFade {
@@ -344,7 +339,6 @@
 			border-color: hsl(120 40% 80%);
 		}
 
-		/* ─── Footer text ─── */
 		.auth-footer {
 			text-align: center;
 			margin-top: 2rem;
@@ -364,17 +358,14 @@
 
 		.auth-footer a:hover { text-decoration: underline; }
 
-		/* ─── Hidden elements ─── */
 		.hidden { display: none !important; }
 
-		/* ─── Name fields grid ─── */
 		.name-fields {
 			display: grid;
 			grid-template-columns: 1fr 1fr;
 			gap: 1rem;
 		}
 
-		/* ─── Back button ─── */
 		.back-to-login {
 			display: inline-flex;
 			align-items: center;
@@ -392,7 +383,6 @@
 
 		.back-to-login:hover { color: hsl(0 0% 15%); }
 
-		/* Decorative accent */
 		.accent-line {
 			width: 40px;
 			height: 1px;
@@ -400,7 +390,22 @@
 			margin: 0 auto 1.5rem;
 		}
 
-		/* ─── Responsive ─── */
+		/* Indicador de fuerza de contraseña */
+		.password-strength {
+			height: 3px;
+			background: hsl(0 0% 85%);
+			margin-top: 6px;
+			border-radius: 2px;
+			overflow: hidden;
+		}
+
+		.password-strength-bar {
+			height: 100%;
+			width: 0%;
+			transition: width 0.3s, background 0.3s;
+			border-radius: 2px;
+		}
+
 		@media (max-width: 480px) {
 			.login-card { padding: 2rem 1.5rem; }
 			.login-card h1 { font-size: 1.6rem; }
@@ -410,7 +415,6 @@
 	</style>
 </head>
 <body>
-	<!-- Header -->
 	<header class="site-header">
 		<a href="./index.html">
 			<span class="logo-text">ROMET IA</span>
@@ -418,17 +422,15 @@
 		<nav></nav>
 	</header>
 
-	<!-- Main -->
 	<main class="login-wrapper">
 		<div class="login-card" id="loginCard">
 			<h1>Bienvenido</h1>
 			<div class="accent-line"></div>
 			<p class="subtitle">Accede a tu espacio de creación</p>
 
-			<!-- Message area -->
 			<div id="authMessage" class="auth-message"></div>
 
-			<!-- ═══════ LOGIN VIEW ═══════ -->
+			<!-- LOGIN / REGISTER VIEW -->
 			<div id="loginView">
 				<div class="auth-tabs">
 					<button class="auth-tab active" id="tabLogin" onclick="switchTab('login')">Iniciar Sesión</button>
@@ -451,9 +453,7 @@
 					<div class="forgot-link">
 						<a href="#" onclick="showResetPassword(event)">¿Olvidaste tu contraseña?</a>
 					</div>
-					<button type="submit" class="btn-submit" id="loginBtn">
-						Iniciar Sesión
-					</button>
+					<button type="submit" class="btn-submit" id="loginBtn">Iniciar Sesión</button>
 				</form>
 
 				<!-- Register Form -->
@@ -474,26 +474,23 @@
 					</div>
 					<div class="form-group">
 						<label for="regPassword">Contraseña</label>
-						<input type="password" id="regPassword" placeholder="Mínimo 6 caracteres" required minlength="6" autocomplete="new-password">
+						<input type="password" id="regPassword" placeholder="Mínimo 6 caracteres" required minlength="6" autocomplete="new-password" oninput="checkPasswordStrength(this.value)">
 						<button type="button" class="password-toggle" onclick="togglePassword('regPassword', this)" aria-label="Mostrar contraseña">
 							<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
 						</button>
+						<div class="password-strength">
+							<div class="password-strength-bar" id="strengthBar"></div>
+						</div>
 					</div>
 					<div class="form-group">
 						<label for="regPasswordConfirm">Confirmar contraseña</label>
 						<input type="password" id="regPasswordConfirm" placeholder="Repite la contraseña" required minlength="6" autocomplete="new-password">
 					</div>
-					<button type="submit" class="btn-submit" id="registerBtn">
-						Crear Cuenta
-					</button>
+					<button type="submit" class="btn-submit" id="registerBtn">Crear Cuenta</button>
 				</form>
 
-				<!-- OAuth Divider -->
-				<div class="auth-divider">
-					<span>o continúa con</span>
-				</div>
+				<div class="auth-divider"><span>o continúa con</span></div>
 
-				<!-- OAuth Buttons -->
 				<div class="oauth-buttons">
 					<button class="btn-oauth" onclick="loginWithGoogle()" id="googleBtn">
 						<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -516,7 +513,7 @@
 				</div>
 			</div>
 
-			<!-- ═══════ RESET PASSWORD VIEW ═══════ -->
+			<!-- RESET PASSWORD VIEW -->
 			<div id="resetView" class="hidden">
 				<button class="back-to-login" onclick="hideResetPassword()">
 					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
@@ -529,13 +526,10 @@
 						<label for="resetEmail">Correo electrónico</label>
 						<input type="email" id="resetEmail" placeholder="tu@email.com" required autocomplete="email">
 					</div>
-					<button type="submit" class="btn-submit" id="resetBtn">
-						Enviar Enlace
-					</button>
+					<button type="submit" class="btn-submit" id="resetBtn">Enviar Enlace</button>
 				</form>
 			</div>
 
-			<!-- Footer -->
 			<div class="auth-footer" id="authFooter">
 				Al continuar, aceptas nuestros <a href="#">Términos de Uso</a> y <a href="#">Política de Privacidad</a>
 			</div>
@@ -543,25 +537,18 @@
 	</main>
 
 	<script>
-		// ═══════════════════════════════════════════════
-		// SUPABASE CONFIGURATION
-		// ═══════════════════════════════════════════════
-		// Reemplaza estos valores con los de tu proyecto Supabase.
-		// Los encuentras en: Settings > API en tu dashboard de Supabase.
-		// ═══════════════════════════════════════════════
+		// ═══════════════════════════════════════════════════════════
+		// CONFIGURACIÓN — CLAVES CORRECTAS
+		// ═══════════════════════════════════════════════════════════
+		const SUPABASE_URL = 'https://ktysptwemewbyanagdwu.supabase.co';
+		const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0eXNwdHdlbWV3YnlhbmFnZHd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NDgwNTcsImV4cCI6MjA5MTIyNDA1N30.TMngS67DASOUD1s6VH8MZa_XDEwMEIG1VSowkc8yx0E';
 
-		const SUPABASE_URL = 'https://TU_PROYECTO.supabase.co';
-		const SUPABASE_ANON_KEY = 'TU_ANON_KEY';
-
-		// Initialize Supabase client
 		const { createClient } = supabase;
 		const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-		// Redirect URL for OAuth (adjust to your deployed domain)
-		const REDIRECT_URL = window.location.origin + '/login.html';
+		const REDIRECT_URL = 'https://rometjoyeria.com/login.html';
 
 		// ═══════════════════════════════════════
-		// UI STATE MANAGEMENT
+		// UI
 		// ═══════════════════════════════════════
 
 		function switchTab(tab) {
@@ -570,7 +557,6 @@
 			const tabLogin = document.getElementById('tabLogin');
 			const tabRegister = document.getElementById('tabRegister');
 			clearMessage();
-
 			if (tab === 'login') {
 				loginForm.classList.remove('hidden');
 				registerForm.classList.add('hidden');
@@ -591,6 +577,21 @@
 			btn.innerHTML = isPassword
 				? '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>'
 				: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
+		}
+
+		function checkPasswordStrength(value) {
+			const bar = document.getElementById('strengthBar');
+			if (!bar) return;
+			let strength = 0;
+			if (value.length >= 6) strength++;
+			if (value.length >= 10) strength++;
+			if (/[A-Z]/.test(value)) strength++;
+			if (/[0-9]/.test(value)) strength++;
+			if (/[^A-Za-z0-9]/.test(value)) strength++;
+			const widths = ['0%', '20%', '40%', '65%', '85%', '100%'];
+			const colors = ['transparent', '#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e'];
+			bar.style.width = widths[strength];
+			bar.style.background = colors[strength];
 		}
 
 		function showResetPassword(e) {
@@ -620,6 +621,7 @@
 
 		function setLoading(btnId, loading) {
 			const btn = document.getElementById(btnId);
+			if (!btn) return;
 			if (loading) {
 				btn.disabled = true;
 				btn.dataset.originalText = btn.textContent;
@@ -630,7 +632,26 @@
 			}
 		}
 
-		// Translate Supabase error messages to Spanish
+		function setOAuthLoading(btnId, loading) {
+			const btn = document.getElementById(btnId);
+			const googleBtn = document.getElementById('googleBtn');
+			const microsoftBtn = document.getElementById('microsoftBtn');
+			if (loading) {
+				googleBtn.disabled = true;
+				microsoftBtn.disabled = true;
+				if (btn) {
+					btn.dataset.originalHTML = btn.innerHTML;
+					btn.innerHTML = '<span class="spinner" style="border-top-color: hsl(0 0% 30%);"></span>Redirigiendo...';
+				}
+			} else {
+				googleBtn.disabled = false;
+				microsoftBtn.disabled = false;
+				if (btn && btn.dataset.originalHTML) {
+					btn.innerHTML = btn.dataset.originalHTML;
+				}
+			}
+		}
+
 		function translateError(message) {
 			const lc = (message || '').toLowerCase();
 			if (lc.includes('invalid login credentials')) return 'Las credenciales son incorrectas. Revisa tu correo y contraseña.';
@@ -639,178 +660,143 @@
 			if (lc.includes('password should be at least')) return 'La contraseña debe tener al menos 6 caracteres.';
 			if (lc.includes('email rate limit exceeded') || lc.includes('rate limit')) return 'Demasiados intentos. Espera unos minutos.';
 			if (lc.includes('invalid email')) return 'El correo electrónico no es válido.';
-			if (lc.includes('signup is disabled') || lc.includes('signups not allowed')) return 'El registro de nuevos usuarios no está habilitado actualmente.';
+			if (lc.includes('signup is disabled') || lc.includes('signups not allowed')) return 'El registro no está habilitado actualmente.';
 			if (lc.includes('user not found')) return 'No existe una cuenta con este correo.';
 			if (lc.includes('new password should be different')) return 'La nueva contraseña debe ser diferente a la anterior.';
-			if (lc.includes('provider is not enabled')) return 'Este método de inicio de sesión no está habilitado. Contacta al administrador.';
+			if (lc.includes('provider is not enabled')) return 'Este método de acceso no está habilitado. Contacta al administrador.';
 			if (lc.includes('popup_closed') || lc.includes('user cancelled')) return 'La ventana de autenticación fue cerrada.';
 			return message || 'Ha ocurrido un error. Inténtalo de nuevo.';
 		}
 
 		// ═══════════════════════════════════════
-		// AUTHENTICATION HANDLERS
+		// AUTENTICACIÓN
 		// ═══════════════════════════════════════
 
 		function onLoginSuccess(user) {
-			const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email;
-			showMessage('¡Bienvenido, ' + name + '!', 'success');
+			const name = user.user_metadata?.first_name || user.user_metadata?.full_name || user.email.split('@')[0];
+			showMessage('¡Bienvenido, ' + name + '! Redirigiendo...', 'success');
 			setTimeout(() => {
-				window.location.href = './index.html';
-			}, 1000);
+				const redirect = sessionStorage.getItem('redirectAfterLogin') || './index.html';
+				sessionStorage.removeItem('redirectAfterLogin');
+				window.location.href = redirect;
+			}, 1200);
 		}
 
-		// ─── Email/Password Login ───
 		async function handleLogin(e) {
 			e.preventDefault();
 			clearMessage();
 			setLoading('loginBtn', true);
-
-			const email = document.getElementById('loginEmail').value;
+			const email = document.getElementById('loginEmail').value.trim();
 			const password = document.getElementById('loginPassword').value;
-
-			const { data, error } = await _supabase.auth.signInWithPassword({
-				email: email,
-				password: password,
-			});
-
+			const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
 			if (error) {
 				showMessage(translateError(error.message), 'error');
 				setLoading('loginBtn', false);
 				return;
 			}
-
 			onLoginSuccess(data.user);
 		}
 
-		// ─── Email/Password Register ───
 		async function handleRegister(e) {
 			e.preventDefault();
 			clearMessage();
-
-			const name = document.getElementById('regName').value;
-			const surname = document.getElementById('regSurname').value;
-			const email = document.getElementById('regEmail').value;
+			const name = document.getElementById('regName').value.trim();
+			const surname = document.getElementById('regSurname').value.trim();
+			const email = document.getElementById('regEmail').value.trim();
 			const password = document.getElementById('regPassword').value;
 			const passwordConfirm = document.getElementById('regPasswordConfirm').value;
-
 			if (password !== passwordConfirm) {
 				showMessage('Las contraseñas no coinciden.', 'error');
 				return;
 			}
-
 			setLoading('registerBtn', true);
-
 			const { data, error } = await _supabase.auth.signUp({
-				email: email,
-				password: password,
+				email,
+				password,
 				options: {
-					data: {
-						full_name: name + ' ' + surname,
-						first_name: name,
-						last_name: surname,
-					},
+					data: { full_name: name + ' ' + surname, first_name: name, last_name: surname },
 					emailRedirectTo: REDIRECT_URL,
 				}
 			});
-
 			if (error) {
 				showMessage(translateError(error.message), 'error');
 				setLoading('registerBtn', false);
 				return;
 			}
-
-			// Check if email confirmation is required
 			if (data.user && data.user.identities && data.user.identities.length === 0) {
-				// User already exists
 				showMessage('Este correo ya está registrado. Intenta iniciar sesión.', 'error');
 				setLoading('registerBtn', false);
 				return;
 			}
-
 			if (data.session) {
-				// Auto-confirmed (email confirmation disabled in Supabase)
 				onLoginSuccess(data.user);
 			} else {
-				// Email confirmation required
-				showMessage('¡Cuenta creada! Revisa tu correo electrónico para confirmar tu cuenta.', 'success');
+				showMessage('¡Cuenta creada! Revisa tu correo para confirmarla antes de iniciar sesión.', 'success');
 				setLoading('registerBtn', false);
 			}
 		}
 
-		// ─── Google OAuth ───
 		async function loginWithGoogle() {
 			clearMessage();
-			const { data, error } = await _supabase.auth.signInWithOAuth({
+			setOAuthLoading('googleBtn', true);
+			const { error } = await _supabase.auth.signInWithOAuth({
 				provider: 'google',
-				options: {
-					redirectTo: REDIRECT_URL,
-				}
+				options: { redirectTo: REDIRECT_URL }
 			});
-
 			if (error) {
 				showMessage(translateError(error.message), 'error');
+				setOAuthLoading('googleBtn', false);
 			}
-			// Supabase will redirect the browser to Google; no further action needed
 		}
 
-		// ─── Microsoft OAuth ───
 		async function loginWithMicrosoft() {
 			clearMessage();
-			const { data, error } = await _supabase.auth.signInWithOAuth({
+			setOAuthLoading('microsoftBtn', true);
+			const { error } = await _supabase.auth.signInWithOAuth({
 				provider: 'azure',
-				options: {
-					redirectTo: REDIRECT_URL,
-					scopes: 'email profile openid',
-				}
+				options: { redirectTo: REDIRECT_URL, scopes: 'email profile openid' }
 			});
-
 			if (error) {
 				showMessage(translateError(error.message), 'error');
+				setOAuthLoading('microsoftBtn', false);
 			}
-			// Supabase will redirect the browser to Microsoft; no further action needed
 		}
 
-		// ─── Password Reset ───
 		async function handleResetPassword(e) {
 			e.preventDefault();
 			clearMessage();
 			setLoading('resetBtn', true);
-
-			const email = document.getElementById('resetEmail').value;
-
+			const email = document.getElementById('resetEmail').value.trim();
 			const { error } = await _supabase.auth.resetPasswordForEmail(email, {
 				redirectTo: REDIRECT_URL,
 			});
-
 			if (error) {
 				showMessage(translateError(error.message), 'error');
 			} else {
-				showMessage('Se ha enviado un enlace de restablecimiento a tu correo.', 'success');
+				showMessage('Enlace enviado. Revisa tu correo electrónico.', 'success');
 			}
-
 			setLoading('resetBtn', false);
 		}
 
 		// ═══════════════════════════════════════
-		// AUTH STATE LISTENER
+		// SESIÓN
 		// ═══════════════════════════════════════
 
-		// Check if user is already logged in
-		async function checkSession() {
-			const { data: { session } } = await _supabase.auth.getSession();
-			if (session) {
-				window.location.href = './index.html';
-			}
-		}
-
-		// Listen for auth state changes (handles OAuth redirect return)
 		_supabase.auth.onAuthStateChange((event, session) => {
 			if (event === 'SIGNED_IN' && session) {
 				onLoginSuccess(session.user);
 			}
 		});
 
-		// On page load, check if already authenticated
+		async function checkSession() {
+			const { data: { session } } = await _supabase.auth.getSession();
+			if (session) {
+				const redirect = sessionStorage.getItem('redirectAfterLogin') || './index.html';
+				sessionStorage.removeItem('redirectAfterLogin');
+				window.location.href = redirect;
+			}
+		}
+
 		checkSession();
 	</script>
 </body>
