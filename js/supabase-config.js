@@ -19,7 +19,25 @@ function getSupabase() {
 	return _supabaseClient;
 }
 
+function ensureSupabaseReady() {
+	return new Promise((resolve) => {
+		function check() {
+			if (typeof window.supabase !== 'undefined') {
+				if (!_supabaseClient) {
+					const { createClient } = window.supabase;
+					_supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+				}
+				resolve();
+			} else {
+				setTimeout(check, 100);
+			}
+		}
+		check();
+	});
+}
+
 async function getSession() {
+	await ensureSupabaseReady();
 	const sb = getSupabase();
 	const { data: { session } } = await sb.auth.getSession();
 	return session;
@@ -77,6 +95,7 @@ async function initHeaderAuth() {
 }
 
 async function callEdgeFunction(functionName, payload) {
+	await ensureSupabaseReady();
 	const session = await getSession();
 	const headers = {
 		'Content-Type': 'application/json',
@@ -101,8 +120,8 @@ async function callEdgeFunction(functionName, payload) {
 }
 
 async function saveDesignOrder(designData) {
+	await ensureSupabaseReady();
 	const sb = getSupabase();
-	const user = await getUser();
 
 	const record = {
 		nombre: designData.customer_name || null,
@@ -132,6 +151,7 @@ async function saveDesignOrder(designData) {
 }
 
 async function uploadImage(file, bucket = 'disenos') {
+	await ensureSupabaseReady();
 	const sb = getSupabase();
 	const ext = file.name.split('.').pop();
 	const fileName = `upload_${Date.now()}.${ext}`;
@@ -154,12 +174,18 @@ async function uploadImage(file, bucket = 'disenos') {
 
 // ═══════════════════════════════════════
 // Inicialización con reintento automático
-// Espera a que el SDK de Supabase esté disponible
 // ═══════════════════════════════════════
 function initWhenReady(callback) {
 	if (typeof window.supabase !== 'undefined') {
-		callback();
+		if (!_supabaseClient) {
+			const { createClient } = window.supabase;
+			_supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+		}
+		if (callback) callback();
 	} else {
 		setTimeout(() => initWhenReady(callback), 100);
 	}
 }
+
+// Auto-inicializar en cuanto el SDK esté disponible
+window.addEventListener('load', () => initWhenReady(null));
