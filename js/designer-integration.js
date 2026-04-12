@@ -1,6 +1,8 @@
 (function() {
 	'use strict';
 
+	const GEMINI_API_KEY = 'AIzaSyANfg8B0SVekGEy54T0B_SPOa5Xt2_iYMU';
+
 	const STORAGE_KEY = 'romet_design_state';
 
 	const defaultState = {
@@ -87,7 +89,6 @@
 					checkSubmitValidity();
 				});
 
-				// Restaurar valores
 				if ((label.includes('nombre') || type === 'text') && state.name) input.value = state.name;
 				if ((label.includes('telefono') || type === 'tel') && state.phone) input.value = state.phone;
 				if ((label.includes('correo') || type === 'email') && state.email) input.value = state.email;
@@ -144,6 +145,40 @@
 		}
 	}
 
+	async function generarImagenGemini(state) {
+		const prompt = `Diseña una joya profesional con estas características:
+		- Categoría: ${state.category || 'no especificado'}
+		- Material: ${state.material || 'no especificado'}
+		- Gema principal: ${state.gemstone || 'ninguna'}
+		- Estilo: ${state.style || 'no especificado'}
+		- Perfil: ${state.profile || 'no especificado'}
+		- Presupuesto: ${state.budget ? state.budget + '€' : 'no especificado'}
+		- Sugerencias: ${state.notes || 'ninguna'}
+		Render fotorrealista sobre fondo blanco neutro, iluminación de estudio,
+		alta resolución, detalle de joyería profesional, sin texto ni marcas de agua.`;
+
+		const response = await fetch(
+			`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key=${GEMINI_API_KEY}`,
+			{
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					contents: [{ parts: [{ text: prompt }] }],
+					generationConfig: { responseModalities: ['IMAGE', 'TEXT'] },
+				}),
+			}
+		);
+
+		const data = await response.json();
+		const imagePart = data.candidates?.[0]?.content?.parts?.find(
+			(p) => p.inlineData?.mimeType?.startsWith('image/')
+		);
+
+		if (!imagePart) throw new Error('Gemini no devolvió imagen: ' + JSON.stringify(data));
+
+		return `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}`;
+	}
+
 	async function handleDesignSubmit(e) {
 		e.preventDefault();
 		const state = loadState();
@@ -159,44 +194,45 @@
 		submitBtn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px;"><svg class="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>Generando tu diseño con IA...</span>';
 
 		try {
-			// Llamar a la Edge Function Joyas
-			let aiResult = null;
+			// 1. GENERAR IMAGEN CON GEMINI DESDE EL FRONTEND
+			let imagenBase64 = null;
 			try {
-				aiResult = await callEdgeFunction('Joyas', {
-					nombre: state.name,
-					telefono: state.phone,
-					email: state.email,
-					categoria_producto: state.category,
-					material: state.material,
-					perfil_usuario: state.profile,
-					gema_principal: state.gemstone,
-					estilo: state.style,
-					presupuesto: state.budget,
-					peso_estimado: state.weight,
-					talla_medida: state.size,
-					sugerencias: state.notes,
-				});
-			} catch (aiError) {
-				console.warn('[Romet] Edge function call failed:', aiError);
-				aiResult = { imagenUrl: null };
+				imagenBase64 = await generarImagenGemini(state);
+			} catch (geminiError) {
+				console.warn('Gemini error:', geminiError);
 			}
 
-			showSuccessScreen(state, aiResult);
+			// 2. MOSTRAR RESULTADO AL USUARIO
+			showSuccessScreen(state, imagenBase64);
 			clearState();
 
+			// 3. ENVIAR DATOS A SUPABASE EN BACKGROUND
+			callEdgeFunction('Joyas', {
+				nombre: state.name,
+				telefono: state.phone,
+				email: state.email,
+				categoria_producto: state.category,
+				material: state.material,
+				perfil_usuario: state.profile,
+				gema_principal: state.gemstone,
+				estilo: state.style,
+				presupuesto: state.budget,
+				peso_estimado: state.weight,
+				talla_medida: state.size,
+				sugerencias: state.notes,
+			}).catch(err => console.warn('Edge function error:', err));
+
 		} catch (error) {
-			console.error('[Romet] Design submission error:', error);
+			console.error('Error:', error);
 			showNotification('Ha ocurrido un error. Por favor, inténtalo de nuevo.', 'error');
 			submitBtn.disabled = false;
 			submitBtn.textContent = originalText;
 		}
 	}
 
-	function showSuccessScreen(state, aiResult) {
+	function showSuccessScreen(state, imagenBase64) {
 		const main = document.querySelector('main') || document.querySelector('.flex-1');
 		if (!main) return;
-
-		const imagenUrl = aiResult?.imagenUrl || null;
 
 		main.innerHTML = `
 			<div class="max-w-3xl mx-auto px-4 py-12 text-center" style="animation: fadeInUp 0.8s ease-out;">
@@ -216,11 +252,11 @@
 					</p>
 				</div>
 
-				${imagenUrl ? `
+				${imagenBase64 ? `
 				<div class="bg-white p-8 rounded-2xl shadow-lg border border-border/50 mb-8"
 				     style="animation: fadeInUp 0.8s ease-out 0.2s both;">
 					<h2 class="text-xl tracking-widest uppercase text-foreground font-medium mb-4">Tu Diseño Generado</h2>
-					<img src="${imagenUrl}" style="max-width:100%; border-radius:8px;" />
+					<img src="${imagenBase64}" style="max-width:100%; border-radius:8px;" />
 				</div>` : `
 				<div class="bg-white p-8 rounded-2xl shadow-lg border border-border/50 mb-8"
 				     style="animation: fadeInUp 0.8s ease-out 0.2s both;">
