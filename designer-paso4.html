@@ -6,34 +6,31 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Diseñador - Romet Joyería IA</title>
 	<link rel="stylesheet" crossorigin="" href="./designer-paso4_files/index-xtSdOPat.css?v=2">
-
-	<!-- Supabase + integración -->
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 	<script src="./js/supabase-config.js"></script>
 	<script src="./js/designer-integration.js"></script>
-<script>
-	initWhenReady(() => {
-		getSupabase().auth.getSession().then(({ data: { session } }) => {
-			if (!session) {
-				sessionStorage.setItem('redirectAfterLogin', window.location.href);
-				window.location.href = './login.html';
-			}
+	<script>
+		initWhenReady(() => {
+			getSession().then((session) => {
+				if (!session) {
+					sessionStorage.setItem('redirectAfterLogin', window.location.href);
+					window.location.href = './login.html';
+				}
+			});
+			initHeaderAuth();
 		});
-		initHeaderAuth();
-	});
-</script>
+	</script>
 </head>
 <body>
 	<div id="root">
 		<div class="min-h-screen bg-background flex flex-col pb-32 font-serif">
 
-			<!-- Header -->
 			<header class="bg-background border-b border-border px-8 py-6 flex justify-between items-center sticky top-0 z-50 shadow-sm">
 				<a class="hover:opacity-70 transition-opacity" href="https://rometjoyeria.com/">
 					<span class="font-bold text-2xl md:text-3xl tracking-[0.2em] uppercase text-foreground">ROMET IA</span>
 				</a>
 				<nav class="flex items-center gap-8">
-					<a href="https://rometjoyeria.com/designer"
+					<a href="https://rometjoyeria.com/designer-paso1.html"
 					   class="text-sm md:text-base tracking-[0.15em] uppercase text-foreground hover:text-muted-foreground transition-colors font-medium"
 					   style="text-decoration:none;">Diseñar Joya</a>
 					<a href="./login.html" id="header-auth-link"
@@ -42,12 +39,10 @@
 				</nav>
 			</header>
 
-			<!-- Barra de progreso -->
 			<div class="w-full bg-muted h-1.5 sticky top-[84px] z-40">
 				<div class="bg-primary h-full transition-all duration-500 ease-out" style="width: 57.14%;"></div>
 			</div>
 
-			<!-- Main -->
 			<main class="flex-1 container mx-auto px-4 py-12 flex flex-col relative mt-4">
 				<div class="text-center mb-16">
 					<span class="text-sm tracking-[0.2em] uppercase text-muted-foreground mb-4 block font-sans">Paso 4 de 7</span>
@@ -126,7 +121,6 @@
 				</div>
 			</main>
 
-			<!-- Navegación inferior -->
 			<div class="fixed bottom-0 left-0 w-full p-4 md:p-6 pointer-events-none z-40">
 				<div class="container mx-auto flex justify-between items-center">
 					<button onclick="window.location.href='./designer-paso3.html'"
@@ -156,16 +150,14 @@
 				e.classList.remove('border-primary', 'bg-primary/5', 'shadow-md', 'scale-105');
 				e.classList.add('border-transparent');
 			});
-
 			el.style.opacity = '1';
 			el.classList.remove('border-transparent');
 			el.classList.add('border-primary', 'bg-primary/5', 'shadow-md', 'scale-105');
-
 			const state = window.RometDesigner?.loadState() || {};
 			state[key] = value;
 			window.RometDesigner?.saveState(state);
-
 			document.getElementById('nextBtn').disabled = false;
+			setTimeout(() => goToNext('./designer-paso5.html'), 300);
 		}
 
 		function goToNext(url) {
