@@ -48,14 +48,12 @@
 					<div class="flex flex-col sm:flex-row gap-6 items-stretch justify-center w-full max-w-4xl mx-auto">
 						<a href="https://rometjoyeria.com/designer-paso1.html"
 						   class="flex-1 px-8 py-5 bg-[hsl(var(--button-bg))] text-[hsl(var(--button-text))] text-sm md:text-base tracking-[0.2em] uppercase rounded-none hover:bg-[hsl(var(--button-hover))] transition-all duration-500 elegant-shadow font-medium flex items-center justify-center text-center min-h-[64px]"
-						   style="text-decoration:none;"
-						   onclick="handleDesignerClick(event)">
+						   style="text-decoration:none;">
 							Diseña tu joya desde cero
 						</a>
 						<a href="https://rometjoyeria.com/upload-design"
 						   class="flex-1 px-8 py-5 bg-[hsl(var(--button-bg))] text-[hsl(var(--button-text))] text-sm md:text-base tracking-[0.2em] uppercase rounded-none hover:bg-[hsl(var(--button-hover))] transition-all duration-500 elegant-shadow font-medium flex items-center justify-center text-center min-h-[64px]"
-						   style="text-decoration:none;"
-						   onclick="handleUploadClick(event)">
+						   style="text-decoration:none;">
 							¿Tienes un diseño? Te lo hacemos
 						</a>
 					</div>
@@ -63,33 +61,5 @@
 			</main>
 		</div>
 	</div>
-
-	<script>
-		async function requireAuthAndRedirect(e, destination) {
-			e.preventDefault();
-			try {
-				await new Promise((resolve) => initWhenReady(resolve));
-				const sb = getSupabase();
-				const { data: { session } } = await sb.auth.getSession();
-				if (session) {
-					window.location.href = destination;
-				} else {
-					sessionStorage.setItem('redirectAfterLogin', destination);
-					window.location.href = './login.html';
-				}
-			} catch (err) {
-				sessionStorage.setItem('redirectAfterLogin', destination);
-				window.location.href = './login.html';
-			}
-		}
-
-		function handleDesignerClick(e) {
-			requireAuthAndRedirect(e, 'https://rometjoyeria.com/designer-paso1.html');
-		}
-
-		function handleUploadClick(e) {
-			requireAuthAndRedirect(e, 'https://rometjoyeria.com/upload-design');
-		}
-	</script>
 </body>
 </html>
