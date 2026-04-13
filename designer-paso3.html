@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -7,13 +6,12 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Diseñador - Romet Joyería IA</title>
 	<link rel="stylesheet" crossorigin="" href="./designer-paso3_files/index-xtSdOPat.css?v=2">
-
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 	<script src="./js/supabase-config.js"></script>
 	<script src="./js/designer-integration.js"></script>
 	<script>
 		initWhenReady(() => {
-			getSupabase().auth.getSession().then(({ data: { session } }) => {
+			getSession().then((session) => {
 				if (!session) {
 					sessionStorage.setItem('redirectAfterLogin', window.location.href);
 					window.location.href = './login.html';
@@ -128,14 +126,11 @@
 				e.classList.remove('border-primary', 'shadow-lg', 'ring-2', 'ring-primary/20', 'scale-[1.02]');
 				e.classList.add('border-transparent');
 			});
-
 			el.classList.remove('border-transparent');
 			el.classList.add('border-primary', 'shadow-lg', 'ring-2', 'ring-primary/20', 'scale-[1.02]');
-
 			const state = window.RometDesigner?.loadState() || {};
 			state[key] = value;
 			window.RometDesigner?.saveState(state);
-
 			document.getElementById('nextBtn').disabled = false;
 		}
 
@@ -145,6 +140,3 @@
 	</script>
 </body>
 </html>
-```
-
-Súbelo y prueba el flujo completo desde el paso 1.
