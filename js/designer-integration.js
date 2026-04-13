@@ -1,8 +1,6 @@
 (function() {
 	'use strict';
 
-	const GEMINI_API_KEY = '';
-
 	const STORAGE_KEY = 'romet_design_state';
 
 	const defaultState = {
@@ -145,40 +143,6 @@
 		}
 	}
 
-	async function generarImagenGemini(state) {
-		const prompt = `Diseña una joya profesional con estas características:
-		- Categoría: ${state.category || 'no especificado'}
-		- Material: ${state.material || 'no especificado'}
-		- Gema principal: ${state.gemstone || 'ninguna'}
-		- Estilo: ${state.style || 'no especificado'}
-		- Perfil: ${state.profile || 'no especificado'}
-		- Presupuesto: ${state.budget ? state.budget + '€' : 'no especificado'}
-		- Sugerencias: ${state.notes || 'ninguna'}
-		Render fotorrealista sobre fondo blanco neutro, iluminación de estudio,
-		alta resolución, detalle de joyería profesional, sin texto ni marcas de agua.`;
-
-		const response = await fetch(
-			`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${GEMINI_API_KEY}`,
-			{
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					contents: [{ parts: [{ text: prompt }] }],
-					generationConfig: { responseModalities: ['IMAGE', 'TEXT'] },
-				}),
-			}
-		);
-
-		const data = await response.json();
-		const imagePart = data.candidates?.[0]?.content?.parts?.find(
-			(p) => p.inlineData?.mimeType?.startsWith('image/')
-		);
-
-		if (!imagePart) throw new Error('Gemini no devolvió imagen: ' + JSON.stringify(data));
-
-		return `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}`;
-	}
-
 	async function handleDesignSubmit(e) {
 		e.preventDefault();
 		const state = loadState();
@@ -194,20 +158,8 @@
 		submitBtn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px;"><svg class="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>Generando tu diseño con IA...</span>';
 
 		try {
-			// 1. GENERAR IMAGEN CON GEMINI DESDE EL FRONTEND
-			let imagenBase64 = null;
-			try {
-				imagenBase64 = await generarImagenGemini(state);
-			} catch (geminiError) {
-				console.warn('Gemini error:', geminiError);
-			}
-
-			// 2. MOSTRAR RESULTADO AL USUARIO
-			showSuccessScreen(state, imagenBase64);
-			clearState();
-
-			// 3. ENVIAR DATOS A SUPABASE EN BACKGROUND
-			callEdgeFunction('Joyas', {
+			// LLAMAR A LA EDGE FUNCTION — ella genera la imagen, guarda en DB y manda emails
+			const result = await callEdgeFunction('Joyas', {
 				nombre: state.name,
 				telefono: state.phone,
 				email: state.email,
@@ -220,7 +172,11 @@
 				peso_estimado: state.weight,
 				talla_medida: state.size,
 				sugerencias: state.notes,
-			}).catch(err => console.warn('Edge function error:', err));
+			});
+
+			// MOSTRAR RESULTADO — la Edge Function devuelve imagenUrl si la generó
+			showSuccessScreen(state, result?.imagenUrl || null);
+			clearState();
 
 		} catch (error) {
 			console.error('Error:', error);
@@ -230,7 +186,7 @@
 		}
 	}
 
-	function showSuccessScreen(state, imagenBase64) {
+	function showSuccessScreen(state, imagenUrl) {
 		const main = document.querySelector('main') || document.querySelector('.flex-1');
 		if (!main) return;
 
@@ -252,11 +208,11 @@
 					</p>
 				</div>
 
-				${imagenBase64 ? `
+				${imagenUrl ? `
 				<div class="bg-white p-8 rounded-2xl shadow-lg border border-border/50 mb-8"
 				     style="animation: fadeInUp 0.8s ease-out 0.2s both;">
-					<h2 class="text-xl tracking-widest uppercase text-foreground font-medium mb-4">Tu Diseño Generado</h2>
-					<img src="${imagenBase64}" style="max-width:100%; border-radius:8px;" />
+					<h2 class="text-xl tracking-widests uppercase text-foreground font-medium mb-4">Tu Diseño Generado</h2>
+					<img src="${imagenUrl}" style="max-width:100%; border-radius:8px;" />
 				</div>` : `
 				<div class="bg-white p-8 rounded-2xl shadow-lg border border-border/50 mb-8"
 				     style="animation: fadeInUp 0.8s ease-out 0.2s both;">
@@ -267,7 +223,7 @@
 
 				<div class="bg-white p-6 rounded-2xl shadow-lg border border-border/50 text-left mb-8"
 				     style="animation: fadeInUp 0.8s ease-out 0.4s both;">
-					<h2 class="text-xl tracking-widest uppercase text-foreground font-medium mb-4">Resumen del Diseño</h2>
+					<h2 class="text-xl tracking-widests uppercase text-foreground font-medium mb-4">Resumen del Diseño</h2>
 					<div class="grid grid-cols-2 gap-4 font-sans text-sm">
 						${state.category ? `<div><span class="text-muted-foreground">Tipo:</span> <strong class="capitalize">${state.category}</strong></div>` : ''}
 						${state.material ? `<div><span class="text-muted-foreground">Material:</span> <strong class="capitalize">${state.material.replace(/_/g, ' ')}</strong></div>` : ''}
