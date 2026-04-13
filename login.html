@@ -8,7 +8,6 @@
 	<meta name="description" content="Accede a tu cuenta de Romet Joyería IA para diseñar joyas personalizadas con inteligencia artificial.">
 	<link rel="stylesheet" crossorigin="" href="./index_files/index-xtSdOPat.css?v=2">
 
-	<!-- Supabase SDK -->
 	<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
 	<style>
@@ -40,12 +39,7 @@
 			box-shadow: 0 1px 2px 0 rgb(0 0 0 / .05);
 		}
 
-		.site-header a {
-			text-decoration: none;
-			color: inherit;
-			transition: opacity 0.3s;
-		}
-
+		.site-header a { text-decoration: none; color: inherit; transition: opacity 0.3s; }
 		.site-header a:hover { opacity: 0.7; }
 
 		.logo-text {
@@ -138,12 +132,7 @@
 		}
 
 		.auth-tab:hover { color: hsl(0 0% 20%); }
-
-		.auth-tab.active {
-			color: hsl(0 0% 15%);
-			font-weight: 600;
-		}
-
+		.auth-tab.active { color: hsl(0 0% 15%); font-weight: 600; }
 		.auth-tab.active::after {
 			content: '';
 			position: absolute;
@@ -155,7 +144,6 @@
 		}
 
 		.auth-form { display: flex; flex-direction: column; gap: 1.25rem; }
-
 		.form-group { position: relative; }
 
 		.form-group label {
@@ -204,7 +192,6 @@
 		.password-toggle:hover { color: hsl(0 0% 20%); }
 
 		.forgot-link { text-align: right; margin-top: -0.5rem; }
-
 		.forgot-link a {
 			font-size: 0.85rem;
 			color: hsl(0 0% 40%);
@@ -212,7 +199,6 @@
 			font-family: ui-sans-serif, system-ui, sans-serif;
 			transition: color 0.3s;
 		}
-
 		.forgot-link a:hover { color: hsl(0 0% 15%); text-decoration: underline; }
 
 		.btn-submit {
@@ -229,8 +215,6 @@
 			cursor: pointer;
 			transition: all 0.4s;
 			margin-top: 0.5rem;
-			position: relative;
-			overflow: hidden;
 		}
 
 		.btn-submit:hover { background: hsl(0 0% 15%); }
@@ -300,12 +284,7 @@
 			transform: translateY(-1px);
 		}
 
-		.btn-oauth:disabled {
-			opacity: 0.6;
-			cursor: not-allowed;
-			transform: none;
-		}
-
+		.btn-oauth:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 		.btn-oauth:active { transform: translateY(0); }
 		.btn-oauth svg { width: 20px; height: 20px; flex-shrink: 0; }
 
@@ -390,7 +369,6 @@
 			margin: 0 auto 1.5rem;
 		}
 
-		/* Indicador de fuerza de contraseña */
 		.password-strength {
 			height: 3px;
 			background: hsl(0 0% 85%);
@@ -430,14 +408,12 @@
 
 			<div id="authMessage" class="auth-message"></div>
 
-			<!-- LOGIN / REGISTER VIEW -->
 			<div id="loginView">
 				<div class="auth-tabs">
 					<button class="auth-tab active" id="tabLogin" onclick="switchTab('login')">Iniciar Sesión</button>
 					<button class="auth-tab" id="tabRegister" onclick="switchTab('register')">Crear Cuenta</button>
 				</div>
 
-				<!-- Login Form -->
 				<form id="loginForm" class="auth-form" onsubmit="handleLogin(event)">
 					<div class="form-group">
 						<label for="loginEmail">Correo electrónico</label>
@@ -456,7 +432,6 @@
 					<button type="submit" class="btn-submit" id="loginBtn">Iniciar Sesión</button>
 				</form>
 
-				<!-- Register Form -->
 				<form id="registerForm" class="auth-form hidden" onsubmit="handleRegister(event)">
 					<div class="name-fields">
 						<div class="form-group">
@@ -513,7 +488,6 @@
 				</div>
 			</div>
 
-			<!-- RESET PASSWORD VIEW -->
 			<div id="resetView" class="hidden">
 				<button class="back-to-login" onclick="hideResetPassword()">
 					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
@@ -537,19 +511,29 @@
 	</main>
 
 	<script>
-		// ═══════════════════════════════════════════════════════════
-		// CONFIGURACIÓN — CLAVES CORRECTAS
-		// ═══════════════════════════════════════════════════════════
 		const SUPABASE_URL = 'https://ktysptwemewbyanagdwu.supabase.co';
 		const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0eXNwdHdlbWV3YnlhbmFnZHd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NDgwNTcsImV4cCI6MjA5MTIyNDA1N30.TMngS67DASOUD1s6VH8MZa_XDEwMEIG1VSowkc8yx0E';
-
-		const { createClient } = supabase;
-		const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 		const REDIRECT_URL = 'https://rometjoyeria.com/login.html';
 
-		// ═══════════════════════════════════════
-		// UI
-		// ═══════════════════════════════════════
+		let _supabase = null;
+
+		function getClient() {
+			if (!_supabase) {
+				if (typeof window.supabase === 'undefined') return null;
+				const { createClient } = window.supabase;
+				_supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+			}
+			return _supabase;
+		}
+
+		function waitForSupabase(callback) {
+			if (typeof window.supabase !== 'undefined') {
+				getClient();
+				callback();
+			} else {
+				setTimeout(() => waitForSupabase(callback), 100);
+			}
+		}
 
 		function switchTab(tab) {
 			const loginForm = document.getElementById('loginForm');
@@ -633,9 +617,9 @@
 		}
 
 		function setOAuthLoading(btnId, loading) {
-			const btn = document.getElementById(btnId);
 			const googleBtn = document.getElementById('googleBtn');
 			const microsoftBtn = document.getElementById('microsoftBtn');
+			const btn = document.getElementById(btnId);
 			if (loading) {
 				googleBtn.disabled = true;
 				microsoftBtn.disabled = true;
@@ -668,10 +652,6 @@
 			return message || 'Ha ocurrido un error. Inténtalo de nuevo.';
 		}
 
-		// ═══════════════════════════════════════
-		// AUTENTICACIÓN
-		// ═══════════════════════════════════════
-
 		function onLoginSuccess(user) {
 			const name = user.user_metadata?.first_name || user.user_metadata?.full_name || user.email.split('@')[0];
 			showMessage('¡Bienvenido, ' + name + '! Redirigiendo...', 'success');
@@ -686,9 +666,11 @@
 			e.preventDefault();
 			clearMessage();
 			setLoading('loginBtn', true);
+			const client = getClient();
+			if (!client) { showMessage('Error de conexión. Recarga la página.', 'error'); setLoading('loginBtn', false); return; }
 			const email = document.getElementById('loginEmail').value.trim();
 			const password = document.getElementById('loginPassword').value;
-			const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+			const { data, error } = await client.auth.signInWithPassword({ email, password });
 			if (error) {
 				showMessage(translateError(error.message), 'error');
 				setLoading('loginBtn', false);
@@ -709,10 +691,11 @@
 				showMessage('Las contraseñas no coinciden.', 'error');
 				return;
 			}
+			const client = getClient();
+			if (!client) { showMessage('Error de conexión. Recarga la página.', 'error'); return; }
 			setLoading('registerBtn', true);
-			const { data, error } = await _supabase.auth.signUp({
-				email,
-				password,
+			const { data, error } = await client.auth.signUp({
+				email, password,
 				options: {
 					data: { full_name: name + ' ' + surname, first_name: name, last_name: surname },
 					emailRedirectTo: REDIRECT_URL,
@@ -738,8 +721,10 @@
 
 		async function loginWithGoogle() {
 			clearMessage();
+			const client = getClient();
+			if (!client) { showMessage('Error de conexión. Recarga la página.', 'error'); return; }
 			setOAuthLoading('googleBtn', true);
-			const { error } = await _supabase.auth.signInWithOAuth({
+			const { error } = await client.auth.signInWithOAuth({
 				provider: 'google',
 				options: { redirectTo: REDIRECT_URL }
 			});
@@ -751,8 +736,10 @@
 
 		async function loginWithMicrosoft() {
 			clearMessage();
+			const client = getClient();
+			if (!client) { showMessage('Error de conexión. Recarga la página.', 'error'); return; }
 			setOAuthLoading('microsoftBtn', true);
-			const { error } = await _supabase.auth.signInWithOAuth({
+			const { error } = await client.auth.signInWithOAuth({
 				provider: 'azure',
 				options: { redirectTo: REDIRECT_URL, scopes: 'email profile openid' }
 			});
@@ -765,11 +752,11 @@
 		async function handleResetPassword(e) {
 			e.preventDefault();
 			clearMessage();
+			const client = getClient();
+			if (!client) { showMessage('Error de conexión. Recarga la página.', 'error'); return; }
 			setLoading('resetBtn', true);
 			const email = document.getElementById('resetEmail').value.trim();
-			const { error } = await _supabase.auth.resetPasswordForEmail(email, {
-				redirectTo: REDIRECT_URL,
-			});
+			const { error } = await client.auth.resetPasswordForEmail(email, { redirectTo: REDIRECT_URL });
 			if (error) {
 				showMessage(translateError(error.message), 'error');
 			} else {
@@ -778,26 +765,21 @@
 			setLoading('resetBtn', false);
 		}
 
-		// ═══════════════════════════════════════
-		// SESIÓN
-		// ═══════════════════════════════════════
+		waitForSupabase(() => {
+			getClient().auth.onAuthStateChange((event, session) => {
+				if (event === 'SIGNED_IN' && session) {
+					onLoginSuccess(session.user);
+				}
+			});
 
-		_supabase.auth.onAuthStateChange((event, session) => {
-			if (event === 'SIGNED_IN' && session) {
-				onLoginSuccess(session.user);
-			}
+			getClient().auth.getSession().then(({ data: { session } }) => {
+				if (session) {
+					const redirect = sessionStorage.getItem('redirectAfterLogin') || './index.html';
+					sessionStorage.removeItem('redirectAfterLogin');
+					window.location.href = redirect;
+				}
+			});
 		});
-
-		async function checkSession() {
-			const { data: { session } } = await _supabase.auth.getSession();
-			if (session) {
-				const redirect = sessionStorage.getItem('redirectAfterLogin') || './index.html';
-				sessionStorage.removeItem('redirectAfterLogin');
-				window.location.href = redirect;
-			}
-		}
-
-		checkSession();
 	</script>
 </body>
 </html>
