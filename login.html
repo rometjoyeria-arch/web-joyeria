@@ -517,23 +517,27 @@
 
 		let _supabase = null;
 
-		function getClient() {
-			if (!_supabase) {
-				if (typeof window.supabase === 'undefined') return null;
-				const { createClient } = window.supabase;
-				_supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-			}
-			return _supabase;
+		// Espera al SDK y devuelve el cliente — nunca falla
+		async function getClientAsync() {
+			return new Promise((resolve) => {
+				function check() {
+					if (typeof window.supabase !== 'undefined') {
+						if (!_supabase) {
+							const { createClient } = window.supabase;
+							_supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+						}
+						resolve(_supabase);
+					} else {
+						setTimeout(check, 100);
+					}
+				}
+				check();
+			});
 		}
 
-		function waitForSupabase(callback) {
-			if (typeof window.supabase !== 'undefined') {
-				getClient();
-				callback();
-			} else {
-				setTimeout(() => waitForSupabase(callback), 100);
-			}
-		}
+		// ═══════════════════════════════════════
+		// UI
+		// ═══════════════════════════════════════
 
 		function switchTab(tab) {
 			const loginForm = document.getElementById('loginForm');
@@ -652,6 +656,10 @@
 			return message || 'Ha ocurrido un error. Inténtalo de nuevo.';
 		}
 
+		// ═══════════════════════════════════════
+		// AUTENTICACIÓN
+		// ═══════════════════════════════════════
+
 		function onLoginSuccess(user) {
 			const name = user.user_metadata?.first_name || user.user_metadata?.full_name || user.email.split('@')[0];
 			showMessage('¡Bienvenido, ' + name + '! Redirigiendo...', 'success');
@@ -666,8 +674,7 @@
 			e.preventDefault();
 			clearMessage();
 			setLoading('loginBtn', true);
-			const client = getClient();
-			if (!client) { showMessage('Error de conexión. Recarga la página.', 'error'); setLoading('loginBtn', false); return; }
+			const client = await getClientAsync();
 			const email = document.getElementById('loginEmail').value.trim();
 			const password = document.getElementById('loginPassword').value;
 			const { data, error } = await client.auth.signInWithPassword({ email, password });
@@ -691,9 +698,8 @@
 				showMessage('Las contraseñas no coinciden.', 'error');
 				return;
 			}
-			const client = getClient();
-			if (!client) { showMessage('Error de conexión. Recarga la página.', 'error'); return; }
 			setLoading('registerBtn', true);
+			const client = await getClientAsync();
 			const { data, error } = await client.auth.signUp({
 				email, password,
 				options: {
@@ -721,9 +727,8 @@
 
 		async function loginWithGoogle() {
 			clearMessage();
-			const client = getClient();
-			if (!client) { showMessage('Error de conexión. Recarga la página.', 'error'); return; }
 			setOAuthLoading('googleBtn', true);
+			const client = await getClientAsync();
 			const { error } = await client.auth.signInWithOAuth({
 				provider: 'google',
 				options: { redirectTo: REDIRECT_URL }
@@ -736,9 +741,8 @@
 
 		async function loginWithMicrosoft() {
 			clearMessage();
-			const client = getClient();
-			if (!client) { showMessage('Error de conexión. Recarga la página.', 'error'); return; }
 			setOAuthLoading('microsoftBtn', true);
+			const client = await getClientAsync();
 			const { error } = await client.auth.signInWithOAuth({
 				provider: 'azure',
 				options: { redirectTo: REDIRECT_URL, scopes: 'email profile openid' }
@@ -752,9 +756,8 @@
 		async function handleResetPassword(e) {
 			e.preventDefault();
 			clearMessage();
-			const client = getClient();
-			if (!client) { showMessage('Error de conexión. Recarga la página.', 'error'); return; }
 			setLoading('resetBtn', true);
+			const client = await getClientAsync();
 			const email = document.getElementById('resetEmail').value.trim();
 			const { error } = await client.auth.resetPasswordForEmail(email, { redirectTo: REDIRECT_URL });
 			if (error) {
@@ -765,14 +768,19 @@
 			setLoading('resetBtn', false);
 		}
 
-		waitForSupabase(() => {
-			getClient().auth.onAuthStateChange((event, session) => {
+		// ═══════════════════════════════════════
+		// INICIALIZACIÓN
+		// ═══════════════════════════════════════
+
+		// Inicializar al cargar — escuchar OAuth redirect y verificar sesión existente
+		getClientAsync().then(client => {
+			client.auth.onAuthStateChange((event, session) => {
 				if (event === 'SIGNED_IN' && session) {
 					onLoginSuccess(session.user);
 				}
 			});
 
-			getClient().auth.getSession().then(({ data: { session } }) => {
+			client.auth.getSession().then(({ data: { session } }) => {
 				if (session) {
 					const redirect = sessionStorage.getItem('redirectAfterLogin') || './index.html';
 					sessionStorage.removeItem('redirectAfterLogin');
