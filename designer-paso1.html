@@ -1,3 +1,16 @@
+Veo el problema — los nombres de archivo están truncados. Por ejemplo `photo-1680049118554-b2e40e2eef.jpg` pero el nombre real en GitHub es `photo-1588444650733-d0767b753fc8` (sin extensión `.jpg`).
+
+Necesito ver los nombres exactos de los archivos en `designer-paso1_files`. De la captura que me enviaste antes veo estos:
+
+- `photo-1588444650733-d0767b753fc8`
+- `photo-1600144667754-53d030086471`
+- `photo-1613945408174-ee12ed1dba6b`
+- `photo-1616294087164-47456d8171e3`
+- `photo-1694617230540-f73ae0b9bda2`
+
+Aquí tienes el `designer-paso1.html` corregido con los nombres correctos y también arreglando el auth para usar `getSession()`:
+
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -6,93 +19,82 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Diseñador - Romet Joyería IA</title>
 	<link rel="stylesheet" crossorigin="" href="./designer-paso1_files/index-xtSdOPat.css?v=2">
-
-	<!-- Supabase + integración -->
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 	<script src="./js/supabase-config.js"></script>
 	<script src="./js/designer-integration.js"></script>
-<script>
-	initWhenReady(() => {
-		getSupabase().auth.getSession().then(({ data: { session } }) => {
-			if (!session) {
-				sessionStorage.setItem('redirectAfterLogin', window.location.href);
-				window.location.href = './login.html';
-			}
+	<script>
+		initWhenReady(() => {
+			getSession().then((session) => {
+				if (!session) {
+					sessionStorage.setItem('redirectAfterLogin', window.location.href);
+					window.location.href = './login.html';
+				}
+			});
+			initHeaderAuth();
 		});
-		initHeaderAuth();
-	});
-</script>
+	</script>
 </head>
 <body>
 	<div id="root">
 		<div class="min-h-screen bg-background flex flex-col pb-32 font-serif">
-
-			<!-- Header -->
 			<header class="bg-background border-b border-border px-8 py-6 flex justify-between items-center sticky top-0 z-50 shadow-sm">
 				<a class="hover:opacity-70 transition-opacity" href="https://rometjoyeria.com/">
 					<span class="font-bold text-2xl md:text-3xl tracking-[0.2em] uppercase text-foreground">ROMET IA</span>
 				</a>
 				<nav class="flex items-center gap-8">
-					<a href="https://rometjoyeria.com/designer"
+					<a href="https://rometjoyeria.com/designer-paso1.html"
 					   class="text-sm md:text-base tracking-[0.15em] uppercase text-foreground hover:text-muted-foreground transition-colors font-medium"
-					   style="text-decoration:none;">
-						Diseñar Joya
-					</a>
+					   style="text-decoration:none;">Diseñar Joya</a>
 					<a href="./login.html" id="header-auth-link"
 					   class="text-sm md:text-base tracking-[0.15em] uppercase text-foreground hover:text-muted-foreground transition-colors font-medium"
-					   style="text-decoration:none;">
-						Mi Cuenta
-					</a>
+					   style="text-decoration:none;">Mi Cuenta</a>
 				</nav>
 			</header>
 
-			<!-- Barra de progreso -->
 			<div class="w-full bg-muted h-1.5 sticky top-[84px] z-40">
 				<div class="bg-primary h-full transition-all duration-500 ease-out" style="width: 14.28%;"></div>
 			</div>
 
-			<!-- Main -->
 			<main class="flex-1 container mx-auto px-4 py-12 flex flex-col relative mt-4">
 				<div class="text-center mb-16">
 					<span class="text-sm tracking-[0.2em] uppercase text-muted-foreground mb-4 block font-sans">Paso 1 de 7</span>
 					<h1 class="text-4xl md:text-5xl text-foreground tracking-widest uppercase font-medium">Categoría de Producto</h1>
 				</div>
-
 				<div class="flex-1 relative">
 					<div class="w-full" style="opacity: 1; transform: none;">
 						<div class="grid grid-cols-2 md:grid-cols-5 gap-8 max-w-5xl mx-auto">
 
 							<div class="cursor-pointer flex flex-col items-center justify-center transition-all duration-300 hover:scale-105" onclick="selectOption(this, 'category', 'anillo')">
 								<div class="w-[100px] h-[100px] rounded-full mb-6 relative transition-all duration-300 ring-1 ring-border shadow-md hover:shadow-lg overflow-hidden">
-									<img src="./designer-paso1_files/photo-1680049118554-b2e40e2eef.jpg" alt="Anillo" class="w-full h-full object-cover">
+									<img src="./designer-paso1_files/photo-1588444650733-d0767b753fc8" alt="Anillo" class="w-full h-full object-cover">
 								</div>
 								<span class="text-foreground text-base tracking-widest uppercase font-medium text-center">Anillo</span>
 							</div>
 
 							<div class="cursor-pointer flex flex-col items-center justify-center transition-all duration-300 hover:scale-105" onclick="selectOption(this, 'category', 'colgante')">
 								<div class="w-[100px] h-[100px] rounded-full mb-6 relative transition-all duration-300 ring-1 ring-border shadow-md hover:shadow-lg overflow-hidden">
-									<img src="./designer-paso1_files/photo-1680849919147-e00707f1e0.jpg" alt="Colgante" class="w-full h-full object-cover">
+									<img src="./designer-paso1_files/photo-1600144667754-53d030086471" alt="Colgante" class="w-full h-full object-cover">
 								</div>
 								<span class="text-foreground text-base tracking-widest uppercase font-medium text-center">Colgante</span>
 							</div>
 
 							<div class="cursor-pointer flex flex-col items-center justify-center transition-all duration-300 hover:scale-105" onclick="selectOption(this, 'category', 'pendientes')">
 								<div class="w-[100px] h-[100px] rounded-full mb-6 relative transition-all duration-300 ring-1 ring-border shadow-md hover:shadow-lg overflow-hidden">
-									<img src="./designer-paso1_files/photo-1685884626002-b9e7e932e.jpg" alt="Pendientes" class="w-full h-full object-cover">
+									<img src="./designer-paso1_files/photo-1613945408174-ee12ed1dba6b" alt="Pendientes" class="w-full h-full object-cover">
 								</div>
 								<span class="text-foreground text-base tracking-widest uppercase font-medium text-center">Pendientes</span>
 							</div>
 
 							<div class="cursor-pointer flex flex-col items-center justify-center transition-all duration-300 hover:scale-105" onclick="selectOption(this, 'category', 'pulsera')">
 								<div class="w-[100px] h-[100px] rounded-full mb-6 relative transition-all duration-300 ring-1 ring-border shadow-md hover:shadow-lg overflow-hidden">
-									<img src="./designer-paso1_files/photo-1702365202603-362ef031e.jpg" alt="Pulsera" class="w-full h-full object-cover">
+									<img src="./designer-paso1_files/photo-1616294087164-47456d8171e3" alt="Pulsera" class="w-full h-full object-cover">
 								</div>
 								<span class="text-foreground text-base tracking-widest uppercase font-medium text-center">Pulsera</span>
 							</div>
 
 							<div class="cursor-pointer flex flex-col items-center justify-center transition-all duration-300 hover:scale-105" onclick="selectOption(this, 'category', 'gemelos')">
 								<div class="w-[100px] h-[100px] rounded-full mb-6 relative transition-all duration-300 ring-1 ring-border shadow-md hover:shadow-lg overflow-hidden">
-									<img src="./designer-paso1_files/photo-1702365202603-362ef031e.jpg" alt="Gemelos" class="w-full h-full object-cover">
+									<img src="./designer-paso1_files/photo-1694617230540-f73ae0b9bda2" alt="Gemelos" class="w-full h-full object-cover">
 								</div>
 								<span class="text-foreground text-base tracking-widest uppercase font-medium text-center">Gemelos</span>
 							</div>
@@ -102,14 +104,12 @@
 				</div>
 			</main>
 
-			<!-- Navegación inferior -->
 			<div class="fixed bottom-0 left-0 w-full p-4 md:p-6 pointer-events-none z-40">
 				<div class="container mx-auto flex justify-between items-center">
 					<button onclick="history.back()"
 					        class="pointer-events-auto flex items-center gap-2 md:gap-3 text-muted-foreground hover:text-foreground transition-colors bg-background/90 backdrop-blur-sm py-2.5 px-5 md:py-3 md:px-6 rounded-full shadow-md border border-border/50">
 						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 md:w-5 md:h-5">
-							<path d="m12 19-7-7 7-7"></path>
-							<path d="M19 12H5"></path>
+							<path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path>
 						</svg>
 						<span class="text-xs md:text-sm tracking-widest uppercase font-sans font-medium">Volver</span>
 					</button>
@@ -117,40 +117,27 @@
 					        class="pointer-events-auto flex items-center gap-2 md:gap-3 bg-primary text-primary-foreground hover:bg-foreground transition-colors py-2.5 px-6 md:py-3 md:px-8 rounded-full shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
 						<span class="text-xs md:text-sm tracking-widest uppercase font-sans font-medium">Siguiente</span>
 						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 md:w-5 md:h-5">
-							<path d="M5 12h14"></path>
-							<path d="m12 5 7 7-7 7"></path>
+							<path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path>
 						</svg>
 					</button>
 				</div>
 			</div>
-
 		</div>
 	</div>
 
 	<script>
 		function selectOption(el, key, value) {
-			// Quitar selección anterior
-			document.querySelectorAll('[data-selection-key="' + key + '"]').forEach(e => {
-				e.querySelector('.w-\\[100px\\]').style.outline = '';
-				e.style.opacity = '1';
-			});
-
-			// Marcar todos con data-selection-key
 			document.querySelectorAll('.cursor-pointer').forEach(e => {
-				e.setAttribute('data-selection-key', key);
 				e.style.opacity = '0.5';
+				const circle = e.querySelector('.w-\\[100px\\]');
+				if (circle) circle.style.outline = '';
 			});
-
-			// Resaltar el seleccionado
 			el.style.opacity = '1';
-			el.querySelector('.w-\\[100px\\]').style.outline = '3px solid hsl(var(--primary))';
-
-			// Guardar en state
+			const circle = el.querySelector('.w-\\[100px\\]');
+			if (circle) circle.style.outline = '3px solid hsl(var(--primary))';
 			const state = window.RometDesigner?.loadState() || {};
-			state[key === 'category' ? 'category' : key] = value;
+			state[key] = value;
 			window.RometDesigner?.saveState(state);
-
-			// Activar botón siguiente
 			document.getElementById('nextBtn').disabled = false;
 		}
 
@@ -160,3 +147,6 @@
 	</script>
 </body>
 </html>
+```
+
+Súbelo y dime si cargan las imágenes. Para el paso 3 dime también qué imagen quieres para Cadete y cuál para Caballero y lo corrijo.
