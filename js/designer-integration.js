@@ -158,7 +158,6 @@
 		submitBtn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px;"><svg class="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>Generando tu diseño con IA...</span>';
 
 		try {
-			// LLAMAR A LA EDGE FUNCTION — ella genera la imagen, guarda en DB y manda emails
 			const result = await callEdgeFunction('Joyas', {
 				nombre: state.name,
 				telefono: state.phone,
@@ -174,7 +173,6 @@
 				sugerencias: state.notes,
 			});
 
-			// MOSTRAR RESULTADO — la Edge Function devuelve imagenUrl si la generó
 			showSuccessScreen(state, result?.imagenUrl || null);
 			clearState();
 
@@ -211,7 +209,7 @@
 				${imagenUrl ? `
 				<div class="bg-white p-8 rounded-2xl shadow-lg border border-border/50 mb-8"
 				     style="animation: fadeInUp 0.8s ease-out 0.2s both;">
-					<h2 class="text-xl tracking-widests uppercase text-foreground font-medium mb-4">Tu Diseño Generado</h2>
+					<h2 class="text-xl tracking-widest uppercase text-foreground font-medium mb-4">Tu Diseño Generado</h2>
 					<img src="${imagenUrl}" style="max-width:100%; border-radius:8px;" />
 				</div>` : `
 				<div class="bg-white p-8 rounded-2xl shadow-lg border border-border/50 mb-8"
@@ -223,7 +221,7 @@
 
 				<div class="bg-white p-6 rounded-2xl shadow-lg border border-border/50 text-left mb-8"
 				     style="animation: fadeInUp 0.8s ease-out 0.4s both;">
-					<h2 class="text-xl tracking-widests uppercase text-foreground font-medium mb-4">Resumen del Diseño</h2>
+					<h2 class="text-xl tracking-widest uppercase text-foreground font-medium mb-4">Resumen del Diseño</h2>
 					<div class="grid grid-cols-2 gap-4 font-sans text-sm">
 						${state.category ? `<div><span class="text-muted-foreground">Tipo:</span> <strong class="capitalize">${state.category}</strong></div>` : ''}
 						${state.material ? `<div><span class="text-muted-foreground">Material:</span> <strong class="capitalize">${state.material.replace(/_/g, ' ')}</strong></div>` : ''}
@@ -234,18 +232,24 @@
 					</div>
 				</div>
 
-				<div class="flex gap-4 justify-center" style="animation: fadeInUp 0.8s ease-out 0.6s both;">
+				<div class="flex flex-col sm:flex-row gap-4 justify-center" style="animation: fadeInUp 0.8s ease-out 0.6s both;">
 					<a href="./index.html"
 					   class="px-8 py-4 bg-[hsl(var(--button-bg,0_0%_0%))] text-[hsl(var(--button-text,0_0%_100%))]
 					          text-sm tracking-[0.2em] uppercase hover:opacity-90 transition-all duration-300
-					          font-medium no-underline inline-block">
+					          font-medium no-underline inline-block text-center">
 						Volver al Inicio
 					</a>
 					<a href="./designer-paso1.html"
 					   class="px-8 py-4 border border-border text-foreground
 					          text-sm tracking-[0.2em] uppercase hover:bg-muted transition-all duration-300
-					          font-medium no-underline inline-block">
+					          font-medium no-underline inline-block text-center">
 						Nuevo Diseño
+					</a>
+					<a href="#"
+					   class="px-8 py-4 border border-border text-foreground
+					          text-sm tracking-[0.2em] uppercase hover:bg-muted transition-all duration-300
+					          font-medium no-underline inline-block text-center">
+						¿Quieres este diseño en STL?
 					</a>
 				</div>
 			</div>
