@@ -340,7 +340,7 @@
 					          align-items: center; justify-content: center; text-decoration: none; min-height: 160px;">
 						<div style="position: absolute; inset: 0; background-image: url('./designer-paso7_files/Meneses-joyas.jpg');
 						            background-size: cover; background-position: center;"></div>
-						<div style="position: absolute; inset: 0; background: rgba(0,0,0,0.35);"></div>
+						<div style="position: absolute; inset: 0; background: rgba(0,0,0,0.15);"></div>
 						<span style="position: relative; z-index: 1; font-family: ui-sans-serif, system-ui, sans-serif;
 						             font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase;
 						             color: rgba(255,255,255,0.7); margin-bottom: 6px;">Powered by</span>
