@@ -326,7 +326,7 @@
 						               text-align: center; aspect-ratio: 1 / 1; width: 100%;
 						               display: flex; align-items: center; justify-content: center;
 						               padding: 24px; line-height: 1.3;">
-							¿Quieres hacer algún cambio en este diseño?
+							¿Quieres hacer algún cambio en este diseño? Ajusta tu Joya
 						</button>
 
 						<a href="#"
