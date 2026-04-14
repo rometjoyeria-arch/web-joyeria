@@ -314,25 +314,26 @@
 					</div>
 				</div>
 
-				<div style="max-width: 700px; margin: 0 auto; animation: fadeInUp 0.8s ease-out 0.6s both;">
+				<div style="max-width: 400px; margin: 0 auto; animation: fadeInUp 0.8s ease-out 0.6s both;">
 
 					<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
 
 						<button onclick="window._toggleCambios()"
 						        style="background: hsl(0 0% 0%); color: hsl(0 0% 75%);
-						               font-family: 'Cormorant Garamond', serif; font-size: 2rem;
+						               font-family: 'Cormorant Garamond', serif; font-size: 1.1rem;
 						               font-weight: 400; letter-spacing: 0.03em;
 						               border: none; cursor: pointer; transition: opacity 0.3s;
-						               text-align: center; aspect-ratio: 1 / 1; width: 100%;
+						               text-align: center; width: 185px; height: 185px;
 						               display: flex; align-items: center; justify-content: center;
-						               padding: 24px; line-height: 1.3;">
-							¿Quieres hacer algún cambio en este diseño? Ajusta tu Joya
+						               padding: 16px; line-height: 1.3;">
+							¿Quieres hacer algún cambio en este diseño?
 						</button>
 
 						<a href="#"
-						   style="display: block; text-decoration: none; width: 100%;
-						          aspect-ratio: 1 / 1; cursor: pointer; overflow: hidden;">
-							<img src="./designer-paso7_files/Meneses-joyas-stl.png"
+						   style="display: block; text-decoration: none;
+						          width: 185px; height: 185px;
+						          cursor: pointer; overflow: hidden;">
+							<img src="./designer-paso7_files/Meneses-joyas-stl-dis.png"
 							     style="width: 100%; height: 100%; object-fit: cover; display: block;" />
 						</a>
 
