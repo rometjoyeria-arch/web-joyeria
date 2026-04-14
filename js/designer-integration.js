@@ -1,4 +1,3 @@
-```javascript
 (function() {
 	'use strict';
 
@@ -315,7 +314,7 @@
 					</div>
 				</div>
 
-				<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 16px; animation: fadeInUp 0.8s ease-out 0.6s both; max-width: 700px; margin: 0 auto; min-height: 160px;">
+				<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 16px; animation: fadeInUp 0.8s ease-out 0.6s both; max-width: 700px; margin: 0 auto; min-height: 180px;">
 
 					<div style="display: flex; flex-direction: column; gap: 12px;">
 						<button onclick="window._toggleCambios()"
@@ -337,16 +336,24 @@
 
 					<a href="#"
 					   style="position: relative; overflow: hidden; display: flex; flex-direction: column;
-					          align-items: center; justify-content: center; text-decoration: none; min-height: 160px;">
-						<div style="position: absolute; inset: 0; background-image: url('./designer-paso7_files/Meneses-joyas.jpg');
-						            background-size: cover; background-position: center;"></div>
+					          align-items: center; justify-content: center; text-decoration: none;
+					          min-height: 180px; background-color: #1a6b8a;">
+						<div style="position: absolute; inset: 0;
+						            background-image: url('./designer-paso7_files/Meneses-joyas.jpg');
+						            background-size: contain;
+						            background-repeat: no-repeat;
+						            background-position: center;
+						            opacity: 0.85;">
+						</div>
 						<div style="position: absolute; inset: 0; background: rgba(0,0,0,0.15);"></div>
 						<span style="position: relative; z-index: 1; font-family: ui-sans-serif, system-ui, sans-serif;
 						             font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase;
-						             color: rgba(255,255,255,0.7); margin-bottom: 6px;">Powered by</span>
+						             color: rgba(255,255,255,0.9); margin-bottom: 6px;
+						             text-shadow: 0 1px 3px rgba(0,0,0,0.5);">Powered by</span>
 						<span style="position: relative; z-index: 1; font-family: 'Cormorant Garamond', serif;
 						             font-size: 1rem; letter-spacing: 0.2em; text-transform: uppercase;
-						             color: white; font-weight: 500; text-align: center;">¿Quieres este diseño en STL?</span>
+						             color: white; font-weight: 500; text-align: center;
+						             text-shadow: 0 1px 3px rgba(0,0,0,0.5);">¿Quieres este diseño en STL?</span>
 					</a>
 
 				</div>
@@ -423,6 +430,3 @@
 	};
 
 })();
-```
-
-Súbelo y prueba.
