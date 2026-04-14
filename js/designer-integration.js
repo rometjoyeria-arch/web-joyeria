@@ -325,13 +325,13 @@
 						               font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.72rem;
 						               letter-spacing: 0.12em; text-transform: uppercase; border: none;
 						               cursor: pointer; transition: opacity 0.3s; text-align: center;
-						               min-height: 120px; display: flex; align-items: center; justify-content: center;">
+						               min-height: 220px; display: flex; align-items: center; justify-content: center;">
 							¿Quieres hacer algún cambio en este diseño?
 						</button>
 
 						<a href="#"
 						   style="position: relative; overflow: hidden; display: flex; align-items: center;
-						          justify-content: center; text-decoration: none; min-height: 120px; cursor: pointer;">
+						          justify-content: center; text-decoration: none; min-height: 220px; cursor: pointer;">
 							<div style="position: absolute; inset: 0;
 							            background-image: url('./designer-paso7_files/Meneses-joyas-stl.png');
 							            background-size: cover;
