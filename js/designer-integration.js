@@ -320,8 +320,8 @@
 
 						<button onclick="window._toggleCambios()"
 						        style="background: hsl(0 0% 0%); color: hsl(0 0% 75%);
-						               font-family: 'Cormorant Garamond', serif; font-size: 1.1rem;
-						               font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
+						               font-family: 'Cormorant Garamond', serif; font-size: 1.4rem;
+						               font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase;
 						               border: none; cursor: pointer; transition: opacity 0.3s;
 						               text-align: center; aspect-ratio: 1 / 1; width: 100%;
 						               display: flex; align-items: center; justify-content: center;
@@ -330,7 +330,8 @@
 						</button>
 
 						<a href="#"
-						   style="display: block; text-decoration: none; width: 100%; aspect-ratio: 1 / 1; cursor: pointer; overflow: hidden;">
+						   style="display: block; text-decoration: none; width: 100%;
+						          aspect-ratio: 1 / 1; cursor: pointer; overflow: hidden;">
 							<img src="./designer-paso7_files/Meneses-joyas-stl.png"
 							     style="width: 100%; height: 100%; object-fit: cover; display: block;" />
 						</a>
