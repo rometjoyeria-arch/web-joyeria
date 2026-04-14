@@ -184,6 +184,63 @@
 		}
 	}
 
+	async function rediseñar(state, cambios) {
+		const redesignBtn = document.getElementById('redesign-btn');
+		const imagenContainer = document.getElementById('imagen-generada');
+
+		if (redesignBtn) {
+			redesignBtn.disabled = true;
+			redesignBtn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px;"><svg class="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>Rediseñando...</span>';
+		}
+
+		if (imagenContainer) {
+			imagenContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:200px;"><svg class="animate-spin" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></div>';
+		}
+
+		try {
+			const result = await callEdgeFunction('Joyas', {
+				nombre: state.name,
+				telefono: state.phone,
+				email: state.email,
+				categoria_producto: state.category,
+				material: state.material,
+				perfil_usuario: state.profile,
+				gema_principal: state.gemstone,
+				estilo: state.style,
+				presupuesto: state.budget,
+				peso_estimado: state.weight,
+				talla_medida: state.size,
+				sugerencias: (state.notes || '') + ' Cambios solicitados: ' + cambios,
+			});
+
+			if (imagenContainer && result?.imagenUrl) {
+				imagenContainer.innerHTML = `<img src="${result.imagenUrl}" style="max-width:100%; border-radius:8px;" />`;
+			}
+
+			// Ocultar panel de cambios
+			const cambiosPanel = document.getElementById('cambios-panel');
+			if (cambiosPanel) cambiosPanel.style.display = 'none';
+
+		} catch (error) {
+			console.error('Error rediseñando:', error);
+			if (imagenContainer) {
+				imagenContainer.innerHTML = '<p style="color:#888;text-align:center;">Error al rediseñar. Inténtalo de nuevo.</p>';
+			}
+		}
+
+		if (redesignBtn) {
+			redesignBtn.disabled = false;
+			redesignBtn.textContent = 'Rediseñar';
+		}
+	}
+
+	function toggleCambiosPanel(state) {
+		const panel = document.getElementById('cambios-panel');
+		if (!panel) return;
+		const visible = panel.style.display !== 'none';
+		panel.style.display = visible ? 'none' : 'block';
+	}
+
 	function showSuccessScreen(state, imagenUrl) {
 		const main = document.querySelector('main') || document.querySelector('.flex-1');
 		if (!main) return;
@@ -210,14 +267,38 @@
 				<div class="bg-white p-8 rounded-2xl shadow-lg border border-border/50 mb-8"
 				     style="animation: fadeInUp 0.8s ease-out 0.2s both;">
 					<h2 class="text-xl tracking-widest uppercase text-foreground font-medium mb-4">Tu Diseño Generado</h2>
-					<img src="${imagenUrl}" style="max-width:100%; border-radius:8px;" />
+					<div id="imagen-generada">
+						<img src="${imagenUrl}" style="max-width:100%; border-radius:8px;" />
+					</div>
 				</div>` : `
 				<div class="bg-white p-8 rounded-2xl shadow-lg border border-border/50 mb-8"
 				     style="animation: fadeInUp 0.8s ease-out 0.2s both;">
-					<p class="text-muted-foreground font-sans">
-						Tu diseño está siendo procesado. Recibirás un email con el resultado en breve.
-					</p>
+					<div id="imagen-generada">
+						<p class="text-muted-foreground font-sans">
+							Tu diseño está siendo procesado. Recibirás un email con el resultado en breve.
+						</p>
+					</div>
 				</div>`}
+
+				<!-- Panel de cambios (oculto por defecto) -->
+				<div id="cambios-panel" style="display:none; animation: fadeInUp 0.4s ease-out;" class="bg-white p-6 rounded-2xl shadow-lg border border-border/50 mb-6 text-left">
+					<p class="text-sm tracking-widest uppercase text-muted-foreground font-sans font-medium mb-3">Describe los cambios</p>
+					<textarea id="cambios-texto"
+					          placeholder="Escribe los cambios con los que quieras ajustar el diseño..."
+					          class="w-full border border-border p-4 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all duration-300 text-base font-serif min-h-[100px] resize-y rounded-md mb-3"></textarea>
+					<p style="color: #e53e3e; font-size: 0.8rem; font-family: ui-sans-serif, system-ui, sans-serif; margin-bottom: 12px;">
+						⚠️ Este cambio consumirá 1 crédito
+					</p>
+					<button id="redesign-btn"
+					        onclick="(function(){
+					        	const cambios = document.getElementById('cambios-texto').value.trim();
+					        	if (!cambios) return;
+					        	window._redisenar(cambios);
+					        })()"
+					        style="background: hsl(0 0% 0%); color: hsl(0 0% 80%); padding: 12px 32px; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.8rem; letter-spacing: 0.2em; text-transform: uppercase; border: none; cursor: pointer; transition: opacity 0.3s;">
+						Rediseñar
+					</button>
+				</div>
 
 				<div class="bg-white p-6 rounded-2xl shadow-lg border border-border/50 text-left mb-8"
 				     style="animation: fadeInUp 0.8s ease-out 0.4s both;">
@@ -239,21 +320,36 @@
 					          font-medium no-underline inline-block text-center">
 						Volver al Inicio
 					</a>
-					<a href="./designer-paso1.html"
-					   class="px-8 py-4 border border-border text-foreground
-					          text-sm tracking-[0.2em] uppercase hover:bg-muted transition-all duration-300
-					          font-medium no-underline inline-block text-center">
-						Nuevo Diseño
-					</a>
+
+					<button onclick="window._toggleCambios()"
+					        style="background: hsl(0 0% 0%); color: hsl(0 0% 75%); padding: 16px 24px;
+					               font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.75rem;
+					               letter-spacing: 0.15em; text-transform: uppercase; border: none;
+					               cursor: pointer; transition: opacity 0.3s; text-align: center;">
+						¿Quieres hacer algún cambio en este diseño?
+					</button>
+
 					<a href="#"
-					   class="px-8 py-4 border border-border text-foreground
-					          text-sm tracking-[0.2em] uppercase hover:bg-muted transition-all duration-300
-					          font-medium no-underline inline-block text-center">
-						¿Quieres este diseño en STL?
+					   style="position: relative; overflow: hidden; display: inline-flex; flex-direction: column;
+					          align-items: center; justify-content: center; padding: 16px 24px;
+					          text-decoration: none; min-width: 180px;">
+						<div style="position: absolute; inset: 0; background-image: url('./designer-paso7_files/Meneses-joyas.jpg');
+						            background-size: cover; background-position: center;"></div>
+						<div style="position: absolute; inset: 0; background: rgba(0,0,0,0.55);"></div>
+						<span style="position: relative; z-index: 1; font-family: ui-sans-serif, system-ui, sans-serif;
+						             font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase;
+						             color: rgba(255,255,255,0.7); margin-bottom: 4px;">Powered by</span>
+						<span style="position: relative; z-index: 1; font-family: 'Cormorant Garamond', serif;
+						             font-size: 0.9rem; letter-spacing: 0.2em; text-transform: uppercase;
+						             color: white; font-weight: 500;">¿Quieres este diseño en STL?</span>
 					</a>
 				</div>
 			</div>
 		`;
+
+		// Exponer funciones al scope global para los onclick inline
+		window._toggleCambios = () => toggleCambiosPanel(state);
+		window._redisenar = (cambios) => rediseñar(state, cambios);
 
 		if (!document.getElementById('romet-animations')) {
 			const style = document.createElement('style');
