@@ -1,3 +1,4 @@
+```javascript
 (function() {
 	'use strict';
 
@@ -253,7 +254,7 @@
 						<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
 						<polyline points="22 4 12 14.01 9 11.01"/>
 					</svg>
-					<h1 class="text-4xl md:text-5xl text-foreground tracking-widests uppercase font-medium mb-4">
+					<h1 class="text-4xl md:text-5xl text-foreground tracking-widest uppercase font-medium mb-4">
 						¡Diseño Creado!
 					</h1>
 					<p class="text-muted-foreground font-sans tracking-wide max-w-lg mx-auto text-lg">
@@ -265,7 +266,7 @@
 				${imagenUrl ? `
 				<div class="bg-white p-8 rounded-2xl shadow-lg border border-border/50 mb-8"
 				     style="animation: fadeInUp 0.8s ease-out 0.2s both;">
-					<h2 class="text-xl tracking-widests uppercase text-foreground font-medium mb-4">Tu Diseño Generado</h2>
+					<h2 class="text-xl tracking-widest uppercase text-foreground font-medium mb-4">Tu Diseño Generado</h2>
 					<div id="imagen-generada">
 						<img src="${imagenUrl}" style="max-width:100%; border-radius:8px;" />
 					</div>
@@ -280,7 +281,7 @@
 				</div>`}
 
 				<div id="cambios-panel" style="display:none;" class="bg-white p-6 rounded-2xl shadow-lg border border-border/50 mb-6 text-left">
-					<p class="text-sm tracking-widests uppercase text-muted-foreground font-sans font-medium mb-3">Describe los cambios</p>
+					<p class="text-sm tracking-widest uppercase text-muted-foreground font-sans font-medium mb-3">Describe los cambios</p>
 					<textarea id="cambios-texto"
 					          placeholder="Escribe los cambios con los que quieras ajustar el diseño..."
 					          class="w-full border border-border p-4 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all duration-300 text-base font-serif min-h-[100px] resize-y rounded-md mb-3"></textarea>
@@ -303,7 +304,7 @@
 
 				<div class="bg-white p-6 rounded-2xl shadow-lg border border-border/50 text-left mb-8"
 				     style="animation: fadeInUp 0.8s ease-out 0.4s both;">
-					<h2 class="text-xl tracking-widests uppercase text-foreground font-medium mb-4">Resumen del Diseño</h2>
+					<h2 class="text-xl tracking-widest uppercase text-foreground font-medium mb-4">Resumen del Diseño</h2>
 					<div class="grid grid-cols-2 gap-4 font-sans text-sm">
 						${state.category ? `<div><span class="text-muted-foreground">Tipo:</span> <strong class="capitalize">${state.category}</strong></div>` : ''}
 						${state.material ? `<div><span class="text-muted-foreground">Material:</span> <strong class="capitalize">${state.material.replace(/_/g, ' ')}</strong></div>` : ''}
@@ -314,7 +315,7 @@
 					</div>
 				</div>
 
-				<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 16px; animation: fadeInUp 0.8s ease-out 0.6s both; max-width: 700px; margin: 0 auto;">
+				<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 16px; animation: fadeInUp 0.8s ease-out 0.6s both; max-width: 700px; margin: 0 auto; min-height: 160px;">
 
 					<div style="display: flex; flex-direction: column; gap: 12px;">
 						<button onclick="window._toggleCambios()"
@@ -328,17 +329,18 @@
 						   style="background: hsl(0 0% 0%); color: hsl(0 0% 100%); padding: 16px 20px;
 						          font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.72rem;
 						          letter-spacing: 0.2em; text-transform: uppercase; text-decoration: none;
-						          text-align: center; display: block; transition: opacity 0.3s;">
+						          text-align: center; display: flex; align-items: center; justify-content: center;
+						          transition: opacity 0.3s; flex: 1;">
 							Volver al Inicio
 						</a>
 					</div>
 
 					<a href="#"
 					   style="position: relative; overflow: hidden; display: flex; flex-direction: column;
-					          align-items: center; justify-content: center; text-decoration: none;">
+					          align-items: center; justify-content: center; text-decoration: none; min-height: 160px;">
 						<div style="position: absolute; inset: 0; background-image: url('./designer-paso7_files/Meneses-joyas.jpg');
 						            background-size: cover; background-position: center;"></div>
-						<div style="position: absolute; inset: 0; background: rgba(0,0,0,0.55);"></div>
+						<div style="position: absolute; inset: 0; background: rgba(0,0,0,0.35);"></div>
 						<span style="position: relative; z-index: 1; font-family: ui-sans-serif, system-ui, sans-serif;
 						             font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase;
 						             color: rgba(255,255,255,0.7); margin-bottom: 6px;">Powered by</span>
@@ -421,3 +423,6 @@
 	};
 
 })();
+```
+
+Súbelo y prueba.
