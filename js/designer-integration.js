@@ -314,10 +314,8 @@
 					</div>
 				</div>
 
-				<!-- Botones finales -->
 				<div style="max-width: 700px; margin: 0 auto; animation: fadeInUp 0.8s ease-out 0.6s both;">
 
-					<!-- Fila superior: cambio + STL a partes iguales -->
 					<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
 
 						<button onclick="window._toggleCambios()"
@@ -330,17 +328,14 @@
 						</button>
 
 						<a href="#"
-						   style="position: relative; overflow: hidden; display: flex; align-items: center;
-						          justify-content: center; text-decoration: none; min-height: 220px; cursor: pointer;">
-							<div style="position: absolute; inset: 0;
-							            background-image: url('./designer-paso7_files/Meneses-joyas-stl.png');
-							            background-size: cover;
-							            background-position: center;"></div>
+						   style="position: relative; overflow: hidden; display: block;
+						          text-decoration: none; min-height: 220px; cursor: pointer;">
+							<img src="./designer-paso7_files/Meneses-joyas-stl.png"
+							     style="width: 100%; height: 100%; object-fit: cover; display: block;" />
 						</a>
 
 					</div>
 
-					<!-- Fila inferior: volver al inicio centrado -->
 					<div style="text-align: center;">
 						<a href="./index.html"
 						   style="color: hsl(0 0% 0%); font-family: ui-sans-serif, system-ui, sans-serif;
