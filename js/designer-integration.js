@@ -314,47 +314,42 @@
 					</div>
 				</div>
 
-				<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 16px; animation: fadeInUp 0.8s ease-out 0.6s both; max-width: 700px; margin: 0 auto; min-height: 180px;">
+				<!-- Botones finales -->
+				<div style="max-width: 700px; margin: 0 auto; animation: fadeInUp 0.8s ease-out 0.6s both;">
 
-					<div style="display: flex; flex-direction: column; gap: 12px;">
+					<!-- Fila superior: cambio + STL a partes iguales -->
+					<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+
 						<button onclick="window._toggleCambios()"
-						        style="background: hsl(0 0% 0%); color: hsl(0 0% 75%); padding: 16px 20px;
+						        style="background: hsl(0 0% 0%); color: hsl(0 0% 75%); padding: 24px 20px;
 						               font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.72rem;
 						               letter-spacing: 0.12em; text-transform: uppercase; border: none;
-						               cursor: pointer; transition: opacity 0.3s; text-align: center; flex: 1;">
+						               cursor: pointer; transition: opacity 0.3s; text-align: center;
+						               min-height: 120px; display: flex; align-items: center; justify-content: center;">
 							¿Quieres hacer algún cambio en este diseño?
 						</button>
+
+						<a href="#"
+						   style="position: relative; overflow: hidden; display: flex; align-items: center;
+						          justify-content: center; text-decoration: none; min-height: 120px; cursor: pointer;">
+							<div style="position: absolute; inset: 0;
+							            background-image: url('./designer-paso7_files/Meneses-joyas-stl.png');
+							            background-size: cover;
+							            background-position: center;"></div>
+						</a>
+
+					</div>
+
+					<!-- Fila inferior: volver al inicio centrado -->
+					<div style="text-align: center;">
 						<a href="./index.html"
-						   style="background: hsl(0 0% 0%); color: hsl(0 0% 100%); padding: 16px 20px;
-						          font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.72rem;
-						          letter-spacing: 0.2em; text-transform: uppercase; text-decoration: none;
-						          text-align: center; display: flex; align-items: center; justify-content: center;
-						          transition: opacity 0.3s; flex: 1;">
+						   style="color: hsl(0 0% 0%); font-family: ui-sans-serif, system-ui, sans-serif;
+						          font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase;
+						          text-decoration: none; transition: opacity 0.3s; display: inline-block;
+						          padding: 12px 32px;">
 							Volver al Inicio
 						</a>
 					</div>
-
-					<a href="#"
-					   style="position: relative; overflow: hidden; display: flex; flex-direction: column;
-					          align-items: center; justify-content: center; text-decoration: none;
-					          min-height: 180px; background-color: #1a6b8a;">
-						<div style="position: absolute; inset: 0;
-						            background-image: url('./designer-paso7_files/Meneses-joyas.jpg');
-						            background-size: contain;
-						            background-repeat: no-repeat;
-						            background-position: center;
-						            opacity: 0.85;">
-						</div>
-						<div style="position: absolute; inset: 0; background: rgba(0,0,0,0.15);"></div>
-						<span style="position: relative; z-index: 1; font-family: ui-sans-serif, system-ui, sans-serif;
-						             font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase;
-						             color: rgba(255,255,255,0.9); margin-bottom: 6px;
-						             text-shadow: 0 1px 3px rgba(0,0,0,0.5);">Powered by</span>
-						<span style="position: relative; z-index: 1; font-family: 'Cormorant Garamond', serif;
-						             font-size: 1rem; letter-spacing: 0.2em; text-transform: uppercase;
-						             color: white; font-weight: 500; text-align: center;
-						             text-shadow: 0 1px 3px rgba(0,0,0,0.5);">¿Quieres este diseño en STL?</span>
-					</a>
 
 				</div>
 			</div>
