@@ -320,12 +320,12 @@
 
 						<button onclick="window._toggleCambios()"
 						        style="background: hsl(0 0% 0%); color: hsl(0 0% 75%);
-						               font-family: 'Cormorant Garamond', serif; font-size: 1.4rem;
-						               font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase;
+						               font-family: 'Cormorant Garamond', serif; font-size: 2rem;
+						               font-weight: 400; letter-spacing: 0.03em;
 						               border: none; cursor: pointer; transition: opacity 0.3s;
 						               text-align: center; aspect-ratio: 1 / 1; width: 100%;
 						               display: flex; align-items: center; justify-content: center;
-						               padding: 24px; line-height: 1.4;">
+						               padding: 24px; line-height: 1.3;">
 							¿Quieres hacer algún cambio en este diseño?
 						</button>
 
