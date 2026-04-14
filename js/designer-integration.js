@@ -326,7 +326,7 @@
 						               text-align: center; width: 185px; height: 185px;
 						               display: flex; align-items: center; justify-content: center;
 						               padding: 16px; line-height: 1.3;">
-							¿Quieres hacer algún cambio en este diseño?
+							¿QUIERES HACER ALGÚN CAMBIO EN TU DISEÑO? ¡PRUEBA A CAMBIARLO!
 						</button>
 
 						<a href="#"
