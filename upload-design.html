@@ -1,211 +1,337 @@
 <!DOCTYPE html>
-<!-- saved from url=(0038)https://rometjoyeria.com/upload-design -->
-<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-		
-		<link rel="icon" type="image/svg+xml" href="https://rometjoyeria.com/vite.svg">
-		<meta name="generator" content="Hostinger Horizons">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>Sube tu Diseño - Romet Joyería</title>
-		<script type="module" crossorigin="" src="./upload-design_files/index-8FY5Tnxd.js?v=3"></script>
-		<link rel="stylesheet" crossorigin="" href="./upload-design_files/index-xtSdOPat.css?v=3">
-		<script type="module">
-window.onerror = (message, source, lineno, colno, errorObj) => {
-	const errorDetails = errorObj ? JSON.stringify({
-		name: errorObj.name,
-		message: errorObj.message,
-		stack: errorObj.stack,
-		source,
-		lineno,
-		colno,
-	}) : null;
-
-	window.parent.postMessage({
-		type: 'horizons-runtime-error',
-		message,
-		error: errorDetails
-	}, '*');
-};
-</script>
-		<script type="module">
-const observer = new MutationObserver((mutations) => {
-	for (const mutation of mutations) {
-		for (const addedNode of mutation.addedNodes) {
-			if (
-				addedNode.nodeType === Node.ELEMENT_NODE &&
-				(
-					addedNode.tagName?.toLowerCase() === 'vite-error-overlay' ||
-					addedNode.classList?.contains('backdrop')
-				)
-			) {
-				handleViteOverlay(addedNode);
-			}
-		}
-	}
-});
-
-observer.observe(document.documentElement, {
-	childList: true,
-	subtree: true
-});
-
-function handleViteOverlay(node) {
-	if (!node.shadowRoot) {
-		return;
-	}
-
-	const backdrop = node.shadowRoot.querySelector('.backdrop');
-
-	if (backdrop) {
-		const overlayHtml = backdrop.outerHTML;
-		const parser = new DOMParser();
-		const doc = parser.parseFromString(overlayHtml, 'text/html');
-		const messageBodyElement = doc.querySelector('.message-body');
-		const fileElement = doc.querySelector('.file');
-		const messageText = messageBodyElement ? messageBodyElement.textContent.trim() : '';
-		const fileText = fileElement ? fileElement.textContent.trim() : '';
-		const error = messageText + (fileText ? ' File:' + fileText : '');
-
-		window.parent.postMessage({
-			type: 'horizons-vite-error',
-			error,
-		}, '*');
-	}
-}
-</script>
-		<script type="module">
-const originalConsoleError = console.error;
-const MATCH_LINE_COL_REGEX = /:(\d+):(\d+)\)?\s*$/; // regex to match the :lineNum:colNum
-const MATCH_AT_REGEX = /^\s*at\s+(?:async\s+)?(?:.*?\s+)?\(?/; // regex to remove the 'at' keyword and any 'async' or function name
-const MATCH_PATH_REGEX = /^\//; // regex to remove the leading slash
-
-function parseStackFrameLine(line) {
-	const lineColMatch = line.match(MATCH_LINE_COL_REGEX);
-	if (!lineColMatch) return null;
-	const [, lineNum, colNum] = lineColMatch;
-	const suffix = `:${lineNum}:${colNum}`;
-	const idx = line.lastIndexOf(suffix);
-	if (idx === -1) return null;
-	const before = line.substring(0, idx);
-	const path = before.replace(MATCH_AT_REGEX, '').trim();
-	
-	if (!path) return null;
-
-	try {
-		const pathname = new URL(path).pathname;
-		const filePath = pathname.replace(MATCH_PATH_REGEX, '') || pathname;
-		return `${filePath}:${lineNum}:${colNum}`;
-	} catch (e) {
-		const filePath = path.replace(MATCH_PATH_REGEX, '') || path;
-		return `${filePath}:${lineNum}:${colNum}`;
-	}
-}
-
-function getFilePathFromStack(stack, skipFrames = 0) {
-	if (!stack || typeof stack !== 'string') return null;
-	const lines = stack.split('\n').slice(1);
-
-	const frames = lines.map(line => parseStackFrameLine(line.replace(/\r$/, ''))).filter(Boolean);
-
-	return frames[skipFrames] ?? null;
-}
-
-console.error = function(...args) {
-	originalConsoleError.apply(console, args);
-
-	let errorString = '';
-	let filePath = null;
-
-	for (let i = 0; i < args.length; i++) {
-		const arg = args[i];
-		if (arg instanceof Error) {
-			filePath = getFilePathFromStack(arg.stack, 0);
-			errorString = `${arg.name}: ${arg.message}`;
-			if (filePath) {
-				errorString = `${errorString} at ${filePath}`;
-			}
-			break;
-		}
-	}
-
-	if (!errorString) {
-		errorString = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
-		const stack = new Error().stack;
-		filePath = getFilePathFromStack(stack, 1);
-		if (filePath) {
-			errorString = `${errorString} at ${filePath}`;
-		}
-	}
-
-	window.parent.postMessage({
-		type: 'horizons-console-error',
-		error: errorString
-	}, '*');
-};
-</script>
-		<script type="module">
-const originalFetch = window.fetch;
-
-window.fetch = function(...args) {
-	const url = args[0] instanceof Request ? args[0].url : args[0];
-
-	// Skip WebSocket URLs
-	if (url.startsWith('ws:') || url.startsWith('wss:')) {
-		return originalFetch.apply(this, args);
-	}
-
-	return originalFetch.apply(this, args)
-		.then(async response => {
-			const contentType = response.headers.get('Content-Type') || '';
-
-			// Exclude HTML document responses
-			const isDocumentResponse =
-				contentType.includes('text/html') ||
-				contentType.includes('application/xhtml+xml');
-
-			if (!response.ok && !isDocumentResponse) {
-					const responseClone = response.clone();
-					const errorFromRes = await responseClone.text();
-					const requestUrl = response.url;
-					console.error(`Fetch error from ${requestUrl}: ${errorFromRes}`);
-			}
-
-			return response;
-		})
-		.catch(error => {
-			if (!url.match(/.html?$/i)) {
-				console.error(error);
-			}
-
-			throw error;
+<html lang="es">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="icon" type="image/svg+xml" href="https://rometjoyeria.com/vite.svg">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Sube tu Diseño - Romet Joyería</title>
+	<link rel="stylesheet" crossorigin="" href="./upload-design_files/index-xtSdOPat.css?v=3">
+	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+	<script src="./js/supabase-config.js"></script>
+	<script src="./js/upload-integration.js"></script>
+	<script>
+		initWhenReady(() => {
+			getSession().then((session) => {
+				if (!session) {
+					sessionStorage.setItem('redirectAfterLogin', window.location.href);
+					window.location.href = './login.html';
+				}
+			});
+			initHeaderAuth();
 		});
-};
-</script>
-		<script type="module">
-if (window.navigation && window.self !== window.top) {
-	window.navigation.addEventListener('navigate', (event) => {
-		const url = event.destination.url;
+	</script>
+</head>
+<body>
+	<div id="root">
+		<div class="min-h-screen bg-background flex flex-col font-serif">
 
-		try {
-			const destinationUrl = new URL(url);
-			const destinationOrigin = destinationUrl.origin;
-			const currentOrigin = window.location.origin;
+			<header class="bg-background border-b border-border px-8 py-6 flex justify-between items-center sticky top-0 z-50 shadow-sm">
+				<a class="hover:opacity-70 transition-opacity" href="https://rometjoyeria.com/">
+					<span class="font-bold text-2xl md:text-3xl tracking-[0.2em] uppercase text-foreground">ROMET IA</span>
+				</a>
+				<nav class="flex items-center gap-8">
+					<a href="https://rometjoyeria.com/designer-paso1.html"
+					   class="text-sm md:text-base tracking-[0.15em] uppercase text-foreground hover:text-muted-foreground transition-colors font-medium"
+					   style="text-decoration:none;">Diseñar Joya</a>
+					<a href="./login.html" id="header-auth-link"
+					   class="text-sm md:text-base tracking-[0.15em] uppercase text-foreground hover:text-muted-foreground transition-colors font-medium"
+					   style="text-decoration:none;">Mi Cuenta</a>
+				</nav>
+			</header>
 
-			if (destinationOrigin === currentOrigin) {
-				return;
-			}
-		} catch (error) {
-			return;
+			<main class="flex-1 container mx-auto px-4 py-12 md:py-20">
+				<div class="max-w-4xl mx-auto" style="opacity: 1; transform: none;">
+
+					<div class="text-center mb-12">
+						<h1 class="text-4xl md:text-5xl text-foreground tracking-widest uppercase font-medium mb-4">Analiza tu Diseño</h1>
+						<p class="text-muted-foreground font-sans tracking-wide max-w-2xl mx-auto">Sube un boceto o imagen de referencia y nuestra IA analizará los detalles para hacerlo realidad.</p>
+					</div>
+
+					<div class="bg-white p-8 md:p-12 rounded-2xl shadow-lg border border-border/50 relative overflow-hidden">
+						<form id="uploadForm" class="space-y-10">
+
+							<!-- Imagen de referencia -->
+							<div class="space-y-4">
+								<label class="text-sm tracking-widest uppercase text-foreground font-medium block">Imagen de Referencia *</label>
+								<div id="dropzone" class="border-2 border-dashed border-border hover:border-primary/50 hover:bg-muted/50 rounded-xl p-12 text-center cursor-pointer transition-all duration-300 flex flex-col items-center justify-center bg-muted/20">
+									<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10 text-muted-foreground mb-4">
+										<path d="M12 13v8"></path>
+										<path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path>
+										<path d="m8 17 4-4 4 4"></path>
+									</svg>
+									<p class="text-foreground font-medium mb-2 font-sans text-base">Haz clic para subir tu boceto o imagen</p>
+									<p class="text-sm text-muted-foreground font-sans">Formatos soportados: JPG, PNG, WEBP</p>
+									<div id="imagePreview" style="display:none; margin-top:16px;">
+										<img id="previewImg" style="max-width:200px; max-height:200px; border-radius:8px;" />
+										<p id="previewName" class="text-sm text-muted-foreground font-sans mt-2"></p>
+									</div>
+								</div>
+								<input type="file" id="fileInput" accept="image/jpeg, image/png, image/webp" class="hidden">
+							</div>
+
+							<!-- Instrucciones -->
+							<div class="space-y-2">
+								<label class="text-sm tracking-widests uppercase text-foreground font-medium">Instrucciones para la IA</label>
+								<textarea id="instructions" placeholder="Describe qué te gustaría mejorar o cambiar de este diseño..."
+								          class="w-full border border-border p-4 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all duration-300 text-lg font-serif min-h-[120px] resize-y rounded-md"></textarea>
+							</div>
+
+							<!-- Detalles del diseño -->
+							<div class="border-t border-border/50 pt-8">
+								<h3 class="text-xl tracking-widests uppercase text-foreground font-medium mb-6">Detalles del Diseño</h3>
+								<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+									<div class="space-y-2">
+										<label class="text-xs tracking-widests uppercase text-muted-foreground font-medium">Categoría</label>
+										<select id="category" class="w-full border-b border-border py-3 bg-transparent text-foreground focus:outline-none focus:border-primary transition-all duration-300 text-base font-sans">
+											<option value="medallas">Medallas</option>
+											<option value="anillo">Anillo</option>
+											<option value="colgante">Colgante</option>
+											<option value="pendientes">Pendientes</option>
+											<option value="pulsera">Pulsera</option>
+											<option value="gemelos">Gemelos</option>
+										</select>
+									</div>
+
+									<div class="space-y-2">
+										<label class="text-xs tracking-widests uppercase text-muted-foreground font-medium">Material</label>
+										<select id="material" class="w-full border-b border-border py-3 bg-transparent text-foreground focus:outline-none focus:border-primary transition-all duration-300 text-base font-sans">
+											<option value="oro_amarillo">Oro Amarillo</option>
+											<option value="oro_blanco">Oro Blanco</option>
+											<option value="oro_rosa">Oro Rosa</option>
+											<option value="platino">Platino</option>
+											<option value="plata">Plata</option>
+										</select>
+									</div>
+
+								</div>
+							</div>
+
+							<!-- Datos del usuario -->
+							<div class="border-t border-border/50 pt-8">
+								<h3 class="text-xl tracking-widests uppercase text-foreground font-medium mb-6">Tus Datos</h3>
+								<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+									<div class="space-y-2">
+										<label class="text-xs tracking-widests uppercase text-muted-foreground font-medium">Nombre *</label>
+										<input type="text" id="customerName" required
+										       class="w-full border-b border-border py-3 bg-transparent text-foreground focus:outline-none focus:border-primary transition-all duration-300 text-base font-sans" value="">
+									</div>
+									<div class="space-y-2">
+										<label class="text-xs tracking-widests uppercase text-muted-foreground font-medium">Teléfono *</label>
+										<input type="tel" id="customerPhone" required
+										       class="w-full border-b border-border py-3 bg-transparent text-foreground focus:outline-none focus:border-primary transition-all duration-300 text-base font-sans" value="">
+									</div>
+									<div class="space-y-2 md:col-span-2">
+										<label class="text-xs tracking-widests uppercase text-muted-foreground font-medium">Correo Electrónico *</label>
+										<input type="email" id="customerEmail" required
+										       class="w-full border-b border-border py-3 bg-transparent text-foreground focus:outline-none focus:border-primary transition-all duration-300 text-base font-sans" value="">
+									</div>
+								</div>
+							</div>
+
+							<div class="pt-6">
+								<button type="submit" id="submitBtn" disabled
+								        class="w-full py-5 bg-[hsl(var(--button-bg))] text-[hsl(var(--button-text))] text-lg tracking-[0.2em] uppercase hover:bg-[hsl(var(--button-hover))] transition-colors duration-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-none font-medium shadow-md">
+									Generar Diseño
+								</button>
+							</div>
+
+						</form>
+					</div>
+				</div>
+			</main>
+		</div>
+	</div>
+
+	<script>
+		// Dropzone
+		const dropzone = document.getElementById('dropzone');
+		const fileInput = document.getElementById('fileInput');
+		const imagePreview = document.getElementById('imagePreview');
+		const previewImg = document.getElementById('previewImg');
+		const previewName = document.getElementById('previewName');
+		const submitBtn = document.getElementById('submitBtn');
+
+		let selectedFile = null;
+
+		dropzone.addEventListener('click', () => fileInput.click());
+
+		fileInput.addEventListener('change', (e) => {
+			const file = e.target.files[0];
+			if (file) handleFile(file);
+		});
+
+		dropzone.addEventListener('dragover', (e) => {
+			e.preventDefault();
+			dropzone.classList.add('border-primary');
+		});
+
+		dropzone.addEventListener('dragleave', () => {
+			dropzone.classList.remove('border-primary');
+		});
+
+		dropzone.addEventListener('drop', (e) => {
+			e.preventDefault();
+			dropzone.classList.remove('border-primary');
+			const file = e.dataTransfer.files[0];
+			if (file) handleFile(file);
+		});
+
+		function handleFile(file) {
+			selectedFile = file;
+			const reader = new FileReader();
+			reader.onload = (e) => {
+				previewImg.src = e.target.result;
+				previewName.textContent = file.name;
+				imagePreview.style.display = 'block';
+			};
+			reader.readAsDataURL(file);
+			checkFormValidity();
 		}
 
-		window.parent.postMessage({
-			type: 'horizons-navigation-error',
-			url,
-		}, '*');
-	});
-}
-</script>
-	</head>
-	<body>
-		<div id="root"><div class="min-h-screen bg-background flex flex-col font-serif"><header class="bg-background border-b border-border px-8 py-6 flex justify-between items-center sticky top-0 z-50 shadow-sm"><a class="hover:opacity-70 transition-opacity" href="https://rometjoyeria.com/" data-discover="true"><span class="font-bold text-2xl md:text-3xl tracking-[0.2em] uppercase text-foreground">ROMET IA</span></a><nav class="flex items-center gap-8"><button class="text-sm md:text-base tracking-[0.15em] uppercase text-foreground hover:text-muted-foreground transition-colors font-medium">Diseñar Joya</button></nav></header><main class="flex-1 container mx-auto px-4 py-12 md:py-20"><div class="max-w-4xl mx-auto" style="opacity: 1; transform: none;"><div class="text-center mb-12"><h1 class="text-4xl md:text-5xl text-foreground tracking-widest uppercase font-medium mb-4">Analiza tu Diseño</h1><p class="text-muted-foreground font-sans tracking-wide max-w-2xl mx-auto">Sube un boceto o imagen de referencia y nuestra IA analizará los detalles para hacerlo realidad.</p></div><div class="bg-white p-8 md:p-12 rounded-2xl shadow-lg border border-border/50 relative overflow-hidden"><form class="space-y-10"><div class="space-y-4"><label class="text-sm tracking-widest uppercase text-foreground font-medium block">Imagen de Referencia *</label><div class="border-2 border-dashed border-border hover:border-primary/50 hover:bg-muted/50 rounded-xl p-12 text-center cursor-pointer transition-all duration-300 flex flex-col items-center justify-center bg-muted/20"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-cloud-upload w-10 h-10 text-muted-foreground mb-4"><path d="M12 13v8"></path><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="m8 17 4-4 4 4"></path></svg><p class="text-foreground font-medium mb-2 font-sans text-base">Haz clic para subir tu boceto o imagen</p><p class="text-sm text-muted-foreground font-sans">Formatos soportados: JPG, PNG, WEBP</p></div><input type="file" accept="image/jpeg, image/png, image/webp" class="hidden"></div><div class="space-y-2"><label class="text-sm tracking-widest uppercase text-foreground font-medium">Instrucciones para la IA</label><textarea placeholder="Describe qué te gustaría mejorar o cambiar de este diseño..." class="w-full border border-border p-4 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all duration-300 text-lg font-serif min-h-[120px] resize-y rounded-md"></textarea></div><div class="border-t border-border/50 pt-8"><h3 class="text-xl tracking-widest uppercase text-foreground font-medium mb-6">Detalles del Diseño</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="space-y-2"><label class="text-xs tracking-widest uppercase text-muted-foreground font-medium">Categoría</label><select class="w-full border-b border-border py-3 bg-transparent text-foreground focus:outline-none focus:border-primary transition-all duration-300 text-base font-sans"><option value="anillo">Anillo</option><option value="colgante">Colgante</option><option value="pendientes">Pendientes</option><option value="pulsera">Pulsera</option><option value="gemelos">Gemelos</option><option value="medallas">Medallas</option></select></div><div class="space-y-2"><label class="text-xs tracking-widest uppercase text-muted-foreground font-medium">Material</label><select class="w-full border-b border-border py-3 bg-transparent text-foreground focus:outline-none focus:border-primary transition-all duration-300 text-base font-sans"><option value="oro_amarillo">Oro Amarillo</option><option value="oro_blanco">Oro Blanco</option><option value="oro_rosa">Oro Rosa</option><option value="platino">Platino</option><option value="plata">Plata</option></select></div><div class="space-y-2"><label class="text-xs tracking-widest uppercase text-muted-foreground font-medium">Gema Principal</label><select class="w-full border-b border-border py-3 bg-transparent text-foreground focus:outline-none focus:border-primary transition-all duration-300 text-base font-sans"><option value="diamante">Diamante</option><option value="esmeralda">Esmeralda</option><option value="zafiro">Zafiro</option><option value="rubí">Rubí</option><option value="perla">Perla</option></select></div><div class="space-y-2"><label class="text-xs tracking-widest uppercase text-muted-foreground font-medium">Estilo</label><select class="w-full border-b border-border py-3 bg-transparent text-foreground focus:outline-none focus:border-primary transition-all duration-300 text-base font-sans"><option value="moderno">Moderno</option><option value="clásico">Clásico</option><option value="naturaleza">Naturaleza</option></select></div></div></div><div class="border-t border-border/50 pt-8"><h3 class="text-xl tracking-widest uppercase text-foreground font-medium mb-6">Tus Datos</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="space-y-2"><label class="text-xs tracking-widest uppercase text-muted-foreground font-medium">Nombre *</label><input type="text" required="" class="w-full border-b border-border py-3 bg-transparent text-foreground focus:outline-none focus:border-primary transition-all duration-300 text-base font-sans" value=""></div><div class="space-y-2"><label class="text-xs tracking-widest uppercase text-muted-foreground font-medium">Teléfono *</label><input type="tel" required="" class="w-full border-b border-border py-3 bg-transparent text-foreground focus:outline-none focus:border-primary transition-all duration-300 text-base font-sans" value=""></div><div class="space-y-2 md:col-span-2"><label class="text-xs tracking-widest uppercase text-muted-foreground font-medium">Correo Electrónico *</label><input type="email" required="" class="w-full border-b border-border py-3 bg-transparent text-foreground focus:outline-none focus:border-primary transition-all duration-300 text-base font-sans" value=""></div></div></div><div class="pt-6"><button type="submit" disabled="" class="w-full py-5 bg-[hsl(var(--button-bg))] text-[hsl(var(--button-text))] text-lg tracking-[0.2em] uppercase hover:bg-[hsl(var(--button-hover))] transition-colors duration-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-none font-medium shadow-md">Analizar Diseño</button></div></form></div></div></main></div><div role="region" aria-label="Notifications (F8)" tabindex="-1" style="pointer-events: none;"><ol tabindex="-1" class="fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px]"></ol></div></div>
-	
-</body></html>
+		// Validación del formulario
+		const requiredInputs = document.querySelectorAll('input[required]');
+		requiredInputs.forEach(input => {
+			input.addEventListener('input', checkFormValidity);
+		});
+
+		function checkFormValidity() {
+			const name = document.getElementById('customerName').value.trim();
+			const phone = document.getElementById('customerPhone').value.trim();
+			const email = document.getElementById('customerEmail').value.trim();
+			submitBtn.disabled = !(selectedFile && name && phone && email);
+		}
+
+		// Autorellenar desde sesión
+		initWhenReady(() => {
+			getSession().then((session) => {
+				if (!session) return;
+				const user = session.user;
+				const nameInput = document.getElementById('customerName');
+				const emailInput = document.getElementById('customerEmail');
+				if (nameInput && !nameInput.value) {
+					nameInput.value = user.user_metadata?.full_name ||
+					                  ((user.user_metadata?.first_name || '') + ' ' + (user.user_metadata?.last_name || '')).trim();
+				}
+				if (emailInput && !emailInput.value) {
+					emailInput.value = user.email || '';
+				}
+				checkFormValidity();
+			});
+		});
+
+		// Submit
+		document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+			e.preventDefault();
+
+			const nombre = document.getElementById('customerName').value.trim();
+			const telefono = document.getElementById('customerPhone').value.trim();
+			const email = document.getElementById('customerEmail').value.trim();
+			const categoria = document.getElementById('category').value;
+			const material = document.getElementById('material').value;
+			const instrucciones = document.getElementById('instructions').value.trim();
+
+			submitBtn.disabled = true;
+			submitBtn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px;"><svg style="animation:spin 1s linear infinite" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>Generando tu diseño con IA...</span>';
+
+			try {
+				// 1. Subir imagen a Supabase Storage
+				let imagenSubidaUrl = null;
+				try {
+					imagenSubidaUrl = await uploadImage(selectedFile, 'disenos');
+				} catch (uploadError) {
+					console.warn('Error subiendo imagen:', uploadError);
+				}
+
+				// 2. Llamar a Edge Function — genera imagen con Gemini + guarda en DB + emails
+				const result = await callEdgeFunction('Joyas', {
+					nombre,
+					telefono,
+					email,
+					categoria_producto: categoria,
+					material,
+					sugerencias: instrucciones,
+					imagen_subida_url: imagenSubidaUrl,
+				});
+
+				// 3. Mostrar pantalla de éxito
+				showUploadSuccess({ nombre, email, categoria, material }, result?.imagenUrl || null);
+
+			} catch (error) {
+				console.error('Error:', error);
+				submitBtn.disabled = false;
+				submitBtn.textContent = 'Generar Diseño';
+				alert('Ha ocurrido un error. Por favor, inténtalo de nuevo.');
+			}
+		});
+
+		function showUploadSuccess(data, imagenUrl) {
+			const main = document.querySelector('main');
+			if (!main) return;
+
+			main.innerHTML = `
+				<div class="max-w-3xl mx-auto px-4 py-12 text-center">
+					<div class="mb-8">
+						<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none"
+						     stroke="hsl(120, 40%, 40%)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+						     style="margin: 0 auto 1.5rem;">
+							<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+							<polyline points="22 4 12 14.01 9 11.01"/>
+						</svg>
+						<h1 class="text-4xl md:text-5xl text-foreground tracking-widest uppercase font-medium mb-4">
+							¡Diseño Generado!
+						</h1>
+						<p class="text-muted-foreground font-sans tracking-wide max-w-lg mx-auto text-lg">
+							Hemos recibido tu solicitud, <strong>${data.nombre}</strong>.
+							Te contactaremos pronto en <strong>${data.email}</strong>.
+						</p>
+					</div>
+
+					${imagenUrl ? `
+					<div class="bg-white p-8 rounded-2xl shadow-lg border border-border/50 mb-8">
+						<h2 class="text-xl tracking-widest uppercase text-foreground font-medium mb-4">Tu Diseño Generado</h2>
+						<img src="${imagenUrl}" style="max-width:100%; border-radius:8px;" />
+					</div>` : `
+					<div class="bg-white p-8 rounded-2xl shadow-lg border border-border/50 mb-8">
+						<p class="text-muted-foreground font-sans">
+							Tu diseño está siendo procesado. Recibirás un email con el resultado en breve.
+						</p>
+					</div>`}
+
+					<div class="bg-white p-6 rounded-2xl shadow-lg border border-border/50 text-left mb-8">
+						<h2 class="text-xl tracking-widest uppercase text-foreground font-medium mb-4">Resumen</h2>
+						<div class="grid grid-cols-2 gap-4 font-sans text-sm">
+							${data.categoria ? `<div><span class="text-muted-foreground">Categoría:</span> <strong class="capitalize">${data.categoria}</strong></div>` : ''}
+							${data.material ? `<div><span class="text-muted-foreground">Material:</span> <strong class="capitalize">${data.material.replace(/_/g, ' ')}</strong></div>` : ''}
+						</div>
+					</div>
+
+					<div class="flex gap-4 justify-center">
+						<a href="./index.html"
+						   class="px-8 py-4 bg-[hsl(var(--button-bg,0_0%_0%))] text-[hsl(var(--button-text,0_0%_100%))]
+						          text-sm tracking-[0.2em] uppercase hover:opacity-90 transition-all duration-300
+						          font-medium no-underline inline-block">
+							Volver al Inicio
+						</a>
+						<a href="./upload-design.html"
+						   class="px-8 py-4 border border-border text-foreground
+						          text-sm tracking-[0.2em] uppercase hover:bg-muted transition-all duration-300
+						          font-medium no-underline inline-block">
+							Nuevo Análisis
+						</a>
+					</div>
+				</div>
+			`;
+
+			const style = document.createElement('style');
+			style.textContent = `@keyframes spin { to { transform: rotate(360deg); } }`;
+			document.head.appendChild(style);
+		}
+	</script>
+
+	<style>
+		@keyframes spin { to { transform: rotate(360deg); } }
+	</style>
+
+</body>
+</html>
