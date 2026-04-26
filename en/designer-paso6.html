@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="icon" type="image/png" href="./favicon.png">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Diseñador - Romet Jewelry AI</title>
+	<link rel="stylesheet" crossorigin="" href="../designer-paso6_files/index-xtSdOPat.css?v=2">
+
+	<!-- Supabase + integración -->
+	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+	<script src="../js/supabase-config.js"></script>
+	<script src="../js/designer-integration.js"></script>
+<script>
+	initWhenReady(() => {
+		getSupabase().auth.getSession().then(({ data: { session } }) => {
+			if (!session) {
+				sessionStorage.setItem('redirectAfterLogin', window.location.href);
+				window.location.href = './login.html';
+			}
+		});
+		initHeaderAuth();
+
+		const state = window.RometDesigner?.loadState() || {};
+		const inputs = document.querySelectorAll('input');
+		if (inputs[0] && state.budget) inputs[0].value = state.budget;
+		if (inputs[1] && state.weight) inputs[1].value = state.weight;
+		if (inputs[2] && state.size) inputs[2].value = state.size;
+	});
+</script>
+</head>
+<body>
+	<div id="root">
+		<div class="min-h-screen bg-background flex flex-col pb-32 font-serif">
+
+			<!-- Header -->
+			<header class="bg-background border-b border-border px-8 py-6 flex justify-between items-center sticky top-0 z-50 shadow-sm">
+				<a class="hover:opacity-70 transition-opacity" href="https://rometjoyeria.com/">
+					<span class="font-bold text-2xl md:text-3xl tracking-[0.2em] uppercase text-foreground">ROMET AI</span>
+				</a>
+				<nav class="flex items-center gap-8">
+					<a href="https://rometjoyeria.com/designer"
+					   class="text-sm md:text-base tracking-[0.15em] uppercase text-foreground hover:text-muted-foreground transition-colors font-medium"
+					   style="text-decoration:none;">Design Jewelry</a>
+					<a href="./login.html" id="header-auth-link"
+					   class="text-sm md:text-base tracking-[0.15em] uppercase text-foreground hover:text-muted-foreground transition-colors font-medium"
+					   style="text-decoration:none;">My Account</a>
+				</nav>
+			</header>
+
+			<!-- Barra de progreso -->
+			<div class="w-full bg-muted h-1.5 sticky top-[84px] z-40">
+				<div class="bg-primary h-full transition-all duration-500 ease-out" style="width: 85.71%;"></div>
+			</div>
+
+			<!-- Main -->
+			<main class="flex-1 container mx-auto px-4 py-12 flex flex-col relative mt-4">
+				<div class="text-center mb-16">
+					<span class="text-sm tracking-[0.2em] uppercase text-muted-foreground mb-4 block font-sans">Step 6 of 7</span>
+					<h1 class="text-4xl md:text-5xl text-foreground tracking-widest uppercase font-medium">Especificaciones Técnicas</h1>
+				</div>
+
+				<div class="flex-1 relative">
+					<div class="w-full" style="opacity: 1; transform: none;">
+						<div class="max-w-2xl mx-auto bg-white p-10 md:p-16 shadow-lg rounded-xl border border-border/50">
+							<div class="space-y-8">
+
+								<div class="space-y-2">
+									<label class="text-sm tracking-widest uppercase text-muted-foreground font-medium">Presupuesto aproximado (€)</label>
+									<input type="number" id="inputBudget" placeholder="ej: 500"
+									       class="w-full border-b border-border py-3 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all duration-300 text-lg font-serif"
+									       oninput="saveField('budget', this.value)">
+								</div>
+
+								<div class="space-y-2">
+									<label class="text-sm tracking-widest uppercase text-muted-foreground font-medium">Peso estimado (gr)</label>
+									<input type="number" id="inputWeight" step="0.1" placeholder="ej: 5.5"
+									       class="w-full border-b border-border py-3 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all duration-300 text-lg font-serif"
+									       oninput="saveField('weight', this.value)">
+								</div>
+
+								<div class="space-y-2">
+									<label class="text-sm tracking-widest uppercase text-muted-foreground font-medium">Talla/Medida</label>
+									<input type="text" id="inputSize" placeholder="ej: Talla 16"
+									       class="w-full border-b border-border py-3 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all duration-300 text-lg font-serif"
+									       oninput="saveField('size', this.value)">
+								</div>
+
+							</div>
+						</div>
+					</div>
+				</div>
+			</main>
+
+			<!-- Navegación inferior -->
+			<div class="fixed bottom-0 left-0 w-full p-4 md:p-6 pointer-events-none z-40">
+				<div class="container mx-auto flex justify-between items-center">
+					<button onclick="window.location.href='./designer-paso5.html'"
+					        class="pointer-events-auto flex items-center gap-2 md:gap-3 text-muted-foreground hover:text-foreground transition-colors bg-background/90 backdrop-blur-sm py-2.5 px-5 md:py-3 md:px-6 rounded-full shadow-md border border-border/50">
+						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 md:w-5 md:h-5">
+							<path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path>
+						</svg>
+						<span class="text-xs md:text-sm tracking-widest uppercase font-sans font-medium">Back</span>
+					</button>
+					<button onclick="window.location.href='./designer-paso7.html'"
+					        class="pointer-events-auto flex items-center gap-2 md:gap-3 bg-primary text-primary-foreground hover:bg-foreground transition-colors py-2.5 px-6 md:py-3 md:px-8 rounded-full shadow-md">
+						<span class="text-xs md:text-sm tracking-widest uppercase font-sans font-medium">Siguiente</span>
+						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 md:w-5 md:h-5">
+							<path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path>
+						</svg>
+					</button>
+				</div>
+			</div>
+
+		</div>
+	</div>
+
+	<script>
+		function saveField(key, value) {
+			const state = window.RometDesigner?.loadState() || {};
+			state[key] = value;
+			window.RometDesigner?.saveState(state);
+		}
+	</script>
+</body>
+</html>
