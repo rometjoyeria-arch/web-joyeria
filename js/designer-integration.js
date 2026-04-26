@@ -158,6 +158,18 @@
 		submitBtn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px;"><svg class="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>Generando tu diseño con IA...</span>';
 
 		try {
+			const hasCredits = typeof window.consumeCredit === 'function' ? await window.consumeCredit() : true;
+			if (!hasCredits) {
+				showNotification('¡Vaya! No tienes suficientes créditos para generar este diseño. Compra más créditos en tu cuenta.', 'error');
+				submitBtn.disabled = false;
+				submitBtn.textContent = originalText;
+				return;
+			}
+		} catch(e) {
+			console.warn('Verificación de créditos omitida', e);
+		}
+
+		try {
 			const result = await callEdgeFunction('Joyas', {
 				nombre: state.name,
 				telefono: state.phone,
@@ -187,6 +199,7 @@
 	async function rediseñar(state, cambios) {
 		const redesignBtn = document.getElementById('redesign-btn');
 		const imagenContainer = document.getElementById('imagen-generada');
+		const prevImgHTML = imagenContainer ? imagenContainer.innerHTML : '';
 
 		if (redesignBtn) {
 			redesignBtn.disabled = true;
@@ -195,6 +208,23 @@
 
 		if (imagenContainer) {
 			imagenContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:200px;"><svg class="animate-spin" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></div>';
+		}
+
+		try {
+			const hasCredits = typeof window.consumeCredit === 'function' ? await window.consumeCredit() : true;
+			if (!hasCredits) {
+				showNotification('No tienes suficientes créditos para rediseñar. Compra más créditos en tu cuenta.', 'error');
+				if (redesignBtn) {
+					redesignBtn.disabled = false;
+					redesignBtn.textContent = 'Rediseñar';
+				}
+				if (imagenContainer) {
+					imagenContainer.innerHTML = prevImgHTML;
+				}
+				return;
+			}
+		} catch(e) {
+			console.warn('Verificación de créditos omitida', e);
 		}
 
 		try {
