@@ -7,8 +7,8 @@
 	<title>Sube tu Diseño - Romet Joyería</title>
 	<link rel="stylesheet" crossorigin="" href="../upload-design_files/index-xtSdOPat.css?v=3">
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-	<script src="../js/supabase-config.js"></script>
-	<script src="../js/upload-integration.js"></script>
+	<script src="./js/supabase-config.js"></script>
+	<script src="./js/upload-integration.js"></script>
 	<script>
 		initWhenReady(() => {
 			getSession().then((session) => {
@@ -43,23 +43,23 @@
 				<div class="max-w-4xl mx-auto" style="opacity: 1; transform: none;">
 
 					<div class="text-center mb-12">
-						<h1 class="text-4xl md:text-5xl text-foreground tracking-widest uppercase font-medium mb-4">Analiza tu Diseño</h1>
-						<p class="text-muted-foreground font-sans tracking-wide max-w-2xl mx-auto">Sube un boceto o imagen de referencia y nuestra IA analizará los detalles para hacerlo realidad.</p>
+						<h1 class="text-4xl md:text-5xl text-foreground tracking-widest uppercase font-medium mb-4">Analyze Your Design</h1>
+						<p class="text-muted-foreground font-sans tracking-wide max-w-2xl mx-auto">Upload a sketch or reference image and our AI will analyze the details.</p>
 					</div>
 
 					<div class="bg-white p-8 md:p-12 rounded-2xl shadow-lg border border-border/50 relative overflow-hidden">
 						<form id="uploadForm" class="space-y-10">
 
 							<div class="space-y-4">
-								<label class="text-sm tracking-widest uppercase text-foreground font-medium block">Imagen de Referencia *</label>
+								<label class="text-sm tracking-widest uppercase text-foreground font-medium block">Reference Image *</label>
 								<div id="dropzone" class="border-2 border-dashed border-border hover:border-primary/50 hover:bg-muted/50 rounded-xl p-12 text-center cursor-pointer transition-all duration-300 flex flex-col items-center justify-center bg-muted/20">
 									<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10 text-muted-foreground mb-4">
 										<path d="M12 13v8"></path>
 										<path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path>
 										<path d="m8 17 4-4 4 4"></path>
 									</svg>
-									<p class="text-foreground font-medium mb-2 font-sans text-base">Haz clic para subir tu boceto o imagen</p>
-									<p class="text-sm text-muted-foreground font-sans">Formatos soportados: JPG, PNG, WEBP</p>
+									<p class="text-foreground font-medium mb-2 font-sans text-base">Click to upload your sketch or image</p>
+									<p class="text-sm text-muted-foreground font-sans">Supported formats: JPG, PNG, WEBP</p>
 									<div id="imagePreview" style="display:none; margin-top:16px;">
 										<img id="previewImg" style="max-width:200px; max-height:200px; border-radius:8px;" />
 										<p id="previewName" class="text-sm text-muted-foreground font-sans mt-2"></p>
@@ -69,16 +69,16 @@
 							</div>
 
 							<div class="space-y-2">
-								<label class="text-sm tracking-widest uppercase text-foreground font-medium">Instrucciones para la IA</label>
-								<textarea id="instructions" placeholder="Describe qué te gustaría mejorar o cambiar de este diseño..."
+								<label class="text-sm tracking-widest uppercase text-foreground font-medium">AI Instructions</label>
+								<textarea id="instructions" placeholder="Describe what you want to improve or change..."
 								          class="w-full border border-border p-4 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all duration-300 text-lg font-serif min-h-[120px] resize-y rounded-md"></textarea>
 							</div>
 
 							<div class="border-t border-border/50 pt-8">
-								<h3 class="text-xl tracking-widest uppercase text-foreground font-medium mb-6">Detalles del Diseño</h3>
+								<h3 class="text-xl tracking-widest uppercase text-foreground font-medium mb-6">Design Details</h3>
 								<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 									<div class="space-y-2">
-										<label class="text-xs tracking-widest uppercase text-muted-foreground font-medium">Categoría</label>
+										<label class="text-xs tracking-widest uppercase text-muted-foreground font-medium">Category</label>
 										<select id="category" class="w-full border-b border-border py-3 bg-transparent text-foreground focus:outline-none focus:border-primary transition-all duration-300 text-base font-sans">
 											<option value="medallas">Medallion</option>
 											<option value="anillo">Ring</option>
@@ -102,10 +102,10 @@
 							</div>
 
 							<div class="border-t border-border/50 pt-8">
-								<h3 class="text-xl tracking-widest uppercase text-foreground font-medium mb-6">Tus Datos</h3>
+								<h3 class="text-xl tracking-widest uppercase text-foreground font-medium mb-6">Your Details</h3>
 								<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 									<div class="space-y-2">
-										<label class="text-xs tracking-widest uppercase text-muted-foreground font-medium">Nombre *</label>
+										<label class="text-xs tracking-widest uppercase text-muted-foreground font-medium">Name *</label>
 										<input type="text" id="customerName" required
 										       class="w-full border-b border-border py-3 bg-transparent text-foreground focus:outline-none focus:border-primary transition-all duration-300 text-base font-sans" value="">
 									</div>
@@ -115,7 +115,7 @@
 										       class="w-full border-b border-border py-3 bg-transparent text-foreground focus:outline-none focus:border-primary transition-all duration-300 text-base font-sans" value="">
 									</div>
 									<div class="space-y-2 md:col-span-2">
-										<label class="text-xs tracking-widest uppercase text-muted-foreground font-medium">Correo Electrónico *</label>
+										<label class="text-xs tracking-widest uppercase text-muted-foreground font-medium">Email *</label>
 										<input type="email" id="customerEmail" required
 										       class="w-full border-b border-border py-3 bg-transparent text-foreground focus:outline-none focus:border-primary transition-all duration-300 text-base font-sans" value="">
 									</div>
@@ -125,7 +125,7 @@
 							<div class="pt-6">
 								<button type="submit" id="submitBtn" disabled
 								        class="w-full py-5 bg-[hsl(var(--button-bg))] text-[hsl(var(--button-text))] text-lg tracking-[0.2em] uppercase hover:bg-[hsl(var(--button-hover))] transition-colors duration-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-none font-medium shadow-md">
-									Generar Diseño
+									Generate Design
 								</button>
 							</div>
 
@@ -242,7 +242,7 @@
 			} catch (error) {
 				console.error('Error:', error);
 				submitBtn.disabled = false;
-				submitBtn.textContent = 'Generar Diseño';
+				submitBtn.textContent = 'Generate Design';
 				alert('Ha ocurrido un error. Por favor, inténtalo de nuevo.');
 			}
 		});
@@ -312,7 +312,7 @@
 					<div class="bg-white p-6 rounded-2xl shadow-lg border border-border/50 text-left mb-8">
 						<h2 class="text-xl tracking-widest uppercase text-foreground font-medium mb-4">Resumen</h2>
 						<div class="grid grid-cols-2 gap-4 font-sans text-sm">
-							${data.categoria ? `<div><span class="text-muted-foreground">Categoría:</span> <strong class="capitalize">${data.categoria}</strong></div>` : ''}
+							${data.categoria ? `<div><span class="text-muted-foreground">Category:</span> <strong class="capitalize">${data.categoria}</strong></div>` : ''}
 							${data.material ? `<div><span class="text-muted-foreground">Material:</span> <strong class="capitalize">${data.material.replace(/_/g, ' ')}</strong></div>` : ''}
 						</div>
 					</div>
