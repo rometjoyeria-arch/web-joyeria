@@ -162,12 +162,17 @@ async function initHeaderAuth() {
 // Llamada directa a Edge Function sin SDK
 // ═══════════════════════════════════════
 async function callEdgeFunction(functionName, payload) {
+	const session = await getSession();
+	// Si el usuario está conectado, usamos su token personal (JWT) hiperseguro.
+	// Si no, recaemos en anon_key (lo cual debería fallar en el servidor por seguridad).
+	const authHeader = session ? `Bearer ${session.access_token}` : `Bearer ${SUPABASE_ANON_KEY}`;
+
 	const response = await fetch(`${SUPABASE_URL}/functions/v1/${functionName}`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
 			'apikey': SUPABASE_ANON_KEY,
-			'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+			'Authorization': authHeader,
 		},
 		body: JSON.stringify(payload),
 	});
