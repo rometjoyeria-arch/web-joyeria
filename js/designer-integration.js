@@ -99,28 +99,8 @@
 	}
 
 	async function autoFillFromSession(state) {
-		try {
-			const session = await getSession();
-			if (!session) return;
-			const user = session.user;
-
-			const nameInput = document.querySelector('input[type="text"]');
-			const emailInput = document.querySelector('input[type="email"]');
-
-			if (nameInput && !nameInput.value) {
-				nameInput.value = user.user_metadata?.full_name ||
-				                  ((user.user_metadata?.first_name || '') + ' ' + (user.user_metadata?.last_name || '')).trim();
-				state.name = nameInput.value;
-			}
-			if (emailInput && !emailInput.value) {
-				emailInput.value = user.email || '';
-				state.email = emailInput.value;
-			}
-			saveState(state);
-			checkSubmitValidity();
-		} catch(e) {
-			console.warn('autoFillFromSession error:', e);
-		}
+		// Auto-fill disabled by request: so the jeweler can insert different clients' emails.
+		checkSubmitValidity();
 	}
 
 	function checkSubmitValidity() {
