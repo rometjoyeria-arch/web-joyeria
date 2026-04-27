@@ -65,13 +65,13 @@ serve(async (req) => {
 
   if (imagen_subida_url && !isRedesign) {
       activePrompt = `
-You are an expert 3D jewelry engraver, sculptor, and designer. The client has provided a REFERENCE PHOTOGRAPH (e.g. a face, a child, a pet, a symbol).
-YOUR #1 MISSION: Create a HIGH-END, PHOTOREALISTIC jewelry piece that incorporates a PERFECT, LITERAL ENGRAVING / CARVING of the provided photograph inside the metal.
+You are an expert 3D jewelry engraver, sculptor, and designer. The client has provided a REFERENCE PHOTOGRAPH.
+YOUR #1 MISSION: Create a HIGH-END, PHOTOREALISTIC jewelry piece that incorporates a PERFECT, LITERAL ENGRAVING / BAS-RELIEF CARVING of the provided reference image into the metal.
 
 EXTREMELY IMPORTANT INSTRUCTIONS:
-1. **LITERAL REALISTIC TRANSFER (NO CARTOONS)**: Do NOT recreate the subject as a simple cartoon or icon. If a real child's face is uploaded, you MUST preserve all realistic facial features. Sculpt those exact details directly into the metal as a high-end bas-relief engraving.
-2. **METAL MATERIAL REALISM**: The piece is made of ${MATERIALS[material] || material}. The engraved face/subject should look like hyper-detailed metal bas-relief sculpted beautifully over the core.
-3. **ONLY USE THE IMAGE GIVEN**: Reproduce the portrait directly from the photograph. Capture every micro-detail, shading, and contour of the face.
+1. **LITERAL TRANSFER (NO CARTOONS)**: Do not create a cartoon or generic icon. You must preserve the EXACT shapes, shading, and features from the reference image and sculpt those exact details directly into the metal as a high-end bas-relief engraving.
+2. **MATERIAL REALISM**: The piece is made of ${MATERIALS[material] || material}. The engraved subject should look like hyper-detailed metal bas-relief sculpted over the surface.
+3. **ONLY USE THE REFERENCE IMAGE**: Reproduce the subject directly from the reference image, capturing every contour perfectly without altering the original design. Avoid terms or styles that violate safety policies; focus entirely on the sculptural/metallic aspect.
 4. **INTEGRATION**: Form it perfectly into a ${CATEGORIES[categoria_producto] || categoria_producto}.
 
 ${getBaseRules()}
@@ -125,7 +125,6 @@ ${getBaseRules()}
           const resp = await fetch(url);
           if (!resp.ok) return null;
           const buf = await resp.arrayBuffer();
-          // Use safe base64 encoding that avoids call stack exceeding for large files
           const b64 = encode(new Uint8Array(buf));
           const mime = resp.headers.get("content-type")?.split(";")[0] || "image/jpeg";
           return { inlineData: { mimeType: mime, data: b64 } };
@@ -163,15 +162,16 @@ ${getBaseRules()}
       const bytes = Uint8Array.from(atob(data.data), c => c.charCodeAt(0));
       await supabase.storage.from("disenos").upload(fname, bytes, { contentType: data.mimeType });
       imagenUrl = supabase.storage.from("disenos").getPublicUrl(fname).data.publicUrl;
+    } else {
+      console.error("Gemini failed or blocked request:", gd);
     }
   } catch (e) { console.error("Final Gen Error:", e); }
 
   const { data: insertedData, error: dbError } = await supabase.from("solicitudes_disenos_romet").insert({ ...body, imagen_generada_url: imagenUrl, prompt_usado: activePrompt }).select().single();
 
-  // Trigger send-email explicitly just in case webhooks are failing or missing
   if (insertedData && email && !isRedesign) {
       try {
-          await fetch(Deno.env.get("URL") + "/functions/v1/send-email", {
+          const emailResponse = await fetch(Deno.env.get("URL") + "/functions/v1/send-email", {
               method: "POST",
               headers: {
                   "Authorization": `Bearer ${Deno.env.get("SERVICE_KEY")}`,
@@ -185,10 +185,15 @@ ${getBaseRules()}
                   orderData: { ...body, imagenUrl }
               })
           });
+          if (!emailResponse.ok) {
+              const resTxt = await emailResponse.text();
+              console.error("Email Invocation returned non-OK:", resTxt);
+          }
       } catch (err) {
           console.error("Email Invocation Error:", err);
       }
   }
 
-  return new Response(JSON.stringify({ success: true, imagenUrl }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  // Always return the URL even if it's null, so the frontend finishes processing
+  return new Response(JSON.stringify({ success: true, imagenUrl, dbError }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 });
