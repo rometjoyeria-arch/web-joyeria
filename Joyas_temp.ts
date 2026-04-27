@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -33,10 +34,9 @@ const STYLES: Record<string, string> = {
 
 function getBaseRules(): string {
   return `
-1.  **SIMPLICITY IS MANDATORY**: Create the most basic, plain version of the piece. No "added decoration".
-2.  **CATALOG QUALITY**: Pure white background (#FFFFFF). Real product photography style. No filters, no humans, no magic.
-3.  **TRI-VIEW PANELS**: Output a single image containing 3 side-by-side versions of the EXACT SAME piece: Front view, Back/Top view, and Side view.
-4.  **MANUFACTURABLE**: No floating parts or impossible physical shapes.
+1.  **CATALOG QUALITY**: Pure white background (#FFFFFF). Real product photography style. No filters, no humans, no magic.
+2.  **TRI-VIEW PANELS**: Output a single image containing 3 side-by-side versions of the EXACT SAME piece: Front view, Back/Top view, and Side view.
+3.  **MANUFACTURABLE**: No floating parts or impossible physical shapes. The piece must look like a solid, realistic, hyper-detailed piece of high-end jewelry.
 `;
 }
 
@@ -65,14 +65,14 @@ serve(async (req) => {
 
   if (imagen_subida_url && !isRedesign) {
       activePrompt = `
-You are an expert 3D jewelry engraver and designer. The client has provided a REFERENCE PHOTOGRAPH (e.g. a face, a pet, a symbol).
-YOUR #1 MISSION: Create a HIGH-END, PHOTOREALISTIC jewelry piece that incorporates a PERFECT, LITERAL ENGRAVING / CARVING of the provided photograph.
+You are an expert 3D jewelry engraver, sculptor, and designer. The client has provided a REFERENCE PHOTOGRAPH (e.g. a face, a child, a pet, a symbol).
+YOUR #1 MISSION: Create a HIGH-END, PHOTOREALISTIC jewelry piece that incorporates a PERFECT, LITERAL ENGRAVING / CARVING of the provided photograph inside the metal.
 
-INSTRUCTIONS:
-1. **LITERAL TRANSFER**: Do NOT recreate the subject as a simple cartoon or icon. If a real child's face is uploaded, you must generate a hyper-realistic 3D metal engraving of that EXACT face with all its realistic details etched into the metal. 
-2. **MATERIAL REALISM**: The piece is made of ${MATERIALS[material] || material}. The engraved subject should look like highly detailed metal bas-relief (low relief) sculpted directly from the photo.
-3. **NO CARTOONIFICATION**: No cartoon faces, no simplistic line-art, no emojis. Maintain the photorealistic facial features and translate them faithfully into 3D metal carving.
-4. **INTEGRATION**: Apply it perfectly to a ${CATEGORIES[categoria_producto] || categoria_producto}.
+EXTREMELY IMPORTANT INSTRUCTIONS:
+1. **LITERAL REALISTIC TRANSFER (NO CARTOONS)**: Do NOT recreate the subject as a simple cartoon or icon. If a real child's face is uploaded, you MUST preserve all realistic facial features. Sculpt those exact details directly into the metal as a high-end bas-relief engraving.
+2. **METAL MATERIAL REALISM**: The piece is made of ${MATERIALS[material] || material}. The engraved face/subject should look like hyper-detailed metal bas-relief sculpted beautifully over the core.
+3. **ONLY USE THE IMAGE GIVEN**: Reproduce the portrait directly from the photograph. Capture every micro-detail, shading, and contour of the face.
+4. **INTEGRATION**: Form it perfectly into a ${CATEGORIES[categoria_producto] || categoria_producto}.
 
 ${getBaseRules()}
     `.trim();
@@ -125,7 +125,8 @@ ${getBaseRules()}
           const resp = await fetch(url);
           if (!resp.ok) return null;
           const buf = await resp.arrayBuffer();
-          const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+          // Use safe base64 encoding that avoids call stack exceeding for large files
+          const b64 = encode(new Uint8Array(buf));
           const mime = resp.headers.get("content-type")?.split(";")[0] || "image/jpeg";
           return { inlineData: { mimeType: mime, data: b64 } };
       } catch (e) {
@@ -167,12 +168,13 @@ ${getBaseRules()}
 
   const { data: insertedData, error: dbError } = await supabase.from("solicitudes_disenos_romet").insert({ ...body, imagen_generada_url: imagenUrl, prompt_usado: activePrompt }).select().single();
 
+  // Trigger send-email explicitly just in case webhooks are failing or missing
   if (insertedData && email && !isRedesign) {
       try {
           await fetch(Deno.env.get("URL") + "/functions/v1/send-email", {
               method: "POST",
               headers: {
-                  "Authorization": "Bearer " + Deno.env.get("SERVICE_KEY"),
+                  "Authorization": `Bearer ${Deno.env.get("SERVICE_KEY")}`,
                   "Content-Type": "application/json"
               },
               body: JSON.stringify({
