@@ -202,14 +202,30 @@ White background, studio lighting. No human figures — only the jewelry piece.`
 
   // ── Send email ────────────────────────────────────────────────────────────
   if (insertedData && email && !isRedesign) {
+    // Human-readable labels for the email
+    const CATEGORY_LABELS: Record<string, string> = {
+      anillo: "Anillo", colgante: "Colgante", pendientes: "Pendientes",
+      pulsera: "Pulsera", gemelos: "Gemelos", medallas: "Medalla",
+    };
+    const MATERIAL_LABELS: Record<string, string> = {
+      oro_amarillo: "Oro Amarillo 18k", oro_blanco: "Oro Blanco 18k",
+      oro_rosa: "Oro Rosa 18k", platino: "Platino 950", plata: "Plata 925",
+    };
     try {
       const { error: emailError } = await supabaseAdmin.functions.invoke("send-email", {
         body: {
           type: imagen_subida_url ? "Sube tu Diseño" : "Diseño Guiado",
           to: email,
           customerName: nombre || "Cliente",
+          customerPhone: body.telefono || "",
           orderId: insertedData.id,
-          orderData: { categoria_producto, material, sugerencias, imagenUrl },
+          categoria: CATEGORY_LABELS[categoria_producto] || categoria_producto || "",
+          material: MATERIAL_LABELS[material] || material || "",
+          sugerencias: userNotes || "",
+          imagenSubidaUrl: imagen_subida_url || null,
+          imagenFrontal: imagenFrontal || null,
+          imagenTrasera: imagenTrasera || null,
+          imagenLateral: imagenLateral || null,
         },
       });
       if (emailError) console.error("send-email error:", emailError);
