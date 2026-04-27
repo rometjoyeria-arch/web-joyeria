@@ -8,193 +8,226 @@ const corsHeaders = {
 };
 
 const CATEGORIES: Record<string, string> = {
-  anillo:     "Ring - a circular band for the finger.",
-  colgante:   "Pendant - jewelry suspended from a chain.",
-  pendientes: "Earrings - a pair of ornaments for the ears.",
-  pulsera:    "Bracelet - jewelry for the wrist.",
-  gemelos:    "Cufflinks - decorative fasteners for shirt cuffs.",
-  medallas:   "Medallion - a flat circular disc for a necklace.",
+  anillo:     "ring (circular band worn on the finger)",
+  colgante:   "pendant (hanging from a necklace chain)",
+  pendientes: "earrings (a pair)",
+  pulsera:    "bracelet (for the wrist)",
+  gemelos:    "cufflinks (shirt cuff fasteners)",
+  medallas:   "medallion (flat circular disc on a necklace chain)",
 };
 
 const MATERIALS: Record<string, string> = {
-  oro_amarillo: "18k yellow gold, warm mirror-polished finish.",
-  oro_blanco:   "18k white gold, cool rhodium-plated silver-white finish.",
-  oro_rosa:     "18k rose gold, pink-copper polished finish.",
-  platino:      "Platinum 950, naturally white heavy-duty finish.",
-  plata:        "Sterling silver 925, bright white polished finish.",
+  oro_amarillo: "18k yellow gold, warm mirror-polished",
+  oro_blanco:   "18k white gold, rhodium-plated",
+  oro_rosa:     "18k rose gold, pink-copper polished",
+  platino:      "platinum 950, naturally white",
+  plata:        "sterling silver 925, bright white polished",
 };
 
-const STYLES: Record<string, string> = {
-  moderno:    "Minimalist - focus on raw geometry, zero extra detail.",
-  clasico:    "Classic - timeless proportions, clean and smooth.",
-  naturaleza: "Nature - a single organic motif (leaf/branch/petal).",
-};
+// gemini-2.5-flash-image supports multimodal input AND image output via generateContent
+const GEMINI_MODEL = "gemini-2.5-flash-image";
+const GEMINI_URL = (key: string) =>
+  `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${key}`;
 
-function getBaseRules(): string {
-  return `
-- Keep the jewelry piece perfectly centered and strictly isolated on a white background. No human bodies in the background.
-- It must look like a hyper-realistic commercial jewelry photograph.
-`;
+async function generateView(
+  prompt: string,
+  imagePart: unknown | null,
+  apiKey: string
+): Promise<string | null> {
+  const parts: unknown[] = [];
+  if (imagePart) parts.push(imagePart);
+  parts.push({ text: prompt });
+
+  try {
+    const res = await fetch(GEMINI_URL(apiKey), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts }],
+        generationConfig: { responseModalities: ["IMAGE", "TEXT"] },
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error("Gemini error:", JSON.stringify(data).substring(0, 500));
+      return null;
+    }
+
+    const responseParts = data?.candidates?.[0]?.content?.parts ?? [];
+    const imgPart = responseParts.find((p: any) => p.inlineData?.mimeType?.startsWith("image/"));
+
+    if (!imgPart) {
+      console.error("No image in response. finishReason:", data?.candidates?.[0]?.finishReason);
+      console.error("Response snippet:", JSON.stringify(data).substring(0, 600));
+      return null;
+    }
+
+    return imgPart.inlineData.data; // base64
+  } catch (e) {
+    console.error("Gemini fetch exception:", e);
+    return null;
+  }
 }
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   const supabaseAdmin = createClient(Deno.env.get("URL")!, Deno.env.get("SERVICE_KEY")!);
-  const authHeader = req.headers.get("Authorization");
-  const userToken = authHeader?.replace("Bearer ", "");
-  if (!userToken) return new Response(JSON.stringify({ error: "No token" }), { status: 401 });
+  const userToken = req.headers.get("Authorization")?.replace("Bearer ", "");
+  if (!userToken) return new Response(JSON.stringify({ error: "No token" }), { status: 401, headers: corsHeaders });
 
   const { data: { user } } = await supabaseAdmin.auth.getUser(userToken);
-  if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+  if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
 
-  let credits = user.user_metadata?.credits ?? 0;
-  if (credits <= 0) return new Response(JSON.stringify({ error: "No credits" }), { status: 402 });
+  const credits = user.user_metadata?.credits ?? 0;
+  if (credits <= 0) return new Response(JSON.stringify({ error: "No credits" }), { status: 402, headers: corsHeaders });
 
   const body = await req.json();
-  const { nombre, email, categoria_producto, material, estilo, perfil_usuario, sugerencias, imagen_subida_url, imagen_generada_url_previa, gema_principal } = body;
-  
+  const { nombre, email, categoria_producto, material, sugerencias, imagen_subida_url, gema_principal } = body;
+
   const supabase = createClient(Deno.env.get("URL")!, Deno.env.get("SERVICE_KEY")!);
+  const apiKey = Deno.env.get("GEMINI_API_KEY")!;
+
   const isRedesign = sugerencias?.includes("Cambios solicitados:");
-  const userNotes = isRedesign ? sugerencias.split("Cambios solicitados:")[1] : sugerencias;
+  const userNotes = isRedesign
+    ? sugerencias.split("Cambios solicitados:")[1].trim()
+    : (sugerencias || "").trim();
 
-  async function fetchImagePart(url: string) {
-      if (!url) return null;
-      try {
-          const resp = await fetch(url);
-          if (!resp.ok) return null;
-          const buf = await resp.arrayBuffer();
-          const b64 = encode(new Uint8Array(buf));
-          const mime = resp.headers.get("content-type")?.split(";")[0] || "image/jpeg";
-          return { inlineData: { mimeType: mime, data: b64 } };
-      } catch (e) {
-          console.error("Image Fetch Error:", e);
-          return null;
-      }
-  }
+  const cat = CATEGORIES[categoria_producto] || categoria_producto || "medallion";
+  const mat = MATERIALS[material] || material || "18k yellow gold";
 
-  let activePrompt = "";
-  let base64Part = null;
-
-  try {
-      if (imagen_subida_url) {
-          base64Part = await fetchImagePart(imagen_subida_url);
-      }
-
-      if (imagen_subida_url && !isRedesign && base64Part) {
-          // STEP 1: Describe the image using the Multimodal Gemini model
-          const describeRequest = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + Deno.env.get("GEMINI_API_KEY"), {
-             method: "POST", headers: { "Content-Type": "application/json" },
-             body: JSON.stringify({
-                 contents: [{
-                     parts: [
-                         base64Part,
-                         { text: "Describe this image in highly meticulous detail. If it is a person/face, describe all specific facial features, hair style, beard/mustache, age appearance, jawline, clothing, and expression. We need this mechanical description to recreate an IDENTICAL engraving of this specific person. Produce ONLY the physical description." }
-                     ]
-                 }]
-             })
-          });
-          const describeData = await describeRequest.json();
-          const visualDescription = describeData.candidates?.[0]?.content?.parts?.[0]?.text || "A standard human figure.";
-
-          activePrompt = `
-You are an expert 3D jewelry engraver and designer.
-YOUR #1 MISSION: Create a HIGH-END, PHOTOREALISTIC jewelry piece that incorporates a PERFECT, LITERAL ENGRAVING / BAS-RELIEF CARVING of the subject described below:
-
-SUBJECT DESCRIPTION (MUST ENGRAVE EXACTLY AS DESCRIBED):
-"${visualDescription.trim()}"
-
-EXTREMELY IMPORTANT INSTRUCTIONS:
-1. **LITERAL TRANSFER (NO CARTOONS)**: You must preserve the EXACT shapes, facial features, and likeness from the description.
-2. **MATERIAL REALISM**: The piece is made of ${MATERIALS[material] || material}. The engraved subject should look like realistic metal carving natively integrated into the jewelry.
-3. **INTEGRATION**: Form it perfectly into a ${CATEGORIES[categoria_producto] || categoria_producto}. Note from user: "${userNotes}"
-
-${getBaseRules()}
-        `.trim();
-      } else if (isRedesign) {
-        activePrompt = `
-You are a master 3D jewelry designer. The client wants to MODIFY an existing design.
-Apply the requested changes exactly, while keeping the rest of the original design intact!
-
-MODIFICATIONS REQUESTED: "${userNotes}"
-
-BASE RULES:
-1. Keep the general structure from the previous images!
-2. Material: ${MATERIALS[material] || material}.
-3. Style: ${STYLES[estilo] || estilo || 'None'}.
-
-${getBaseRules()}
-        `.trim();
+  // ── Fetch reference image once (if provided) ────────────────────────────
+  let imagePart: unknown | null = null;
+  if (imagen_subida_url && !isRedesign) {
+    try {
+      const imgRes = await fetch(imagen_subida_url);
+      if (imgRes.ok) {
+        const buf = await imgRes.arrayBuffer();
+        const b64 = encode(new Uint8Array(buf));
+        const mime = imgRes.headers.get("content-type")?.split(";")[0] || "image/jpeg";
+        imagePart = { inlineData: { mimeType: mime, data: b64 } };
+        console.log("Reference image loaded. Size:", buf.byteLength, "mime:", mime);
       } else {
-        activePrompt = `
-You are a master 3D jewelry designer for "Romet Joyería". 
-YOUR #1 MISSION: Create a simple, basic, and realistic jewelry piece from scratch.
-
-SPECIFICATIONS:
-- CATEGORY: ${CATEGORIES[categoria_producto] || categoria_producto}
-- MATERIAL: ${MATERIALS[material] || material}
-- STYLE: ${STYLES[estilo] || estilo}
-- PROFILE: ${perfil_usuario}
-- GEMA: ${gema_principal || 'No gem'}
-- NOTES: "${userNotes || 'No special notes. Keep it simple.'}"
-
-${getBaseRules()}
-        `.trim();
+        console.error("Could not fetch reference image, HTTP:", imgRes.status);
       }
-  } catch (descError) {
-      console.error("Step 1 Description Error", descError);
-  }
-
-  // STEP 2: Generate Image
-  let imagenUrl: string | null = null;
-  try {
-    const parts: any[] = [{ text: activePrompt }];
-    const gemContents = [{ parts }];
-
-    const gr = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${Deno.env.get("GEMINI_API_KEY")}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contents: gemContents, generationConfig: { responseModalities: ["IMAGE"] } })
-    });
-    
-    const gd = await gr.json();
-    const data = gd.candidates?.[0]?.content?.parts?.[0]?.inlineData;
-    if (data) {
-      const fname = `diseno_${Date.now()}.png`;
-      const bytes = Uint8Array.from(atob(data.data), c => c.charCodeAt(0));
-      await supabase.storage.from("disenos").upload(fname, bytes, { contentType: data.mimeType });
-      imagenUrl = supabase.storage.from("disenos").getPublicUrl(fname).data.publicUrl;
-    } else {
-      console.error("Gemini failed or blocked request:", gd);
+    } catch (e) {
+      console.error("Exception fetching reference image:", e);
     }
-  } catch (e) { console.error("Final Gen Error:", e); }
-
-  const { data: insertedData, error: dbError } = await supabase.from("solicitudes_disenos_romet").insert({ ...body, imagen_generada_url: imagenUrl, prompt_usado: activePrompt }).select().single();
-
-  if (insertedData && email && !isRedesign) {
-      try {
-          const emailResponse = await fetch(Deno.env.get("URL") + "/functions/v1/send-email", {
-              method: "POST",
-              headers: {
-                  "Authorization": `Bearer ${Deno.env.get("SERVICE_KEY")}`,
-                  "Content-Type": "application/json"
-              },
-              body: JSON.stringify({
-                  type: imagen_subida_url ? "Sube tu Diseño" : "Diseño Guiado",
-                  to: email,
-                  customerName: nombre || "Cliente",
-                  orderId: insertedData.id,
-                  orderData: { ...body, imagenUrl }
-              })
-          });
-          if (!emailResponse.ok) {
-              const resTxt = await emailResponse.text();
-              console.error("Email Invocation returned non-OK:", resTxt, "with to:", email);
-          }
-      } catch (err) {
-          console.error("Email Invocation HTTP Error:", err);
-      }
   }
 
-  return new Response(JSON.stringify({ success: true, imagenUrl, dbError }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  // ── Build base prompt depending on mode ─────────────────────────────────
+  let baseContext: string;
+
+  if (imagePart && !isRedesign) {
+    baseContext = `You are a master jewelry engraver and 3D photorealistic render artist.
+The attached photograph shows the SUBJECT to be engraved on a ${cat} made of ${mat}.
+Study every detail in the photo and reproduce it faithfully as a high-detail bas-relief metal engraving — the same as you see on commemorative medals or coins.
+The engraving must match the EXACT likeness, proportions, and features from the photo. Do NOT generalize or invent.
+${userNotes ? `Client notes: "${userNotes}"` : ""}
+The surrounding jewelry surface must be clean polished ${mat}. Studio white background. Photorealistic render.`;
+  } else if (isRedesign) {
+    baseContext = `You are a master jewelry designer.
+Apply ONLY these requested changes to the existing design: "${userNotes}"
+Material: ${mat}. Product: ${cat}.
+Keep everything else identical. White background, studio lighting, photorealistic.`;
+  } else {
+    baseContext = `You are a master jewelry designer for Romet Joyería.
+Create a PHOTOREALISTIC studio render of a handcrafted ${cat} made of ${mat}.
+${gema_principal ? `Main gemstone: ${gema_principal}.` : ""}
+${userNotes ? `Design notes: "${userNotes}"` : "Keep it elegant and classic."}
+White background, studio lighting. No human figures — only the jewelry piece.`;
+  }
+
+  // ── Generate 3 views in parallel ─────────────────────────────────────────
+  const [frontB64, backB64, sideB64] = await Promise.all([
+    generateView(
+      `${baseContext}\n\nRENDER: FRONT VIEW — show the jewelry piece from the front, perfectly centered on white background.`,
+      imagePart,
+      apiKey
+    ),
+    generateView(
+      `${baseContext}\n\nRENDER: BACK VIEW — show the exact same jewelry piece from the back/reverse side, on a white background.`,
+      imagePart,
+      apiKey
+    ),
+    generateView(
+      `${baseContext}\n\nRENDER: SIDE PROFILE VIEW — show the jewelry piece from the side (90° angle), revealing its depth and thickness, on a white background.`,
+      imagePart,
+      apiKey
+    ),
+  ]);
+
+  // ── Save generated images to storage ────────────────────────────────────
+  async function saveImage(b64: string | null, label: string): Promise<string | null> {
+    if (!b64) return null;
+    try {
+      const fname = `diseno_${Date.now()}_${label}.png`;
+      const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+      const { error } = await supabase.storage
+        .from("disenos")
+        .upload(fname, bytes, { contentType: "image/png" });
+      if (error) { console.error(`Storage error (${label}):`, error); return null; }
+      return supabase.storage.from("disenos").getPublicUrl(fname).data.publicUrl;
+    } catch (e) {
+      console.error(`Save exception (${label}):`, e);
+      return null;
+    }
+  }
+
+  const [imagenFrontal, imagenTrasera, imagenLateral] = await Promise.all([
+    saveImage(frontB64, "front"),
+    saveImage(backB64, "back"),
+    saveImage(sideB64, "side"),
+  ]);
+
+  // Primary imagen URL = front view (for backward compat)
+  const imagenUrl = imagenFrontal;
+
+  console.log("Generated views — front:", !!imagenFrontal, "back:", !!imagenTrasera, "side:", !!imagenLateral);
+
+  // ── Save to DB ────────────────────────────────────────────────────────────
+  const { data: insertedData, error: dbError } = await supabase
+    .from("solicitudes_disenos_romet")
+    .insert({
+      ...body,
+      imagen_generada_url: imagenUrl,
+      prompt_usado: baseContext,
+    })
+    .select()
+    .single();
+
+  if (dbError) console.error("DB insert error:", dbError);
+
+  // ── Send email ────────────────────────────────────────────────────────────
+  if (insertedData && email && !isRedesign) {
+    try {
+      const { error: emailError } = await supabaseAdmin.functions.invoke("send-email", {
+        body: {
+          type: imagen_subida_url ? "Sube tu Diseño" : "Diseño Guiado",
+          to: email,
+          customerName: nombre || "Cliente",
+          orderId: insertedData.id,
+          orderData: { categoria_producto, material, sugerencias, imagenUrl },
+        },
+      });
+      if (emailError) console.error("send-email error:", emailError);
+      else console.log("Emails dispatched to:", email, "+ owner");
+    } catch (e) {
+      console.error("Email invoke exception:", e);
+    }
+  }
+
+  return new Response(
+    JSON.stringify({
+      success: true,
+      imagenUrl,
+      imagenFrontal,
+      imagenTrasera,
+      imagenLateral,
+      dbError,
+    }),
+    { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
 });

@@ -250,7 +250,7 @@
 					imagen_subida_url: imagenSubidaUrl,
 				});
 
-				showUploadSuccess({ nombre, email, categoria, material }, result?.imagenUrl || null);
+				showUploadSuccess({ nombre, email, categoria, material }, result?.imagenFrontal || result?.imagenUrl || null, result?.imagenTrasera || null, result?.imagenLateral || null);
 
 			} catch (error) {
 				console.error('Error:', error);
@@ -262,10 +262,28 @@
 
 		let _uploadState = {};
 
-		function showUploadSuccess(data, imagenUrl) {
+		function showUploadSuccess(data, imagenFrontal, imagenTrasera, imagenLateral) {
+			const imagenUrl = imagenFrontal;
 			_uploadState = { data, imagenUrl };
 			const main = document.querySelector('main');
 			if (!main) return;
+
+			const hasImages = imagenFrontal || imagenTrasera || imagenLateral;
+
+			const viewsHtml = hasImages ? `
+				<div class="bg-white p-8 rounded-2xl shadow-lg border border-border/50 mb-8">
+					<h2 class="text-xl tracking-widest uppercase text-foreground font-medium mb-6">Tu Diseño Generado</h2>
+					<div id="imagen-generada" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:16px;">
+						${imagenFrontal ? `<div><p style="font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;color:#888;margin-bottom:8px;font-family:sans-serif;">Vista Frontal</p><img loading="lazy" src="${imagenFrontal}" style="width:100%;border-radius:8px;border:1px solid #eee;" /></div>` : ''}
+						${imagenTrasera ? `<div><p style="font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;color:#888;margin-bottom:8px;font-family:sans-serif;">Vista Trasera</p><img loading="lazy" src="${imagenTrasera}" style="width:100%;border-radius:8px;border:1px solid #eee;" /></div>` : ''}
+						${imagenLateral ? `<div><p style="font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;color:#888;margin-bottom:8px;font-family:sans-serif;">Vista Lateral</p><img loading="lazy" src="${imagenLateral}" style="width:100%;border-radius:8px;border:1px solid #eee;" /></div>` : ''}
+					</div>
+				</div>` : `
+				<div class="bg-white p-8 rounded-2xl shadow-lg border border-border/50 mb-8">
+					<div id="imagen-generada">
+						<p class="text-muted-foreground font-sans">Tu diseño está siendo procesado. Recibirás un email con el resultado en breve.</p>
+					</div>
+				</div>`;
 
 			main.innerHTML = `
 				<div class="max-w-3xl mx-auto px-4 py-12 text-center">
@@ -285,20 +303,7 @@
 						</p>
 					</div>
 
-					${imagenUrl ? `
-					<div class="bg-white p-8 rounded-2xl shadow-lg border border-border/50 mb-8">
-						<h2 class="text-xl tracking-widest uppercase text-foreground font-medium mb-4">Tu Diseño Generado</h2>
-						<div id="imagen-generada">
-							<img loading="lazy" src="${imagenUrl}" style="max-width:100%; border-radius:8px;" />
-						</div>
-					</div>` : `
-					<div class="bg-white p-8 rounded-2xl shadow-lg border border-border/50 mb-8">
-						<div id="imagen-generada">
-							<p class="text-muted-foreground font-sans">
-								Tu diseño está siendo procesado. Recibirás un email con el resultado en breve.
-							</p>
-						</div>
-					</div>`}
+					${viewsHtml}
 
 					<div id="cambios-panel" style="display:none;" class="bg-white p-6 rounded-2xl shadow-lg border border-border/50 mb-6 text-left">
 						<p class="text-sm tracking-widest uppercase text-muted-foreground font-sans font-medium mb-3">Describe los cambios</p>
