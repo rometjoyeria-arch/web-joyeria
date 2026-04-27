@@ -25,7 +25,7 @@
 	<div id="root">
 		<div class="min-h-screen bg-background flex flex-col font-serif">
 
-			<header class="bg-background border-b border-border px-4 md:px-8 py-4 md:py-6 flex flex-col sm:flex-row justify-between items-center gap-4 sticky top-0 z-50 shadow-sm">
+			<header class="bg-background px-4 md:px-8 py-4 md:py-6 flex flex-col sm:flex-row justify-between items-center gap-4 sticky top-0 z-50" style="border-bottom: 1px solid hsl(var(--border)); box-shadow: 0 1px 0 hsl(var(--border));">
 				<a style="display:flex; align-items:center; gap:16px; text-decoration:none;" href="https://rometjoyeria.com/">
 					<img src="./logo-romet.png" alt="Romet Joyería Logo" style="height: 45px; width: auto; mix-blend-mode: multiply; transform: scale(1.7); transform-origin: left center; margin-right: 18px;">
 					<span class="hidden md:block text-2xl tracking-[0.2em] uppercase font-bold whitespace-nowrap text-foreground" style="font-family: 'Cormorant Garamond', serif; letter-spacing: 0.15em;">Romet Joyería</span>
@@ -272,16 +272,16 @@
 
 			const viewsHtml = hasImages ? `
 				<div class="bg-white p-8 rounded-2xl shadow-lg border border-border/50 mb-8">
-					<h2 class="text-xl tracking-widest uppercase text-foreground font-medium mb-6">Tu Diseño Generado</h2>
-					<div id="imagen-generada" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:16px;">
-						${imagenFrontal ? `<div><p style="font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;color:#888;margin-bottom:8px;font-family:sans-serif;">Vista Frontal</p><img loading="lazy" src="${imagenFrontal}" style="width:100%;border-radius:8px;border:1px solid #eee;" /></div>` : ''}
-						${imagenTrasera ? `<div><p style="font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;color:#888;margin-bottom:8px;font-family:sans-serif;">Vista Trasera</p><img loading="lazy" src="${imagenTrasera}" style="width:100%;border-radius:8px;border:1px solid #eee;" /></div>` : ''}
-						${imagenLateral ? `<div><p style="font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;color:#888;margin-bottom:8px;font-family:sans-serif;">Vista Lateral</p><img loading="lazy" src="${imagenLateral}" style="width:100%;border-radius:8px;border:1px solid #eee;" /></div>` : ''}
+					<h2 class="text-xl tracking-widest uppercase text-foreground font-medium mb-6">Tu Dise&ntilde;o Generado</h2>
+					<div id="imagen-generada" class="views-grid">
+						${imagenFrontal ? `<div class="view-item"><p style="font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;color:#888;margin-bottom:8px;font-family:sans-serif;">Vista Frontal</p><img loading="lazy" src="${imagenFrontal}" /></div>` : ''}
+						${imagenTrasera ? `<div class="view-item"><p style="font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;color:#888;margin-bottom:8px;font-family:sans-serif;">Vista Trasera</p><img loading="lazy" src="${imagenTrasera}" /></div>` : ''}
+						${imagenLateral ? `<div class="view-item"><p style="font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;color:#888;margin-bottom:8px;font-family:sans-serif;">Vista Lateral</p><img loading="lazy" src="${imagenLateral}" /></div>` : ''}
 					</div>
 				</div>` : `
 				<div class="bg-white p-8 rounded-2xl shadow-lg border border-border/50 mb-8">
 					<div id="imagen-generada">
-						<p class="text-muted-foreground font-sans">Tu diseño está siendo procesado. Recibirás un email con el resultado en breve.</p>
+						<p class="text-muted-foreground font-sans">Tu dise&ntilde;o est&aacute; siendo procesado. Recibir&aacute;s un email con el resultado en breve.</p>
 					</div>
 				</div>`;
 
@@ -429,6 +429,52 @@
 
 	<style>
 		@keyframes spin { to { transform: rotate(360deg); } }
+
+		/* Prevent horizontal scroll on mobile */
+		html, body {
+			max-width: 100%;
+			overflow-x: hidden;
+		}
+
+		/* Fix header scroll artifact: use a real solid background, no half-transparent shadow */
+		header {
+			background-color: hsl(var(--background)) !important;
+			background-image: none !important;
+		}
+
+		/* Equal-size image grid for generated views */
+		.views-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+			gap: 16px;
+			align-items: start;
+		}
+		.views-grid .view-item {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+		}
+		.views-grid .view-item img {
+			width: 100%;
+			height: 220px;
+			object-fit: contain;
+			border-radius: 8px;
+			border: 1px solid #eee;
+			background: #fafafa;
+		}
+		@media (max-width: 640px) {
+			.views-grid {
+				grid-template-columns: 1fr;
+			}
+			.views-grid .view-item img {
+				height: 200px;
+			}
+			/* Ensure form inputs don't overflow on mobile */
+			input, select, textarea {
+				max-width: 100%;
+				box-sizing: border-box;
+			}
+		}
 	</style>
 
 </body>
