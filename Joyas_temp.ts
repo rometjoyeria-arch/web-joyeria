@@ -34,9 +34,8 @@ const STYLES: Record<string, string> = {
 
 function getBaseRules(): string {
   return `
-1.  **CATALOG QUALITY**: Pure white background (#FFFFFF). Real product photography style. No filters, no humans, no magic.
-2.  **TRI-VIEW PANELS**: Output a single image containing 3 side-by-side versions of the EXACT SAME piece: Front view, Back/Top view, and Side view.
-3.  **MANUFACTURABLE**: No floating parts or impossible physical shapes. The piece must look like a solid, realistic, hyper-detailed piece of high-end jewelry.
+- Keep the jewelry piece perfectly centered and strictly isolated on a white background. No human bodies in the background.
+- It must look like a hyper-realistic commercial jewelry photograph.
 `;
 }
 
@@ -65,40 +64,29 @@ serve(async (req) => {
 
   if (imagen_subida_url && !isRedesign) {
       activePrompt = `
-You are an expert 3D jewelry engraver, sculptor, and designer. The client has provided a REFERENCE PHOTOGRAPH.
-YOUR #1 MISSION: Create a HIGH-END, PHOTOREALISTIC jewelry piece that incorporates a PERFECT, LITERAL ENGRAVING / BAS-RELIEF CARVING of the provided reference image into the metal.
+You are an expert 3D jewelry engraver and designer.
+I have attached an image containing a real-life face or subject.
+YOUR #1 MISSION: Create a HIGH-END, PHOTOREALISTIC jewelry piece that incorporates a PERFECT, LITERAL ENGRAVING / BAS-RELIEF CARVING of the ATTACHED IMAGE into the metal.
 
-EXTREMELY IMPORTANT INSTRUCTIONS:
-1. **LITERAL TRANSFER (NO CARTOONS)**: Do not create a cartoon or generic icon. You must preserve the EXACT shapes, shading, and features from the reference image and sculpt those exact details directly into the metal as a high-end bas-relief engraving.
-2. **MATERIAL REALISM**: The piece is made of ${MATERIALS[material] || material}. The engraved subject should look like hyper-detailed metal bas-relief sculpted over the surface.
-3. **ONLY USE THE REFERENCE IMAGE**: Reproduce the subject directly from the reference image, capturing every contour perfectly without altering the original design. Avoid terms or styles that violate safety policies; focus entirely on the sculptural/metallic aspect.
-4. **INTEGRATION**: Form it perfectly into a ${CATEGORIES[categoria_producto] || categoria_producto}.
+EXTREMELY IMPORTANT INSTRUCTIONS regarding the attached image:
+1. **LITERAL TRANSFER (NO CARTOONS)**: You must preserve the EXACT shapes, facial features, and likeness from the attached photo. Extract the face/subject visually from the image itself.
+2. **DO NOT INVENT**: Ignore text instructions if they tell you to invent a new face. Copy the face from the pixels.
+3. **MATERIAL REALISM**: The piece is made of ${MATERIALS[material] || material}. The engraved subject should look like realistic metal carving natively integrated into the jewelry.
+4. **INTEGRATION**: Form it perfectly into a ${CATEGORIES[categoria_producto] || categoria_producto}. Note from user: "${userNotes}"
 
 ${getBaseRules()}
     `.trim();
   } else if (isRedesign) {
-    let contextNote = "";
-    if (imagen_generada_url_previa && imagen_subida_url) {
-        contextNote = "I am providing TWO images: Image 1 is the original client reference. Image 2 is your PREVIOUS DESIGN prediction.";
-    } else if (imagen_generada_url_previa) {
-        contextNote = "I am providing ONE image: This is your PREVIOUS DESIGN prediction.";
-    } else if (imagen_subida_url) {
-        contextNote = "I am providing ONE image: This is the original client reference.";
-    }
-
     activePrompt = `
 You are a master 3D jewelry designer. The client wants to MODIFY an existing design.
-YOUR #1 MISSION: Apply the requested changes exactly, while keeping the rest of the design intact. DO NOT LOSE CONTEXT.
-
-CONTEXT INFO: ${contextNote}
+I am providing previous images for context. Apply the requested changes exactly, while keeping the rest of the original design intact!
 
 MODIFICATIONS REQUESTED: "${userNotes}"
 
 BASE RULES:
-1. Only change what is asked in the modifications. Keep the general structure from the previous images!
-2. Keep it realizable, simple, and realistic. 
-3. Material: ${MATERIALS[material] || material}.
-4. Style: ${STYLES[estilo] || estilo || 'None'}.
+1. Keep the general structure from the previous images!
+2. Material: ${MATERIALS[material] || material}.
+3. Style: ${STYLES[estilo] || estilo || 'None'}.
 
 ${getBaseRules()}
     `.trim();
@@ -113,7 +101,7 @@ SPECIFICATIONS:
 - STYLE: ${STYLES[estilo] || estilo}
 - PROFILE: ${perfil_usuario}
 - GEMA: ${gema_principal || 'No gem'}
-- NOTES: "${userNotes || 'No special notes. Keep it simple/classic.'}"
+- NOTES: "${userNotes || 'No special notes. Keep it simple.'}"
 
 ${getBaseRules()}
     `.trim();
@@ -136,7 +124,8 @@ ${getBaseRules()}
 
   let imagenUrl: string | null = null;
   try {
-    let parts: any[] = [{ text: activePrompt }];
+    // IMPORTANT: Images go first in the parts array so the model sees them before reading the prompt.
+    let parts: any[] = [];
     
     if (imagen_subida_url) {
         const p1 = await fetchImagePart(imagen_subida_url);
@@ -147,6 +136,7 @@ ${getBaseRules()}
         if (p2) parts.push(p2);
     }
 
+    parts.push({ text: activePrompt });
     const gemContents = [{ parts }];
 
     const gr = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${Deno.env.get("GEMINI_API_KEY")}`, {
@@ -194,6 +184,5 @@ ${getBaseRules()}
       }
   }
 
-  // Always return the URL even if it's null, so the frontend finishes processing
   return new Response(JSON.stringify({ success: true, imagenUrl, dbError }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 });
