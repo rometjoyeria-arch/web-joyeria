@@ -140,7 +140,11 @@
 		try {
 			const hasCredits = typeof window.consumeCredit === 'function' ? await window.consumeCredit() : true;
 			if (!hasCredits) {
-				showNotification('¡Vaya! No tienes suficientes créditos para generar este diseño. Compra más créditos en tu cuenta.', 'error');
+				if (typeof window.showOutOfCreditsModal === 'function') {
+					window.showOutOfCreditsModal();
+				} else {
+					showNotification('¡Vaya! No tienes suficientes créditos para generar este diseño. Compra más créditos en tu cuenta.', 'error');
+				}
 				submitBtn.disabled = false;
 				submitBtn.textContent = originalText;
 				return;
@@ -193,7 +197,11 @@
 		try {
 			const hasCredits = typeof window.consumeCredit === 'function' ? await window.consumeCredit() : true;
 			if (!hasCredits) {
-				showNotification('No tienes suficientes créditos para rediseñar. Compra más créditos en tu cuenta.', 'error');
+				if (typeof window.showOutOfCreditsModal === 'function') {
+					window.showOutOfCreditsModal();
+				} else {
+					showNotification('No tienes suficientes créditos para rediseñar. Compra más créditos en tu cuenta.', 'error');
+				}
 				if (redesignBtn) {
 					redesignBtn.disabled = false;
 					redesignBtn.textContent = 'Rediseñar';

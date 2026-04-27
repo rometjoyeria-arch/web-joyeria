@@ -218,7 +218,19 @@
 			const instrucciones = document.getElementById('instructions').value.trim();
 
 			submitBtn.disabled = true;
+			const originalBtnHtml = submitBtn.innerHTML;
 			submitBtn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px;"><svg style="animation:spin 1s linear infinite" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>Generando tu diseño con IA...</span>';
+
+			try {
+				const hasCredits = typeof consumeCredit === 'function' ? await consumeCredit() : true;
+				if (!hasCredits) {
+					if (typeof window.showOutOfCreditsModal === 'function') window.showOutOfCreditsModal();
+					else alert('No tienes suficientes créditos.');
+					submitBtn.disabled = false;
+					submitBtn.innerHTML = originalBtnHtml;
+					return;
+				}
+			} catch(e) {}
 
 			try {
 				let imagenSubidaUrl = null;
@@ -361,10 +373,25 @@
 			window._uploadRedisenar = async (cambios) => {
 				const redesignBtn = document.getElementById('redesign-btn');
 				const imagenContainer = document.getElementById('imagen-generada');
+				const prevImgHTML = imagenContainer ? imagenContainer.innerHTML : '';
 				if (redesignBtn) {
 					redesignBtn.disabled = true;
 					redesignBtn.textContent = 'Rediseñando...';
 				}
+
+				try {
+					const hasCredits = typeof consumeCredit === 'function' ? await consumeCredit() : true;
+					if (!hasCredits) {
+						if (typeof window.showOutOfCreditsModal === 'function') window.showOutOfCreditsModal();
+						else alert('No tienes suficientes créditos.');
+						if (redesignBtn) {
+							redesignBtn.disabled = false;
+							redesignBtn.textContent = 'Rediseñar';
+						}
+						return;
+					}
+				} catch(e) {}
+
 				if (imagenContainer) {
 					imagenContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:200px;"><svg style="animation:spin 1s linear infinite" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></div>';
 				}

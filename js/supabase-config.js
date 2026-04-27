@@ -253,4 +253,31 @@ function initWhenReady(callback) {
 	}
 }
 
+window.showOutOfCreditsModal = function() {
+	const overlay = document.createElement('div');
+	overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:10000; backdrop-filter:blur(4px); animation:fadeIn 0.3s;';
+	
+	const modal = document.createElement('div');
+	modal.style.cssText = 'background:hsl(0 0% 98%); padding:40px; border-radius:16px; max-width:400px; text-align:center; box-shadow:0 25px 50px rgba(0,0,0,0.15); border:1px solid hsl(0 0% 85%); position:relative;';
+	
+	modal.innerHTML = `
+		<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#e53e3e" stroke-width="2" style="margin:0 auto 16px;">
+			<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>
+		</svg>
+		<h2 style="font-family:'Cormorant Garamond', serif; font-size:2rem; font-weight:600; margin-bottom:12px; color:hsl(0 0% 15%); text-transform:uppercase; letter-spacing:0.1em;">Sin Créditos</h2>
+		<p style="font-family: ui-sans-serif, system-ui, sans-serif; color:hsl(0 0% 40%); margin-bottom:24px; font-size:0.95rem; line-height:1.5;">
+			Has agotado todas tus generaciones de diseño. Adquiere más créditos para seguir creando magia joyera.
+		</p>
+		<button onclick="alert('La pasarela de pago estará disponible muy pronto.'); this.closest('div').parentElement.remove()" style="background:hsl(0 0% 0%); color:white; border:none; padding:14px 24px; width:100%; text-transform:uppercase; font-family:ui-sans-serif, system-ui, sans-serif; letter-spacing:0.15em; font-size:0.85rem; font-weight:500; cursor:pointer; margin-bottom:12px; transition:all 0.3s;" onmouseover="this.style.background='hsl(0 0% 20%)'" onmouseout="this.style.background='hsl(0 0% 0%)'">
+			Comprar Créditos
+		</button>
+		<button onclick="this.closest('div').parentElement.remove()" style="background:transparent; color:hsl(0 0% 40%); border:1px solid hsl(0 0% 80%); padding:12px 24px; width:100%; text-transform:uppercase; font-family:ui-sans-serif, system-ui, sans-serif; letter-spacing:0.15em; font-size:0.85rem; font-weight:500; cursor:pointer; transition:all 0.3s;" onmouseover="this.style.background='hsl(0 0% 95%)'; this.style.color='hsl(0 0% 15%)'" onmouseout="this.style.background='transparent'; this.style.color='hsl(0 0% 40%)'">
+			Cancelar
+		</button>
+	`;
+	
+	overlay.appendChild(modal);
+	document.body.appendChild(overlay);
+};
+
 window.addEventListener('load', () => initWhenReady(null));
