@@ -7,8 +7,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// ──────────────────────────────────────────────
-// PARAMETER DEFINITIONS
 const CATEGORIES: Record<string, string> = {
   anillo:     "Ring - a circular band for the finger.",
   colgante:   "Pendant - jewelry suspended from a chain.",
@@ -60,53 +58,6 @@ serve(async (req) => {
   const isRedesign = sugerencias?.includes("Cambios solicitados:");
   const userNotes = isRedesign ? sugerencias.split("Cambios solicitados:")[1] : sugerencias;
 
-  let activePrompt = "";
-
-  if (imagen_subida_url && !isRedesign) {
-      activePrompt = `
-You are an expert 3D jewelry engraver and designer.
-I have attached an image containing a real-life face or subject.
-YOUR #1 MISSION: Create a HIGH-END, PHOTOREALISTIC jewelry piece that incorporates a PERFECT, LITERAL ENGRAVING / BAS-RELIEF CARVING of the ATTACHED IMAGE into the metal.
-
-EXTREMELY IMPORTANT INSTRUCTIONS regarding the attached image:
-1. **LITERAL TRANSFER (NO CARTOONS)**: You must preserve the EXACT shapes, facial features, and likeness from the attached photo. Extract the face/subject visually from the image itself.
-2. **DO NOT INVENT**: Ignore text instructions if they tell you to invent a new face. Copy the face from the pixels.
-3. **MATERIAL REALISM**: The piece is made of ${MATERIALS[material] || material}. The engraved subject should look like realistic metal carving natively integrated into the jewelry.
-4. **INTEGRATION**: Form it perfectly into a ${CATEGORIES[categoria_producto] || categoria_producto}. Note from user: "${userNotes}"
-
-${getBaseRules()}
-    `.trim();
-  } else if (isRedesign) {
-    activePrompt = `
-You are a master 3D jewelry designer. The client wants to MODIFY an existing design.
-I am providing previous images for context. Apply the requested changes exactly, while keeping the rest of the original design intact!
-
-MODIFICATIONS REQUESTED: "${userNotes}"
-
-BASE RULES:
-1. Keep the general structure from the previous images!
-2. Material: ${MATERIALS[material] || material}.
-3. Style: ${STYLES[estilo] || estilo || 'None'}.
-
-${getBaseRules()}
-    `.trim();
-  } else {
-    activePrompt = `
-You are a master 3D jewelry designer for "Romet Joyería". 
-YOUR #1 MISSION: Create a simple, basic, and realistic jewelry piece from scratch.
-
-SPECIFICATIONS:
-- CATEGORY: ${CATEGORIES[categoria_producto] || categoria_producto}
-- MATERIAL: ${MATERIALS[material] || material}
-- STYLE: ${STYLES[estilo] || estilo}
-- PROFILE: ${perfil_usuario}
-- GEMA: ${gema_principal || 'No gem'}
-- NOTES: "${userNotes || 'No special notes. Keep it simple.'}"
-
-${getBaseRules()}
-    `.trim();
-  }
-
   async function fetchImagePart(url: string) {
       if (!url) return null;
       try {
@@ -122,21 +73,82 @@ ${getBaseRules()}
       }
   }
 
+  let activePrompt = "";
+  let base64Part = null;
+
+  try {
+      if (imagen_subida_url) {
+          base64Part = await fetchImagePart(imagen_subida_url);
+      }
+
+      if (imagen_subida_url && !isRedesign && base64Part) {
+          // STEP 1: Describe the image using the Multimodal Gemini model
+          const describeRequest = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + Deno.env.get("GEMINI_API_KEY"), {
+             method: "POST", headers: { "Content-Type": "application/json" },
+             body: JSON.stringify({
+                 contents: [{
+                     parts: [
+                         base64Part,
+                         { text: "Describe this image in highly meticulous detail. If it is a person/face, describe all specific facial features, hair style, beard/mustache, age appearance, jawline, clothing, and expression. We need this mechanical description to recreate an IDENTICAL engraving of this specific person. Produce ONLY the physical description." }
+                     ]
+                 }]
+             })
+          });
+          const describeData = await describeRequest.json();
+          const visualDescription = describeData.candidates?.[0]?.content?.parts?.[0]?.text || "A standard human figure.";
+
+          activePrompt = `
+You are an expert 3D jewelry engraver and designer.
+YOUR #1 MISSION: Create a HIGH-END, PHOTOREALISTIC jewelry piece that incorporates a PERFECT, LITERAL ENGRAVING / BAS-RELIEF CARVING of the subject described below:
+
+SUBJECT DESCRIPTION (MUST ENGRAVE EXACTLY AS DESCRIBED):
+"${visualDescription.trim()}"
+
+EXTREMELY IMPORTANT INSTRUCTIONS:
+1. **LITERAL TRANSFER (NO CARTOONS)**: You must preserve the EXACT shapes, facial features, and likeness from the description.
+2. **MATERIAL REALISM**: The piece is made of ${MATERIALS[material] || material}. The engraved subject should look like realistic metal carving natively integrated into the jewelry.
+3. **INTEGRATION**: Form it perfectly into a ${CATEGORIES[categoria_producto] || categoria_producto}. Note from user: "${userNotes}"
+
+${getBaseRules()}
+        `.trim();
+      } else if (isRedesign) {
+        activePrompt = `
+You are a master 3D jewelry designer. The client wants to MODIFY an existing design.
+Apply the requested changes exactly, while keeping the rest of the original design intact!
+
+MODIFICATIONS REQUESTED: "${userNotes}"
+
+BASE RULES:
+1. Keep the general structure from the previous images!
+2. Material: ${MATERIALS[material] || material}.
+3. Style: ${STYLES[estilo] || estilo || 'None'}.
+
+${getBaseRules()}
+        `.trim();
+      } else {
+        activePrompt = `
+You are a master 3D jewelry designer for "Romet Joyería". 
+YOUR #1 MISSION: Create a simple, basic, and realistic jewelry piece from scratch.
+
+SPECIFICATIONS:
+- CATEGORY: ${CATEGORIES[categoria_producto] || categoria_producto}
+- MATERIAL: ${MATERIALS[material] || material}
+- STYLE: ${STYLES[estilo] || estilo}
+- PROFILE: ${perfil_usuario}
+- GEMA: ${gema_principal || 'No gem'}
+- NOTES: "${userNotes || 'No special notes. Keep it simple.'}"
+
+${getBaseRules()}
+        `.trim();
+      }
+  } catch (descError) {
+      console.error("Step 1 Description Error", descError);
+  }
+
+  // STEP 2: Generate Image
   let imagenUrl: string | null = null;
   try {
-    // IMPORTANT: Images go first in the parts array so the model sees them before reading the prompt.
-    let parts: any[] = [];
-    
-    if (imagen_subida_url) {
-        const p1 = await fetchImagePart(imagen_subida_url);
-        if (p1) parts.push(p1);
-    }
-    if (imagen_generada_url_previa) {
-        const p2 = await fetchImagePart(imagen_generada_url_previa);
-        if (p2) parts.push(p2);
-    }
-
-    parts.push({ text: activePrompt });
+    const parts: any[] = [{ text: activePrompt }];
     const gemContents = [{ parts }];
 
     const gr = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${Deno.env.get("GEMINI_API_KEY")}`, {
@@ -177,10 +189,10 @@ ${getBaseRules()}
           });
           if (!emailResponse.ok) {
               const resTxt = await emailResponse.text();
-              console.error("Email Invocation returned non-OK:", resTxt);
+              console.error("Email Invocation returned non-OK:", resTxt, "with to:", email);
           }
       } catch (err) {
-          console.error("Email Invocation Error:", err);
+          console.error("Email Invocation HTTP Error:", err);
       }
   }
 
