@@ -251,6 +251,8 @@
 				});
 
 				showUploadSuccess({ nombre, email, categoria, material }, result?.imagenFrontal || result?.imagenUrl || null, result?.imagenTrasera || null, result?.imagenLateral || null);
+				// Also store the raw result so redesign has full context
+				_uploadState.previousResult = result;
 
 			} catch (error) {
 				console.error('Error:', error);
@@ -264,7 +266,15 @@
 
 		function showUploadSuccess(data, imagenFrontal, imagenTrasera, imagenLateral) {
 			const imagenUrl = imagenFrontal;
-			_uploadState = { data, imagenUrl };
+			// Store the full context so redesign can reference everything
+			_uploadState = {
+				data,
+				imagenUrl,
+				imagenFrontal,
+				imagenTrasera,
+				imagenLateral,
+				previousPrompt: null, // will be filled after first generation via result
+			};
 			const main = document.querySelector('main');
 			if (!main) return;
 
@@ -378,7 +388,6 @@
 			window._uploadRedisenar = async (cambios) => {
 				const redesignBtn = document.getElementById('redesign-btn');
 				const imagenContainer = document.getElementById('imagen-generada');
-				const prevImgHTML = imagenContainer ? imagenContainer.innerHTML : '';
 				if (redesignBtn) {
 					redesignBtn.disabled = true;
 					redesignBtn.textContent = 'Rediseñando...';
@@ -400,16 +409,44 @@
 				if (imagenContainer) {
 					imagenContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:200px;"><svg style="animation:spin 1s linear infinite" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></div>';
 				}
+
 				try {
-					const result = await callEdgeFunction('Joyas', {
-						nombre: _uploadState.data.nombre,
-						email: _uploadState.data.email,
-						categoria_producto: _uploadState.data.categoria,
-						material: _uploadState.data.material,
+					// Build redesign payload with FULL previous context
+					const prev = _uploadState;
+					const redesignPayload = {
+						nombre: prev.data?.nombre,
+						email: prev.data?.email,
+						categoria_producto: prev.data?.categoria,
+						material: prev.data?.material,
+						// Pass all previously generated images so the backend can describe them
+						imagen_subida_url: prev.imagenFrontal || prev.imagenUrl || null,
+						imagen_trasera_url: prev.imagenTrasera || null,
+						imagen_lateral_url: prev.imagenLateral || null,
+						// Encode the previous design context and the requested changes
 						sugerencias: 'Cambios solicitados: ' + cambios,
-					});
-					if (imagenContainer && result?.imagenUrl) {
-						imagenContainer.innerHTML = `<img loading="lazy" src="${result.imagenUrl}" style="max-width:100%; border-radius:8px;" />`;
+						// Flag so backend knows this is a redesign and should treat imagen_subida_url as the prior render
+						is_redesign: true,
+					};
+
+					const result = await callEdgeFunction('Joyas', redesignPayload);
+
+					// Update displayed images (may be 1 or 3 depending on backend response)
+					if (imagenContainer) {
+						const newFront = result?.imagenFrontal || result?.imagenUrl;
+						const newBack = result?.imagenTrasera;
+						const newSide = result?.imagenLateral;
+						if (newFront || newBack || newSide) {
+							imagenContainer.className = 'views-grid';
+							imagenContainer.innerHTML =
+								(newFront ? `<div class="view-item"><p style="font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;color:#888;margin-bottom:8px;font-family:sans-serif;">Vista Frontal</p><img loading="lazy" src="${newFront}" /></div>` : '') +
+								(newBack  ? `<div class="view-item"><p style="font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;color:#888;margin-bottom:8px;font-family:sans-serif;">Vista Trasera</p><img loading="lazy" src="${newBack}" /></div>` : '') +
+								(newSide  ? `<div class="view-item"><p style="font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;color:#888;margin-bottom:8px;font-family:sans-serif;">Vista Lateral</p><img loading="lazy" src="${newSide}" /></div>` : '');
+							// Update stored state so next redesign uses the new images
+							_uploadState.imagenFrontal = newFront || prev.imagenFrontal;
+							_uploadState.imagenTrasera = newBack  || prev.imagenTrasera;
+							_uploadState.imagenLateral = newSide  || prev.imagenLateral;
+							_uploadState.imagenUrl = newFront || prev.imagenUrl;
+						}
 					}
 					const panel = document.getElementById('cambios-panel');
 					if (panel) panel.style.display = 'none';
@@ -445,8 +482,8 @@
 		/* Equal-size image grid for generated views */
 		.views-grid {
 			display: grid;
-			grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-			gap: 16px;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 12px;
 			align-items: start;
 		}
 		.views-grid .view-item {
@@ -456,18 +493,20 @@
 		}
 		.views-grid .view-item img {
 			width: 100%;
-			height: 220px;
+			height: 200px;
 			object-fit: contain;
 			border-radius: 8px;
 			border: 1px solid #eee;
 			background: #fafafa;
+			display: block;
 		}
 		@media (max-width: 640px) {
+			/* On mobile: stack vertically, full width */
 			.views-grid {
 				grid-template-columns: 1fr;
 			}
 			.views-grid .view-item img {
-				height: 200px;
+				height: 240px;
 			}
 			/* Ensure form inputs don't overflow on mobile */
 			input, select, textarea {
