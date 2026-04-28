@@ -26,8 +26,8 @@
 		<div class="min-h-screen bg-background flex flex-col font-serif">
 
 			<header class="bg-background px-4 md:px-8 py-4 md:py-6 flex flex-col sm:flex-row justify-between items-center gap-4 sticky top-0 z-50" style="border-bottom: 1px solid hsl(var(--border)); box-shadow: 0 1px 0 hsl(var(--border));">
-				<a style="display:flex; align-items:center; gap:16px; text-decoration:none;" href="https://rometjoyeria.com/">
-					<img src="./logo-romet.png" alt="Romet Joyería Logo" style="height: 45px; width: auto; mix-blend-mode: multiply; transform: scale(1.7); transform-origin: left center; margin-right: 18px;">
+				<a style="display:flex; align-items:center; gap:12px; text-decoration:none;" href="https://rometjoyeria.com/">
+					<img src="./logo-romet.png" alt="Romet Joyería Logo" style="height: 65px; width: auto; mix-blend-mode: multiply; margin-right: 8px;">
 					<span class="hidden md:block text-2xl tracking-[0.2em] uppercase font-bold whitespace-nowrap text-foreground" style="font-family: 'Cormorant Garamond', serif; letter-spacing: 0.15em;">Romet Joyería</span>
 				</a>
 				<nav class="flex items-center flex-wrap justify-center gap-4 md:gap-8">
@@ -467,13 +467,25 @@
 	<style>
 		@keyframes spin { to { transform: rotate(360deg); } }
 
-		/* Prevent horizontal scroll on mobile */
-		html, body {
-			max-width: 100%;
-			overflow-x: hidden;
+		/* Universal box-sizing fix */
+		*, *::before, *::after {
+			box-sizing: border-box;
 		}
 
-		/* Fix header scroll artifact: use a real solid background, no half-transparent shadow */
+		/* Prevent horizontal scroll / dancing on mobile */
+		html, body {
+			max-width: 100vw;
+			overflow-x: hidden;
+			margin: 0;
+			padding: 0;
+		}
+		
+		#root {
+			overflow-x: hidden;
+			width: 100%;
+		}
+
+		/* Fix header scroll artifact: use a real solid background */
 		header {
 			background-color: hsl(var(--background)) !important;
 			background-image: none !important;
@@ -500,6 +512,7 @@
 			background: #fafafa;
 			display: block;
 		}
+
 		@media (max-width: 640px) {
 			/* On mobile: stack vertically, full width */
 			.views-grid {
@@ -508,10 +521,18 @@
 			.views-grid .view-item img {
 				height: 240px;
 			}
-			/* Ensure form inputs don't overflow on mobile */
-			input, select, textarea {
-				max-width: 100%;
-				box-sizing: border-box;
+			/* Ensure form inputs and containers don't overflow */
+			input, select, textarea, .container, main {
+				max-width: 100% !important;
+				width: 100% !important;
+			}
+			/* Adjust paddings for mobile to keep items inside */
+			.p-8, .p-12 {
+				padding: 1.5rem !important;
+			}
+			/* Dropzone specific fix */
+			#dropzone {
+				padding: 2rem 1rem !important;
 			}
 		}
 	</style>
