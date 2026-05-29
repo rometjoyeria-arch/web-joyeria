@@ -64,12 +64,13 @@ async function signOut() {
 }
 
 async function getCredits() {
-	const session = await getSession();
-	if (!session) return 0;
-	let credits = session.user.user_metadata?.credits;
+	const sb = getSupabase();
+	const { data: { user } } = await sb.auth.getUser();
+	if (!user) return 0;
+	
+	let credits = user.user_metadata?.credits;
 	if (credits === undefined) {
 		credits = 10;
-		const sb = getSupabase();
 		await sb.auth.updateUser({ data: { credits: 10 } });
 	}
 	return credits;
@@ -107,10 +108,11 @@ async function initHeaderAuth() {
 			const container = document.createElement('div');
 			container.style.cssText = 'position:relative; display:flex; align-items:center; gap:24px;';
 			container.innerHTML = `
-				<div id="header-credits-badge" style="background:linear-gradient(135deg, hsl(45 90% 92%) 0%, hsl(45 80% 85%) 100%); border:1px solid hsl(45 70% 70%); color:hsl(45 90% 20%); padding:5px 14px; border-radius:100px; display:flex; align-items:center; gap:6px; font-family:ui-sans-serif, system-ui, sans-serif; font-size:0.85rem; font-weight:600; box-shadow:0 1px 4px rgba(0,0,0,0.06); cursor:default;" title="Tus créditos disponibles">
-					<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+				<div id="header-credits-badge" onclick="alert('La compra de créditos estará disponible muy pronto')" style="background:linear-gradient(135deg, hsl(45 90% 92%) 0%, hsl(45 80% 86%) 100%); border:1px solid hsl(45 70% 65%); color:hsl(45 90% 20%); padding:6px 16px; border-radius:100px; display:flex; align-items:center; gap:8px; font-family:ui-sans-serif, system-ui, sans-serif; font-size:0.9rem; font-weight:700; box-shadow:0 2px 8px rgba(0,0,0,0.06); cursor:pointer; transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'" title="Tus créditos - Haz clic para añadir más">
+					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
 					<span id="credit-count-header">${credits}</span>
-					<span style="font-size:0.65rem; text-transform:uppercase; letter-spacing:0.05em; opacity:0.7; margin-left:2px;">Crs.</span>
+					<span style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.04em; opacity:0.8; font-weight:600;">Créditos</span>
+					<span style="background:white; color:hsl(45 90% 20%); width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; margin-left:4px; box-shadow:0 1px 2px rgba(0,0,0,0.1);">+</span>
 				</div>
 
 				<div style="position:relative;">
