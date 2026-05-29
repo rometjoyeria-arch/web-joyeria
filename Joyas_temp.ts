@@ -35,7 +35,9 @@ const MATERIAL_LABELS: Record<string, string> = {
 };
 
 // gemini-2.5-flash-image: supports multimodal input (image+text) AND image output
-const GEMINI_MODEL = "gemini-2.5-flash-image";
+// Switching to GA model gemini-3.1-flash-image (available since May 2026)
+// This model supports native IMAGE output and maintains better consistency across parallel requests.
+const GEMINI_MODEL = "gemini-3.1-flash-image";
 const GEMINI_URL = (key: string) =>
   `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${key}`;
 
