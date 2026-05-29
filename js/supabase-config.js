@@ -85,10 +85,9 @@ async function consumeCredit() {
 	const sb = getSupabase();
 	await sb.auth.updateUser({ data: { credits: credits } });
 	
-	const creditDisplay = document.getElementById('credit-count-display');
-	if (creditDisplay) {
-		creditDisplay.textContent = credits;
-	}
+	const displays = document.querySelectorAll('#credit-count-display, #credit-count-header');
+	displays.forEach(d => d.textContent = credits);
+	
 	return true;
 }
 
@@ -106,32 +105,46 @@ async function initHeaderAuth() {
 			const credits = await getCredits();
 
 			const container = document.createElement('div');
-			container.style.cssText = 'position:relative; display:inline-block;';
+			container.style.cssText = 'position:relative; display:flex; align-items:center; gap:24px;';
 			container.innerHTML = `
-				<button id="user-menu-btn" class="text-sm md:text-base tracking-[0.15em] uppercase text-foreground hover:text-muted-foreground transition-colors font-medium flex items-center gap-2" style="background:none; border:none; cursor:pointer;">
-					Hola, ${name} <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-				</button>
-				<div id="user-dropdown" style="display:none; position:absolute; right:0; top:100%; margin-top:8px; width:230px; background:white; border:1px solid hsl(0 0% 85%); box-shadow:0 10px 25px rgba(0,0,0,0.08); z-index:100; text-align:left; border-radius:4px; overflow:hidden;">
-					<div style="padding:16px; border-bottom:1px solid hsl(0 0% 85%); background:hsl(0 0% 98%);">
-						 <div style="font-size:0.75rem; color:hsl(0 0% 40%); padding-bottom:6px; letter-spacing:0.1em; text-transform:uppercase; font-family: ui-sans-serif, system-ui, sans-serif;">Tus Créditos</div>
-						 <div style="font-size:1.6rem; font-weight:600; color:hsl(0 0% 15%); display:flex; align-items:center; gap:8px;">
-							 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ca8a04" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
-							 <span id="credit-count-display">${credits}</span>
-						 </div>
+				<div id="header-credits-badge" style="background:linear-gradient(135deg, hsl(45 90% 92%) 0%, hsl(45 80% 85%) 100%); border:1px solid hsl(45 70% 70%); color:hsl(45 90% 20%); padding:5px 14px; border-radius:100px; display:flex; align-items:center; gap:6px; font-family:ui-sans-serif, system-ui, sans-serif; font-size:0.85rem; font-weight:600; box-shadow:0 1px 4px rgba(0,0,0,0.06); cursor:default;" title="Tus créditos disponibles">
+					<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+					<span id="credit-count-header">${credits}</span>
+					<span style="font-size:0.65rem; text-transform:uppercase; letter-spacing:0.05em; opacity:0.7; margin-left:2px;">Crs.</span>
+				</div>
+
+				<div style="position:relative;">
+					<button id="user-menu-btn" class="text-sm md:text-base tracking-[0.15em] uppercase text-foreground hover:text-muted-foreground transition-colors font-medium flex items-center gap-2" style="background:none; border:none; cursor:pointer;">
+						${name} <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+					</button>
+					<div id="user-dropdown" style="display:none; position:absolute; right:0; top:100%; margin-top:12px; width:220px; background:white; border:1px solid hsl(0 0% 90%); box-shadow:0 15px 35px rgba(0,0,0,0.12); z-index:100; text-align:left; border-radius:8px; overflow:hidden;">
+						<div style="padding:18px; border-bottom:1px solid hsl(0 0% 92%); background:hsl(0 0% 99%);">
+							 <div style="font-size:0.65rem; color:hsl(0 0% 50%); padding-bottom:8px; letter-spacing:0.12em; text-transform:uppercase; font-family: ui-sans-serif, system-ui, sans-serif; font-weight:700;">Estado de Cuenta</div>
+							 <div style="display:flex; align-items:center; justify-content:space-between;">
+								 <span style="font-size:0.9rem; color:hsl(0 0% 30%); font-family:ui-sans-serif, system-ui, sans-serif;">Créditos</span>
+								 <span id="credit-count-display" style="font-size:1.3rem; font-weight:700; color:hsl(0 0% 10%);">${credits}</span>
+							 </div>
+						</div>
+						<a href="javascript:void(0)" onclick="alert('La compra de créditos estará disponible muy pronto')" style="display:block; padding:14px 18px; color:hsl(0 0% 20%); text-decoration:none; font-size:0.75rem; font-family: ui-sans-serif, system-ui, sans-serif; letter-spacing:0.08em; text-transform:uppercase; border-bottom:1px solid hsl(0 0% 95%); transition:background 0.2s;" onmouseover="this.style.background='hsl(0 0% 97%)'" onmouseout="this.style.background='transparent'">
+							 <span style="display:flex; align-items:center; gap:10px;">
+							 	<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+							 	Recargar Créditos
+							 </span>
+						</a>
+						<a href="#" id="logout-btn" style="display:block; padding:14px 18px; color:#c53030; text-decoration:none; font-size:0.75rem; font-family: ui-sans-serif, system-ui, sans-serif; letter-spacing:0.08em; text-transform:uppercase; transition:background 0.2s;" onmouseover="this.style.background='#fff5f5'" onmouseout="this.style.background='transparent'">
+							 <span style="display:flex; align-items:center; gap:10px;">
+							 	<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+							 	Cerrar Sesión
+							 </span>
+						</a>
 					</div>
-					<a href="javascript:void(0)" onclick="alert('La compra de créditos estará disponible muy pronto')" style="display:block; padding:12px 16px; color:hsl(0 0% 15%); text-decoration:none; font-size:0.8rem; font-family: ui-sans-serif, system-ui, sans-serif; letter-spacing:0.1em; text-transform:uppercase; border-bottom:1px solid hsl(0 0% 90%); transition:background 0.2s;" onmouseover="this.style.background='hsl(0 0% 95%)'" onmouseout="this.style.background='transparent'">
-						 Comprar Créditos
-					</a>
-					<a href="#" id="logout-btn" style="display:block; padding:12px 16px; color:#e53e3e; text-decoration:none; font-size:0.8rem; font-family: ui-sans-serif, system-ui, sans-serif; letter-spacing:0.1em; text-transform:uppercase; transition:background 0.2s;" onmouseover="this.style.background='#fff5f5'" onmouseout="this.style.background='transparent'">
-						 Cerrar Sesión
-					</a>
 				</div>
 			`;
 			
 			const nav = authLink.parentElement;
 			nav.replaceChild(container, authLink);
 			
-			// Si existía un saludo antiguo 'Hola, Francisco', lo eliminamos porque ya va en el dropdown
+			// Si existía un saludo antiguo 'Hola, Francisco', lo eliminamos
 			const existingGreeting = nav.querySelector('.user-greeting');
 			if (existingGreeting) existingGreeting.remove();
 			
