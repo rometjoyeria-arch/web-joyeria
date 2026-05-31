@@ -229,8 +229,9 @@
 				peso_estimado: state.weight,
 				talla_medida: state.size,
 				sugerencias: state.notes,
-				imagen_referencia_url: state._lastImagenUrl,
+				imagen_subida_url: state._lastImagenUrl,
 				cambios_solicitados: cambios,
+				is_redesign: true
 			});
 
 			if (imagenContainer && (result?.imagenFrontal || result?.imagenUrl)) {

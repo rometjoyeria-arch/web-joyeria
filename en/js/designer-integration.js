@@ -220,7 +220,10 @@
 				presupuesto: state.budget,
 				peso_estimado: state.weight,
 				talla_medida: state.size,
-				sugerencias: (state.notes || '') + ' Cambios solicitados: ' + cambios,
+				sugerencias: state.notes,
+				imagen_subida_url: state._lastImagenUrl,
+				cambios_solicitados: cambios,
+				is_redesign: true
 			});
 
 			if (imagenContainer && result?.imagenUrl) {
