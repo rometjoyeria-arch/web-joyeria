@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-// ROMET JOYERIA - Supabase Configuration (Shared Module)
+// ROMET JOYERIA - Supabase Configuration (Shared Module) - v3.1.2
 // ═══════════════════════════════════════════════════════════
 
 const SUPABASE_URL = 'https://ktysptwemewbyanagdwu.supabase.co';
@@ -34,6 +34,38 @@ async function ensureSupabaseReady() {
 		}
 		check();
 	});
+}
+
+async function initWhenReady(callback) {
+	try {
+		await ensureSupabaseReady();
+		
+		// Security Guard: Bloqueo de acceso global
+		const session = await getSession();
+		const authorizedEmail = 'flozros@gmail.com';
+		const isLoginPage = window.location.pathname.includes('login.html');
+		
+		if (!isLoginPage && (!session || session.user.email !== authorizedEmail)) {
+			console.log('Acceso restringido. Redirigiendo a pantalla de bloqueo...');
+			document.body.innerHTML = `
+				<div style="height:100vh; width:100vw; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#000; color:#fff; font-family:'Cormorant Garamond', serif; text-align:center; padding:20px;">
+					<img src="./logo-romet.png" style="height:80px; margin-bottom:30px; filter:brightness(0) invert(1);">
+					<h1 style="font-size:2rem; letter-spacing:0.2em; text-transform:uppercase; margin-bottom:15px;">Sitio en Mantenimiento</h1>
+					<p style="font-family:sans-serif; color:#888; max-width:400px; line-height:1.6; font-size:0.9rem;">
+						Estamos realizando mejoras de seguridad en Romet Joyería.
+						El acceso al catálogo y al diseñador estará disponible próximamente.
+					</p>
+					<a href="./login.html" style="margin-top:30px; color:#fff; text-transform:uppercase; font-size:0.7rem; letter-spacing:0.1em; text-decoration:none; border:1px solid #333; padding:10px 20px;">Acceso Administrador</a>
+				</div>
+			`;
+			document.body.style.overflow = 'hidden';
+			return; // Detener ejecución
+		}
+
+		if (callback) callback();
+	} catch (e) {
+		console.error('Error inicializando Supabase:', e);
+	}
 }
 
 async function getSession() {
@@ -258,15 +290,13 @@ async function uploadImage(file, bucket = 'disenos') {
 // ═══════════════════════════════════════
 // Inicialización con reintento automático
 // ═══════════════════════════════════════
-function initWhenReady(callback) {
-	if (typeof window.supabase !== 'undefined') {
-		if (!_supabaseClient) {
-			const { createClient } = window.supabase;
-			_supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-		}
+async function initWhenReady(callback) {
+	try {
+		await ensureSupabaseReady();
 		if (callback) callback();
-	} else {
-		setTimeout(() => initWhenReady(callback), 100);
+	} catch (e) {
+		console.error('Error inicializando Supabase:', e);
+		if (callback) callback();
 	}
 }
 
