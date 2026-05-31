@@ -148,7 +148,7 @@ serve(async (req) => {
         prompt_usado: baseContext
     }).select().single();
 
-    // Trigger email — AWAITED so it runs before function exits
+    // Trigger email — direct HTTP call to bypass JWT verification issue with invoke()
     if (insertedData && email && !is_redesign) {
       try {
         const emailPayload = {
@@ -165,14 +165,18 @@ serve(async (req) => {
           imagenTrasera: imagenTrasera || null,
           imagenLateral: imagenLateral || null,
         };
-        const { data: emailResult, error: emailError } = await supabaseAdmin.functions.invoke("send-email", { body: emailPayload });
-        if (emailError) {
-          console.error("Email invoke error:", emailError);
-        } else {
-          console.log("Email sent OK:", JSON.stringify(emailResult));
-        }
+        const emailRes = await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${SUPABASE_KEY}`,
+          },
+          body: JSON.stringify(emailPayload),
+        });
+        const emailBody = await emailRes.text();
+        console.log("Email HTTP result:", emailRes.status, emailBody.substring(0, 200));
       } catch(e) {
-        console.error("Email exception:", e);
+        console.error("Email HTTP exception:", e);
       }
     }
 
