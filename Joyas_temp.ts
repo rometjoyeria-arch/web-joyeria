@@ -148,10 +148,10 @@ serve(async (req) => {
         prompt_usado: baseContext
     }).select().single();
 
-    // Trigger email (Background)
+    // Trigger email — AWAITED so it runs before function exits
     if (insertedData && email && !is_redesign) {
-      supabaseAdmin.functions.invoke("send-email", {
-        body: {
+      try {
+        const emailPayload = {
           type: imagen_subida_url ? "Sube tu Diseño" : "Diseño Guiado",
           to: email,
           customerName: nombre || "Cliente",
@@ -164,8 +164,16 @@ serve(async (req) => {
           imagenFrontal: imagenFrontal || null,
           imagenTrasera: imagenTrasera || null,
           imagenLateral: imagenLateral || null,
+        };
+        const { data: emailResult, error: emailError } = await supabaseAdmin.functions.invoke("send-email", { body: emailPayload });
+        if (emailError) {
+          console.error("Email invoke error:", emailError);
+        } else {
+          console.log("Email sent OK:", JSON.stringify(emailResult));
         }
-      }).catch(e => console.error("Email error:", e));
+      } catch(e) {
+        console.error("Email exception:", e);
+      }
     }
 
     return new Response(JSON.stringify({ 
