@@ -8,82 +8,68 @@ const corsHeaders = {
 };
 
 const CATEGORIES: Record<string, string> = {
-  anillo:     "ring", colgante: "pendant", pendientes: "earrings",
-  pulsera:    "bracelet", gemelos: "cufflinks", medallas: "medallion",
+  anillo:     "ring (circular band worn on the finger)",
+  colgante:   "pendant (hanging from a necklace chain)",
+  pendientes: "earrings (a pair)",
+  pulsera:    "bracelet (for the wrist)",
+  gemelos:    "cufflinks (shirt cuff fasteners)",
+  medallas:   "medallion (flat circular disc on a necklace chain)",
+};
+
+const CATEGORY_LABELS: Record<string, string> = {
+  anillo: "Anillo", colgante: "Colgante", pendientes: "Pendientes",
+  pulsera: "Pulsera", gemelos: "Gemelos", medallas: "Medalla",
 };
 
 const MATERIALS: Record<string, string> = {
-  oro_amarillo: "18k yellow gold", oro_blanco: "18k white gold",
-  oro_rosa: "18k rose gold", platino: "platinum", plata: "silver",
+  oro_amarillo: "18k yellow gold, warm mirror-polished",
+  oro_blanco:   "18k white gold, rhodium-plated",
+  oro_rosa:     "18k rose gold, pink-copper polished",
+  platino:      "platinum 950, naturally white",
+  plata:        "sterling silver 925, bright white polished",
 };
 
-<<<<<<< HEAD
 const MATERIAL_LABELS: Record<string, string> = {
   oro_amarillo: "Oro Amarillo 18k", oro_blanco: "Oro Blanco 18k",
   oro_rosa: "Oro Rosa 18k", platino: "Platino 950", plata: "Plata 925",
 };
 
-// gemini-2.5-flash-image: supports multimodal input (image+text) AND image output
-// Switching to GA model gemini-3.1-flash-image (available since May 2026)
-// This model supports native IMAGE output and maintains better consistency across parallel requests.
 const GEMINI_MODEL = "gemini-3.1-flash-image";
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
-// Rule appended to EVERY prompt to prevent Gemini adding text/logos/watermarks
 const NO_TEXT_RULE = `
 STRICT RULES (no exceptions):
 - Do NOT add any text, letters, initials, words, inscriptions, logos, brand marks, serial numbers, or watermarks ANYWHERE on the jewelry — not on the surface, not on the edge, not engraved, not stamped, not printed.
 - Do NOT add hallmark stamps, maker's marks, or any alphanumeric characters of any kind.
 - The piece must be completely free of any lettering or writing.
-- The only decoration permitted is what is explicitly described in this prompt.
 - White studio background. Photorealistic commercial jewelry photography quality.`;
 
-async function generateView(
-  prompt: string,
-  imagePart: unknown | null,
-  apiKey: string
-): Promise<string | null> {
-  const parts: unknown[] = [];
+async function generateView(prompt: string, imagePart: any | null, apiKey: string): Promise<string | null> {
+  const parts: any[] = [];
   if (imagePart) parts.push(imagePart);
   parts.push({ text: prompt });
-=======
-const NO_TEXT_RULE = "STRICT: No text/logos. White background. Photorealistic.";
->>>>>>> 23cf71a677be8928bc0444024951d6cc0e39b8d3
 
-async function generateView(prompt: string, imagePart: any | null, apiKey: string): Promise<string | null> {
   try {
-<<<<<<< HEAD
     const res = await fetch(GEMINI_URL, {
       method: "POST",
-      headers: { 
-        "Content-Type": "application/json",
-        "x-goog-api-key": apiKey
-=======
-    // UPDATED: Using x-goog-api-key header for modern project-scoped keys (AQ...)
-    const res = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent", {
-      method: "POST",
-      headers: { 
-        "Content-Type": "application/json",
-        "x-goog-api-key": apiKey 
->>>>>>> 23cf71a677be8928bc0444024951d6cc0e39b8d3
-      },
+      headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
       body: JSON.stringify({
-        contents: [{ parts: imagePart ? [imagePart, { text: prompt }] : [{ text: prompt }] }],
-        generationConfig: { responseModalities: ["TEXT", "IMAGE"], temperature: 0.4 },
+        contents: [{ parts }],
+        generationConfig: { responseModalities: ["IMAGE", "TEXT"], temperature: 0.4 },
       }),
     });
-    
+
     const data = await res.json();
     if (!res.ok) {
-        console.error("Gemini API Error:", JSON.stringify(data));
-        return null;
+      console.error("Gemini error:", JSON.stringify(data).substring(0, 500));
+      return null;
     }
-    
+
     const imgPart = data?.candidates?.[0]?.content?.parts?.find((p: any) => p.inlineData);
     return imgPart ? imgPart.inlineData.data : null;
-  } catch (e) { 
-    console.error("Gemini Fetch Exception:", e);
-    return null; 
+  } catch (e) {
+    console.error("Gemini exception:", e);
+    return null;
   }
 }
 
@@ -96,29 +82,26 @@ serve(async (req) => {
     const apiKey = Deno.env.get("GEMINI_API_KEY") || "";
 
     if (!SUPABASE_URL || !SUPABASE_KEY || !apiKey) {
-        throw new Error(`Missing Config: URL=${!!SUPABASE_URL}, KEY=${!!SUPABASE_KEY}, GEMINI=${!!apiKey}`);
+      throw new Error("Configuration missing in Supabase.");
     }
 
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_KEY);
     const authHeader = req.headers.get("Authorization");
     const userToken = authHeader?.replace("Bearer ", "");
     
-    if (!userToken) throw new Error("No session token provided");
+    if (!userToken) throw new Error("No session token");
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(userToken);
+    if (authError || !user) throw new Error("Unauthorized access.");
 
-    const { data: authData, error: authError } = await supabaseAdmin.auth.getUser(userToken);
-    if (authError || !authData?.user) throw new Error(`Auth fail: ${authError?.message || "User unknown"}`);
-
-    const user = authData.user;
     const credits = user.user_metadata?.credits ?? 0;
-    if (credits <= 0) return new Response(JSON.stringify({ error: "No credits" }), { status: 402, headers: corsHeaders });
+    if (credits <= 0) return new Response(JSON.stringify({ error: "Sin créditos" }), { status: 402, headers: corsHeaders });
 
     const body = await req.json();
-    const { categoria_producto, material, sugerencias, imagen_subida_url, gema_principal } = body;
+    const { email, nombre, categoria_producto, material, sugerencias, imagen_subida_url, gema_principal, is_redesign } = body;
 
     const cat = CATEGORIES[categoria_producto] || categoria_producto || "jewelry";
     const mat = MATERIALS[material] || material || "gold";
-    const baseContext = `Handcrafted ${cat} in ${mat}. ${gema_principal ? `Gem: ${gema_principal}.` : ""} ${sugerencias || ""}. ${NO_TEXT_RULE}`;
-
+    
     let imagePart = null;
     if (imagen_subida_url) {
       try {
@@ -127,35 +110,72 @@ serve(async (req) => {
           const buf = await imgRes.arrayBuffer();
           imagePart = { inlineData: { mimeType: "image/jpeg", data: encode(new Uint8Array(buf)) } };
         }
-      } catch (e) {
-        console.warn("Could not fetch reference image:", e);
-      }
+      } catch (e) { console.error("Reference image load fail:", e); }
     }
 
-    // Generate only Front View for maximum reliability in this phase
-    const frontB64 = await generateView(`${baseContext}\nFront View.`, imagePart, apiKey);
-    if (!frontB64) throw new Error("Gemini Image Generation Failed. Check your API key or model permissions.");
+    let baseContext = `Fine jewelry render of a ${cat} in ${mat}. ${gema_principal ? `Gem: ${gema_principal}.` : ""} ${sugerencias || ""}. ${NO_TEXT_RULE}`;
+    if (is_redesign && imagePart) {
+        baseContext = `Modify the ${cat} in the attached image using these instructions: ${sugerencias}. Keep the ${mat} material. ${NO_TEXT_RULE}`;
+    }
 
-    const fname = `diseno_${Date.now()}_front.png`;
-    const bytes = Uint8Array.from(atob(frontB64), (c) => c.charCodeAt(0));
-    const { error: uploadError } = await supabaseAdmin.storage.from("disenos").upload(fname, bytes, { contentType: "image/png" });
-    if (uploadError) throw new Error(`Storage Upload Fail: ${uploadError.message}`);
+    console.log("Generating views...");
+    const [frontB64, backB64, sideB64] = await Promise.all([
+      generateView(`${baseContext}\nFront View.`, imagePart, apiKey),
+      generateView(`${baseContext}\nBack View.`, imagePart, apiKey),
+      generateView(`${baseContext}\nSide View.`, imagePart, apiKey),
+    ]);
 
-    const imagenUrl = supabaseAdmin.storage.from("disenos").getPublicUrl(fname).data.publicUrl;
+    if (!frontB64) throw new Error("Gemini failed to generate design.");
 
-    const { error: dbError } = await supabaseAdmin.from("solicitudes_disenos_romet").insert({ 
-        ...body, 
-        imagen_generada_url: imagenUrl, 
-        prompt_usado: baseContext 
-    });
-    if (dbError) console.warn("DB Insert Error (non-fatal):", dbError.message);
+    async function saveImage(b64: string | null, label: string) {
+      if (!b64) return null;
+      const fname = `diseno_${Date.now()}_${label}.png`;
+      const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+      await supabaseAdmin.storage.from("disenos").upload(fname, bytes, { contentType: "image/png" });
+      return supabaseAdmin.storage.from("disenos").getPublicUrl(fname).data.publicUrl;
+    }
 
-    return new Response(JSON.stringify({ success: true, imagenUrl, imagenFrontal: imagenUrl }), { 
-        headers: { ...corsHeaders, "Content-Type": "application/json" } 
-    });
+    const [imagenFrontal, imagenTrasera, imagenLateral] = await Promise.all([
+      saveImage(frontB64, "front"),
+      saveImage(backB64, "back"),
+      saveImage(sideB64, "side"),
+    ]);
+
+    // Insert into database
+    const { data: insertedData } = await supabaseAdmin.from("solicitudes_disenos_romet").insert({
+        ...body,
+        imagen_generada_url: imagenFrontal,
+        prompt_usado: baseContext
+    }).select().single();
+
+    // Trigger email (Background)
+    if (insertedData && email && !is_redesign) {
+      supabaseAdmin.functions.invoke("send-email", {
+        body: {
+          type: imagen_subida_url ? "Sube tu Diseño" : "Diseño Guiado",
+          to: email,
+          customerName: nombre || "Cliente",
+          customerPhone: body.telefono || "",
+          orderId: insertedData.id,
+          categoria: CATEGORY_LABELS[categoria_producto] || categoria_producto || "",
+          material: MATERIAL_LABELS[material] || material || "",
+          sugerencias: sugerencias || "",
+          imagenSubidaUrl: imagen_subida_url || null,
+          imagenFrontal: imagenFrontal || null,
+          imagenTrasera: imagenTrasera || null,
+          imagenLateral: imagenLateral || null,
+        }
+      }).catch(e => console.error("Email error:", e));
+    }
+
+    return new Response(JSON.stringify({ 
+      success: true, 
+      imagenUrl: imagenFrontal, 
+      imagenFrontal, imagenTrasera, imagenLateral 
+    }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   } catch (err: any) {
-    console.error("v53 ERROR:", err.message);
+    console.error("v56 ERROR:", err.message);
     return new Response(JSON.stringify({ error: err.message }), { 
         status: 500, headers: corsHeaders 
     });
