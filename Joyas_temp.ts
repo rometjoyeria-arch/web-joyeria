@@ -72,23 +72,23 @@ async function generateView(
     const data = await res.json();
 
     if (!res.ok) {
-      console.error("Gemini error:", JSON.stringify(data).substring(0, 500));
-      return null;
+      const errMsg = `Gemini Error ${res.status}: ${JSON.stringify(data).substring(0, 400)}`;
+      console.error(errMsg);
+      return `ERROR: ${errMsg}`;
     }
 
     const responseParts = data?.candidates?.[0]?.content?.parts ?? [];
     const imgPart = responseParts.find((p: any) => p.inlineData?.mimeType?.startsWith("image/"));
 
     if (!imgPart) {
-      console.error("No image. finishReason:", data?.candidates?.[0]?.finishReason);
-      console.error("Response:", JSON.stringify(data).substring(0, 600));
-      return null;
+      const finishReason = data?.candidates?.[0]?.finishReason;
+      return `ERROR: No image in response. Reason: ${finishReason}. Data: ${JSON.stringify(data).substring(0, 300)}`;
     }
 
     return imgPart.inlineData.data; // base64
-  } catch (e) {
+  } catch (e: any) {
     console.error("Gemini exception:", e);
-    return null;
+    return `ERROR: Exception: ${e.message}`;
   }
 }
 
