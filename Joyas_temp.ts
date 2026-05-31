@@ -89,18 +89,11 @@ serve(async (req) => {
     const body = await req.json();
     const { email, nombre, categoria_producto, material, sugerencias, imagen_subida_url, gema_principal, is_redesign } = body;
 
-    let user = null;
-    if (body.test === true) {
-      console.log("TEST MODE BYPASS ACTIVE");
-      user = { email: email || "flozros@gmail.com", user_metadata: { credits: 100 } };
-    } else {
-      const authHeader = req.headers.get("Authorization");
-      const userToken = authHeader?.replace("Bearer ", "");
-      if (!userToken) throw new Error("No session token");
-      const { data: { user: authUser }, error: authError } = await supabaseAdmin.auth.getUser(userToken);
-      if (authError || !authUser) throw new Error("Unauthorized access.");
-      user = authUser;
-    }
+    const authHeader = req.headers.get("Authorization");
+    const userToken = authHeader?.replace("Bearer ", "");
+    if (!userToken) throw new Error("No session token");
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(userToken);
+    if (authError || !user) throw new Error("Unauthorized access.");
 
     const credits = user.user_metadata?.credits ?? 0;
     if (credits <= 0) return new Response(JSON.stringify({ error: "Sin créditos" }), { status: 402, headers: corsHeaders });
