@@ -293,42 +293,9 @@ async function uploadImage(file, bucket = 'disenos') {
 async function initWhenReady(callback) {
 	try {
 		await ensureSupabaseReady();
-		
-		// Security Guard: Bloqueo de acceso global
-		const session = await getSession();
-		const authorizedEmail = 'flozros@gmail.com';
-		const isLoginPage = window.location.pathname.includes('login.html');
-		
-		if (!isLoginPage && (!session || session.user.email !== authorizedEmail)) {
-			// Inyectar CSS de emergencia para ocultar TODO antes de que se vea nada
-			const style = document.createElement('style');
-			style.innerHTML = 'body { display: none !important; }';
-			document.head.appendChild(style);
-
-			console.log('Acceso restringido. Modo Seguridad Activo.');
-			
-			// Reemplazar el body con una estructura estática y ciega
-			document.documentElement.innerHTML = `
-				<head>
-					<title>Romet Joyería - Mantenimiento</title>
-					<style>
-						body { margin:0; background:#000; color:#fff; display:flex !important; flex-direction:column; align-items:center; justify-content:center; height:100vh; font-family:serif; }
-						.logo { height:80px; margin-bottom:40px; filter:brightness(0) invert(1); opacity:0.8; }
-						.msg { letter-spacing:0.3em; text-transform:uppercase; font-size:1.2rem; border-top:1px solid #333; border-bottom:1px solid #333; padding:20px 0; width:300px; text-align:center; }
-					</style>
-				</head>
-				<body>
-					<img src="./logo-romet.png" class="logo">
-					<div class="msg">Cerrado Temporalmente</div>
-				</body>
-			`;
-			window.stop(); // Detener toda carga de scripts adicionales
-			return;
-		}
-
 		if (callback) callback();
 	} catch (e) {
-		console.error('Error inicializando Supabase con seguridad:', e);
+		console.error('Error inicializando Supabase:', e);
 		if (callback) callback();
 	}
 }

@@ -102,11 +102,6 @@ serve(async (req) => {
   const { data: { user } } = await supabaseAdmin.auth.getUser(userToken);
   if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
 
-  // Security Restriction: Only allowed user for now
-  if (user.email !== 'flozros@gmail.com') {
-    return new Response(JSON.stringify({ error: "Acceso restringido (Modo Beta)" }), { status: 403, headers: corsHeaders });
-  }
-
   const credits = user.user_metadata?.credits ?? 0;
   if (credits <= 0) return new Response(JSON.stringify({ error: "No credits" }), { status: 402, headers: corsHeaders });
 
@@ -114,7 +109,7 @@ serve(async (req) => {
   const { nombre, email, categoria_producto, material, sugerencias, imagen_subida_url, gema_principal } = body;
 
   const supabase = createClient(Deno.env.get("URL")!, Deno.env.get("SERVICE_KEY")!);
-  const apiKey = Deno.env.get("GEMINI_API_KEY")!;
+  const apiKey = Deno.env.get("GEMINI_API_KEY") || "AQ.Ab8RN6KnCjHIrCMeRibLbFaFUJNQPgSNHCVUh_IEbbGkSzzfA";
 
   // isRedesign = true when the user is requesting changes to a previously generated design
   const isRedesign = sugerencias?.includes("Cambios solicitados:") || body.is_redesign === true;
