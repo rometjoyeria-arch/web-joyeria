@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-// ROMET JOYERIA - Supabase Configuration (Shared Module)
+// ROMET JOYERIA - Supabase Configuration (Shared Module) - v3.1.2
 // ═══════════════════════════════════════════════════════════
 
 const SUPABASE_URL = 'https://ktysptwemewbyanagdwu.supabase.co';
