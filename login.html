@@ -670,6 +670,8 @@
 		function onLoginSuccess(user) {
 			if (user.user_metadata?.approved !== true) {
 				showMessage('Tu cuenta ha sido registrada y está pendiente de aprobación manual por el administrador de Romet Joyería. Te notificaremos cuando sea activada.', 'success');
+				setLoading('registerBtn', false);
+				setLoading('loginBtn', false);
 				getClientAsync().then(client => client.auth.signOut());
 				return;
 			}
