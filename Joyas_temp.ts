@@ -226,15 +226,11 @@ CRITICAL: The result must be immediately recognizable as the SAME piece from the
 
     } else if (esImagenSubida) {
       // MODO 3: El cliente sube una foto de referencia
-      prompt = `You are a professional fine jewelry designer. The attached image is a reference uploaded by the client (which could be a sketch, a design, or a photo of a person/family member).
+      prompt = `You are a professional fine jewelry designer. The attached image is a reference uploaded by the client (a design, a sketch, or a portrait photo of a person/family member).
 
-If the attached reference contains a photo of a person (a family member, child, adult, face, or portrait):
-- Treat this person as the core subject of the jewelry piece.
-- For medallion pendants ("medallas") or pendants ("colgante"), the jewelry piece MUST feature a highly detailed, professional 3D metallic engraving, carving, cameo, or relief portrait of the person's face/likeness (preserving facial features, hair shape, and expression in the gold/silver/platinum).
-- Do NOT substitute the person's face with a generic figure; it must faithfully resemble the specific face in the uploaded photo.
-- In the 4th panel (ON-MODEL), if the reference photo shows a specific person's body part (like their hand, ear, wrist, neck), place the generated jewelry piece directly onto that exact person/body part from the uploaded photo, using their photo as the realistic background context, matching their skin tone, scale, and lighting.
-
-Otherwise, study the reference carefully and reproduce its key elements faithfully.
+Study the reference carefully and reproduce its key elements faithfully as a professional jewelry piece:
+- PORTRAIT ENGRAVINGS: If the reference shows a person's face or portrait (e.g., a family member, child, or parent), the jewelry piece (especially if it is a medallion pendant, medal, coin, or cameo) MUST feature a masterfully sculpted, high-fidelity 3D bas-relief engraving of that exact person's face on the polished metal. Capturing their exact likeness, facial features, hair structure, and expression with extreme clarity and sharp details is CRITICAL. Avoid generic faces; the relief carving must look identical to the person in the photo.
+- SKETCHES & DESIGNS: If the reference shows a sketch or drawing, reproduce its shape, proportions, and details faithfully as a real, wearable piece of jewelry.
 
 ${especificaciones}
 ${glosarioInyectado}
