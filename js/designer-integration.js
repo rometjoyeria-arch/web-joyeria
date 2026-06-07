@@ -235,7 +235,7 @@
 
 			if (imagenContainer && result?.imagenUrl) {
 				state._lastImagenUrl = result.imagenUrl;
-				imagenContainer.innerHTML = `<img src="${result.imagenUrl}" style="width:100%; max-width:900px; border-radius:12px; box-shadow:0 8px 25px rgba(0,0,0,0.08);" alt="Diseño rediseñado — Frontal · Trasera · Lateral" />`;
+				imagenContainer.innerHTML = `<img src="${result.imagenUrl}" style="width:100%; max-width:900px; border-radius:12px; box-shadow:0 8px 25px rgba(0,0,0,0.08);" alt="Diseño rediseñado — Frontal · Trasera · Lateral · En Persona" />`;
 				imagenContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
 			}
 
@@ -294,11 +294,11 @@
 
 				<div class="bg-white p-6 md:p-10 rounded-2xl shadow-lg border border-border/50 mb-8"
 				     style="animation: fadeInUp 0.8s ease-out 0.2s both;">
-					<h2 class="text-xl tracking-widest uppercase text-foreground font-medium mb-6">Tu Diseño — Tres Vistas</h2>
+					<h2 class="text-xl tracking-widest uppercase text-foreground font-medium mb-6">Tu Diseño — Cuatro Vistas</h2>
 					<div id="imagen-generada" style="text-align:center;">
 						${imagenUrl ? `
-						<img src="${imagenUrl}" style="width:100%; max-width:900px; border-radius:12px; border:1px solid #eee; background:#fafafa; box-shadow:0 8px 25px rgba(0,0,0,0.06);" alt="Diseño generado — Frontal · Trasera · Lateral" />
-						<p style="font-size:0.7rem; color:#aaa; margin-top:8px; font-family:sans-serif; letter-spacing:0.12em; text-transform:uppercase;">Frontal · Trasera · Lateral</p>
+						<img src="${imagenUrl}" style="width:100%; max-width:900px; border-radius:12px; border:1px solid #eee; background:#fafafa; box-shadow:0 8px 25px rgba(0,0,0,0.06);" alt="Diseño generado — Frontal · Trasera · Lateral · En Persona" />
+						<p style="font-size:0.7rem; color:#aaa; margin-top:8px; font-family:sans-serif; letter-spacing:0.12em; text-transform:uppercase;">Frontal · Trasera · Lateral · En Persona</p>
 						` : '<p class="text-muted-foreground font-sans">Tu diseño está siendo procesado. Recibirás un email con el resultado en breve.</p>'}
 					</div>
 				</div>

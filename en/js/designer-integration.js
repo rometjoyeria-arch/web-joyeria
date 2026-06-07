@@ -227,7 +227,8 @@
 			});
 
 			if (imagenContainer && result?.imagenUrl) {
-				imagenContainer.innerHTML = `<img src="${result.imagenUrl}" style="max-width:100%; border-radius:8px;" />`;
+				imagenContainer.innerHTML = `<img src="${result.imagenUrl}" style="width:100%; max-width:900px; border-radius:12px; box-shadow:0 8px 25px rgba(0,0,0,0.08);" alt="Redesigned Design — Front · Back · Side · On Model" />
+				<p style="font-size:0.7rem; color:#aaa; margin-top:8px; font-family:sans-serif; letter-spacing:0.12em; text-transform:uppercase; text-align:center;">Front · Back · Side · On Model</p>`;
 			}
 
 			const cambiosPanel = document.getElementById('cambios-panel');
@@ -278,9 +279,10 @@
 				${imagenUrl ? `
 				<div class="bg-white p-8 rounded-2xl shadow-lg border border-border/50 mb-8"
 				     style="animation: fadeInUp 0.8s ease-out 0.2s both;">
-					<h2 class="text-xl tracking-widest uppercase text-foreground font-medium mb-4">Your Generated Design</h2>
-					<div id="imagen-generada">
-						<img src="${imagenUrl}" style="max-width:100%; border-radius:8px;" />
+					<h2 class="text-xl tracking-widest uppercase text-foreground font-medium mb-4">Your Design — Four Views</h2>
+					<div id="imagen-generada" style="text-align:center;">
+						<img src="${imagenUrl}" style="width:100%; max-width:900px; border-radius:12px; border:1px solid #eee; background:#fafafa; box-shadow:0 8px 25px rgba(0,0,0,0.06);" alt="Generated Design — Front · Back · Side · On Model" />
+						<p style="font-size:0.7rem; color:#aaa; margin-top:8px; font-family:sans-serif; letter-spacing:0.12em; text-transform:uppercase;">Front · Back · Side · On Model</p>
 					</div>
 				</div>` : `
 				<div class="bg-white p-8 rounded-2xl shadow-lg border border-border/50 mb-8"

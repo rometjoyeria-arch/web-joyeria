@@ -51,6 +51,15 @@ const CATEGORY_MAP: Record<string, string> = {
   medallas:   "medallion pendant (flat disc-shaped, religious or commemorative)",
 };
 
+const BODY_PART_MAP: Record<string, string> = {
+  anillo:     "worn on a person's finger/hand, showing realistic skin texture and scale",
+  colgante:   "worn around a person's neck/chest, hanging naturally",
+  pendientes: "worn on a person's earlobe/ear, hanging naturally",
+  pulsera:    "worn around a person's wrist, showing realistic wrist and arm placement",
+  gemelos:    "worn on a formal shirt cuff, properly aligned and inserted",
+  medallas:   "worn around a person's neck/chest, hanging naturally",
+};
+
 const CATEGORY_LABELS: Record<string, string> = {
   anillo: "Anillo", colgante: "Colgante", pendientes: "Pendientes",
   pulsera: "Pulsera", gemelos: "Gemelos", medallas: "Medalla",
@@ -138,6 +147,7 @@ serve(async (req) => {
     const materialDesc  = MATERIAL_MAP[material]           || material           || "precious metal";
     const estiloDesc    = STYLE_MAP[estilo]                || estilo             || "classic";
     const perfilDesc    = PROFILE_MAP[perfil_usuario]      || perfil_usuario      || "adult";
+    const bodyPartDesc  = BODY_PART_MAP[categoria_producto] || "worn by a person";
     const tieneGema     = gema_principal && gema_principal !== "sin_gema";
     const glosarioInyectado = detectarTerminos(sugerencias, cambios_solicitados);
 
@@ -157,32 +167,32 @@ ${sugerencias ? "- Design notes: " + sugerencias : ""}`;
 - DO NOT invent decorative elements that were not asked for
 - Understated and elegant, never baroque or churrigueresque`;
 
-    const reglasVistas = `THREE-VIEW COMPOSITE IMAGE — CRITICALLY IMPORTANT:
-- Generate ONE wide horizontal image divided into THREE equal vertical panels side by side
-- LEFT panel: FRONT view (piece facing viewer directly, upright)
-- CENTER panel: BACK view (piece rotated 180°, showing reverse side)
-- RIGHT panel: SIDE/PROFILE view (piece rotated 90°, showing depth and thickness)
-- ⚠️ ALL THREE PANELS MUST SHOW THE EXACT SAME SINGLE PIECE — only the camera angle differs
-- The piece MUST be IDENTICAL in all three panels: same shape, same size, same gemstones, same proportions, same decorative details
-- This is ONE object photographed from three angles — NOT three different objects
-- Do NOT add, remove or change any element between panels
-- Do NOT mix in other jewelry pieces or accessories
-- Small labels at the bottom of each panel: FRONT | BACK | SIDE`;
+    const reglasVistas = `FOUR-VIEW COMPOSITE IMAGE — CRITICALLY IMPORTANT:
+- Generate ONE wide horizontal image divided into FOUR equal vertical panels side by side
+- 1st panel (left): FRONT view (piece alone, facing viewer directly, upright, pure white background)
+- 2nd panel (center-left): BACK view (piece alone, rotated 180°, showing reverse side, pure white background)
+- 3rd panel (center-right): SIDE/PROFILE view (piece alone, rotated 90°, showing depth and thickness, pure white background)
+- 4th panel (right): ON-MODEL view (showing the exact same piece being worn by a person, ${bodyPartDesc})
+- ⚠️ ALL FOUR PANELS MUST SHOW THE EXACT SAME SINGLE PIECE — only the view and context differ
+- The piece MUST be IDENTICAL in all panels: same shape, same size, same gemstones, same proportions, same decorative details
+- This is ONE object photographed from different angles and in context — NOT different objects
+- Do NOT add, remove or change any element of the jewelry between panels
+- Small labels at the bottom of each panel: FRONT | BACK | SIDE | ON MODEL`;
 
     const reglasEncuadre = `FRAMING & COMPOSITION (STRICTLY REQUIRED TO PREVENT CROP/CUTOFF):
-- The entire jewelry piece MUST be 100% FULLY VISIBLE and perfectly centered inside EACH of the three vertical panels.
-- ⚠️ NEVER crop, cut off, chop, or truncate any edge or part of the jewelry piece in any of the panels.
-- There MUST be a generous, comfortable clear empty white margin (at least 20% to 25% padding/negative space) all around the jewelry piece inside every panel.
-- No part, edge, prong, chain link, or detail of the jewelry should ever touch or go beyond the boundaries of any panel.
-- The object must look perfectly framed and whole in all three angles, showing the entire silhouette.`;
+- In the first three panels (FRONT, BACK, SIDE), the entire jewelry piece MUST be 100% FULLY VISIBLE and perfectly centered.
+- ⚠️ NEVER crop, cut off, chop, or truncate any edge or part of the jewelry piece in the first three panels.
+- There MUST be a generous, comfortable clear empty white margin (at least 20% to 25% padding/negative space) all around the jewelry piece inside the first three panels.
+- For the fourth panel (ON-MODEL), the jewelry piece must be realistically placed on the body part, clearly visible, and shown in proper human scale.
+- No part, edge, prong, chain link, or detail of the jewelry should ever touch or go beyond the boundaries of any panel.`;
 
     const reglasRender = `RENDERING QUALITY:
-- Pure white seamless studio background
-- Professional jewelry photography lighting (softbox top-left + fill right + rim backlight)
+- Panels 1, 2, and 3: Pure white seamless studio background with professional softbox lighting
+- Panel 4: Natural realistic model portrait background (soft-focus, warm natural lighting, realistic skin textures)
 - Mirror-polished metal with realistic reflections and highlights
 - ${tieneGema ? "Gemstone with realistic transparency and light caustics" : "Clean polished metal surface"}
 - Ultra-sharp macro photography quality
-- No watermarks, no text overlays (EXCEPT the three panel labels FRONT/BACK/SIDE at the bottom)`;
+- No watermarks, no text overlays (EXCEPT the four panel labels FRONT/BACK/SIDE/ON MODEL at the bottom)`;
 
     const esRetoque     = !!imagen_referencia_url;
     const esImagenSubida = !!imagen_subida_url;
@@ -346,7 +356,7 @@ ${reglasRender}`;
       const emailImageHtml = `
         <div style="text-align:center; margin:20px 0;">
           <img src="${imagenUrl}" style="max-width:100%; border-radius:8px; box-shadow:0 4px 16px rgba(0,0,0,0.1);" alt="Diseño generado" />
-          <p style="font-size:11px; color:#999; margin-top:6px; font-family:sans-serif;">Vista compuesta: Frontal · Trasera · Lateral</p>
+          <p style="font-size:11px; color:#999; margin-top:6px; font-family:sans-serif;">Vista compuesta: Frontal · Trasera · Lateral · En Persona</p>
         </div>`;
 
       const resendHeaders = {
