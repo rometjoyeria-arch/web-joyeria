@@ -177,6 +177,7 @@ ${sugerencias ? "- Design notes: " + sugerencias : ""}`;
 - The piece MUST be IDENTICAL in all panels: same shape, same size, same gemstones, same proportions, same decorative details
 - This is ONE object photographed from different angles and in context — NOT different objects
 - Do NOT add, remove or change any element of the jewelry between panels
+- If the uploaded reference image shows a person's body part (hand, ear, wrist, neck, etc.), the 4th panel (ON MODEL) should place the generated jewelry piece onto that exact body part from the uploaded photo, using the person's photo as the realistic model context.
 - Small labels at the bottom of each panel: FRONT | BACK | SIDE | ON MODEL`;
 
     const reglasEncuadre = `FRAMING & COMPOSITION (STRICTLY REQUIRED TO PREVENT CROP/CUTOFF):
@@ -188,7 +189,7 @@ ${sugerencias ? "- Design notes: " + sugerencias : ""}`;
 
     const reglasRender = `RENDERING QUALITY:
 - Panels 1, 2, and 3: Pure white seamless studio background with professional softbox lighting
-- Panel 4: Natural realistic model portrait background (soft-focus, warm natural lighting, realistic skin textures)
+- Panel 4: If the client uploaded a photo of a person's body part, use that photo as the background/context and place the jewelry realistically on it. Otherwise, use a natural realistic model portrait background (soft-focus, warm natural lighting, realistic skin textures).
 - Mirror-polished metal with realistic reflections and highlights
 - ${tieneGema ? "Gemstone with realistic transparency and light caustics" : "Clean polished metal surface"}
 - Ultra-sharp macro photography quality
@@ -225,9 +226,15 @@ CRITICAL: The result must be immediately recognizable as the SAME piece from the
 
     } else if (esImagenSubida) {
       // MODO 3: El cliente sube una foto de referencia
-      prompt = `You are a professional fine jewelry designer. The attached image is a reference uploaded by the client (a design they like, a sketch, or a photo of a figure/object they want reproduced as jewelry).
+      prompt = `You are a professional fine jewelry designer. The attached image is a reference uploaded by the client (which could be a sketch, a design, or a photo of a person/family member).
 
-Study the reference carefully and reproduce its key elements faithfully as a professional jewelry piece. If the reference shows a specific face, religious figure, letter, monogram or distinctive motif — reproduce THAT specific subject faithfully, do not replace it with a generic one.
+If the attached reference contains a photo of a person (a family member, child, adult, face, or portrait):
+- Treat this person as the core subject of the jewelry piece.
+- For medallion pendants ("medallas") or pendants ("colgante"), the jewelry piece MUST feature a highly detailed, professional 3D metallic engraving, carving, cameo, or relief portrait of the person's face/likeness (preserving facial features, hair shape, and expression in the gold/silver/platinum).
+- Do NOT substitute the person's face with a generic figure; it must faithfully resemble the specific face in the uploaded photo.
+- In the 4th panel (ON-MODEL), if the reference photo shows a specific person's body part (like their hand, ear, wrist, neck), place the generated jewelry piece directly onto that exact person/body part from the uploaded photo, using their photo as the realistic background context, matching their skin tone, scale, and lighting.
+
+Otherwise, study the reference carefully and reproduce its key elements faithfully.
 
 ${especificaciones}
 ${glosarioInyectado}
