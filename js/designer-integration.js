@@ -309,11 +309,11 @@
 						<button type="button" onclick="document.getElementById('cambios-texto').value = ''; this.style.display='none';" class="text-xs text-primary/70 hover:text-primary font-sans underline cursor-pointer">🗑️ Limpiar plantilla</button>
 					</div>
 					<textarea id="cambios-texto"
-					          class="w-full border border-border p-4 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all duration-300 text-base font-serif min-h-[160px] resize-y rounded-md mb-3">[Edita esta plantilla detallando tus cambios para que la IA los ejecute con precisión]
-- QUÉ MANTENER IDÉNTICO: (Ej. Mantener la forma de la medalla y el grabado del retrato intactos)
-- QUÉ CAMBIAR O AÑADIR: (Ej. Cambiar el borde liso por un borde entorchado tipo cordón)
-- DETALLES DEL METAL: (Ej. Cambiar el material de oro amarillo a oro rosa de 18k pulido)
-- PIEZAS / CORTES: (Ej. Sustituir la anilla superior por una reasa clásica triangular)</textarea>
+					          class="w-full border border-border p-4 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all duration-300 text-base font-serif min-h-[220px] resize-y rounded-md mb-3">[Edita esta plantilla con tus cambios para que la IA los realice con precisión]
+- QUÉ MANTENER IGUAL: (Ej. El rostro grabado en el centro)
+- QUÉ CAMBIAR O AÑADIR: (Ej. Añadir un borde decorativo simple / Hacer el borde más grueso)
+- DETALLES DEL METAL: (Ej. Cambiar el color del oro a plata)
+- TIPO DE PIEZA: (Ej. Cambiar de colgante a pendientes)</textarea>
 					<p style="color: #e53e3e; font-size: 0.8rem; font-family: ui-sans-serif, system-ui, sans-serif; margin-bottom: 12px;">
 						⚠️ Este cambio consumirá 1 crédito
 					</p>

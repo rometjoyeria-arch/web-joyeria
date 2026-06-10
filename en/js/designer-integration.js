@@ -300,11 +300,11 @@
 						<button type="button" onclick="document.getElementById('cambios-texto').value = ''; this.style.display='none';" class="text-xs text-primary/70 hover:text-primary font-sans underline cursor-pointer">🗑️ Clear template</button>
 					</div>
 					<textarea id="cambios-texto"
-					          class="w-full border border-border p-4 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all duration-300 text-base font-serif min-h-[160px] resize-y rounded-md mb-3">[Edit this template to describe your changes so the AI can execute them precisely]
-- WHAT TO KEEP IDENTICAL: (e.g., Keep the main medal shape and the face engraving exactly as they are)
-- WHAT TO CHANGE OR ADD: (e.g., Replace the smooth border with a twisted rope-style border)
-- METAL & TEXTURE DETAILS: (e.g., Change the material from yellow gold to 18k rose gold, highly polished)
-- PARTS / FITTINGS: (e.g., Replace the top bail with a simple classic triangular bail)</textarea>
+					          class="w-full border border-border p-4 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all duration-300 text-base font-serif min-h-[220px] resize-y rounded-md mb-3">[Edit this template to describe your changes so the AI can execute them precisely]
+- WHAT TO KEEP IDENTICAL: (e.g., The face engraving in the center)
+- WHAT TO CHANGE OR ADD: (e.g., Add a simple decorative border)
+- METAL DETAILS: (e.g., Change from yellow gold to silver)
+- PIECE TYPE: (e.g., Change from a pendant to earrings)</textarea>
 					<p style="color: #e53e3e; font-size: 0.8rem; font-family: ui-sans-serif, system-ui, sans-serif; margin-bottom: 12px;">
 						⚠️ This change will consume 1 credit
 					</p>

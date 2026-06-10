@@ -54,16 +54,17 @@
 							<div class="space-y-4">
 								<label class="text-sm tracking-widest uppercase text-foreground font-medium block">Reference Image *</label>
 								<div id="dropzone" class="border-2 border-dashed border-border hover:border-primary/50 hover:bg-muted/50 rounded-xl p-12 text-center cursor-pointer transition-all duration-300 flex flex-col items-center justify-center bg-muted/20">
-									<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10 text-muted-foreground mb-4">
+									<svg id="dropzone-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10 text-muted-foreground mb-4">
 										<path d="M12 13v8"></path>
 										<path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path>
 										<path d="m8 17 4-4 4 4"></path>
 									</svg>
-									<p class="text-foreground font-medium mb-2 font-sans text-base">Click to upload your sketch or image</p>
-									<p class="text-sm text-muted-foreground font-sans">Supported formats: JPG, PNG, WEBP</p>
+									<p id="dropzone-text1" class="text-foreground font-medium mb-2 font-sans text-base">Click to upload your sketch or image</p>
+									<p id="dropzone-text2" class="text-sm text-muted-foreground font-sans">Supported formats: JPG, PNG, WEBP</p>
 									<div id="imagePreviewContainer" class="flex flex-wrap gap-4 justify-center mt-6 w-full hidden">
 										<!-- Dynamically populated previews -->
 									</div>
+									<p id="dropzone-hint" class="text-xs text-muted-foreground font-sans mt-3 hidden">Click to change or upload another image (max. 2)</p>
 								</div>
 								<input type="file" id="fileInput" accept="image/jpeg, image/png, image/webp" multiple class="hidden">
 							</div>
@@ -193,25 +194,47 @@
 
 		function renderPreviews() {
 			const container = document.getElementById('imagePreviewContainer');
+			const dropzone = document.getElementById('dropzone');
+			const icon = document.getElementById('dropzone-icon');
+			const text1 = document.getElementById('dropzone-text1');
+			const text2 = document.getElementById('dropzone-text2');
+			const hint = document.getElementById('dropzone-hint');
+
 			container.innerHTML = '';
 			if (selectedFiles.length === 0) {
 				container.classList.add('hidden');
+				if (icon) icon.classList.remove('hidden');
+				if (text1) text1.classList.remove('hidden');
+				if (text2) text2.classList.remove('hidden');
+				if (hint) hint.classList.add('hidden');
+				if (dropzone) {
+					dropzone.classList.remove('p-4');
+					dropzone.classList.add('p-12');
+				}
 				return;
 			}
 			container.classList.remove('hidden');
+			if (icon) icon.classList.add('hidden');
+			if (text1) text1.classList.add('hidden');
+			if (text2) text2.classList.add('hidden');
+			if (hint) hint.classList.remove('hidden');
+			if (dropzone) {
+				dropzone.classList.remove('p-12');
+				dropzone.classList.add('p-4');
+			}
 
 			selectedFiles.forEach((file, index) => {
 				const reader = new FileReader();
 				reader.onload = (e) => {
 					const card = document.createElement('div');
-					card.className = "relative group border border-border/80 rounded-xl p-2 bg-white shadow-md transition-all duration-300 hover:shadow-lg w-[160px] flex flex-col items-center";
+					card.className = "relative group border border-border/80 rounded-lg p-1 bg-white shadow-sm transition-all duration-300 hover:shadow-md w-[80px] flex flex-col items-center";
 					card.addEventListener('click', (ev) => ev.stopPropagation());
 					card.innerHTML = `
-						<div class="w-[144px] h-[144px] rounded-lg overflow-hidden bg-muted flex items-center justify-center">
+						<div class="w-[72px] h-[72px] rounded-md overflow-hidden bg-muted flex items-center justify-center">
 							<img src="${e.target.result}" class="w-full h-full object-cover" />
 						</div>
-						<p class="text-xs text-muted-foreground font-sans truncate w-full mt-2 text-center" title="${file.name}">${file.name}</p>
-						<button type="button" class="absolute -top-2 -right-2 bg-black text-white hover:bg-neutral-800 rounded-full w-6 h-6 flex items-center justify-center shadow-md border border-white transition-colors" style="z-index:10;">&times;</button>
+						<p class="text-[9px] text-muted-foreground font-sans truncate w-full mt-1 text-center" title="${file.name}">${file.name}</p>
+						<button type="button" class="absolute -top-1.5 -right-1.5 bg-black text-white hover:bg-neutral-800 rounded-full w-4 h-4 flex items-center justify-center shadow-md border border-white transition-colors" style="z-index:10; font-size:11px; line-height:1;">&times;</button>
 					`;
 					card.querySelector('button').addEventListener('click', (ev) => removeUploadedFile(index, ev));
 					container.appendChild(card);
@@ -356,11 +379,11 @@
 							<button type="button" onclick="document.getElementById('cambios-texto').value = ''; this.style.display='none';" class="text-xs text-primary/70 hover:text-primary font-sans underline cursor-pointer">🗑️ Clear template</button>
 						</div>
 						<textarea id="cambios-texto"
-						          class="w-full border border-border p-4 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all duration-300 text-base font-serif min-h-[160px] resize-y rounded-md mb-3">[Edit this template to describe your changes so the AI can execute them precisely]
-- WHAT TO KEEP IDENTICAL: (e.g., Keep the main medal shape and the face engraving exactly as they are)
-- WHAT TO CHANGE OR ADD: (e.g., Replace the smooth border with a twisted rope-style border)
-- METAL & TEXTURE DETAILS: (e.g., Change the material from yellow gold to 18k rose gold, highly polished)
-- PARTS / FITTINGS: (e.g., Replace the top bail with a simple classic triangular bail)</textarea>
+						          class="w-full border border-border p-4 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all duration-300 text-base font-serif min-h-[220px] resize-y rounded-md mb-3">[Edit this template to describe your changes so the AI can execute them precisely]
+- WHAT TO KEEP IDENTICAL: (e.g., The face engraving in the center)
+- WHAT TO CHANGE OR ADD: (e.g., Add a simple decorative border)
+- METAL DETAILS: (e.g., Change from yellow gold to silver)
+- PIECE TYPE: (e.g., Change from a pendant to earrings)</textarea>
 						<p style="color: #e53e3e; font-size: 0.8rem; font-family: ui-sans-serif, system-ui, sans-serif; margin-bottom: 12px;">
 							⚠️ This change will consume 1 credit
 						</p>
