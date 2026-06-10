@@ -295,17 +295,26 @@
 				</div>`}
 
 				<div id="cambios-panel" style="display:none;" class="bg-white p-6 rounded-2xl shadow-lg border border-border/50 mb-6 text-left">
-					<p class="text-sm tracking-widest uppercase text-muted-foreground font-sans font-medium mb-3">Describe the changes</p>
+					<div class="flex justify-between items-center mb-3">
+						<p class="text-sm tracking-widest uppercase text-muted-foreground font-sans font-medium">Describe the changes</p>
+						<button type="button" onclick="document.getElementById('cambios-texto').value = ''; this.style.display='none';" class="text-xs text-primary/70 hover:text-primary font-sans underline cursor-pointer">🗑️ Clear template</button>
+					</div>
 					<textarea id="cambios-texto"
-					          placeholder="Write the changes you want to adjust the design..."
-					          class="w-full border border-border p-4 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all duration-300 text-base font-serif min-h-[100px] resize-y rounded-md mb-3"></textarea>
+					          class="w-full border border-border p-4 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all duration-300 text-base font-serif min-h-[160px] resize-y rounded-md mb-3">[Copy and edit this template to specify your changes]
+- MATERIAL & FINISH: (e.g., Change to 18k Yellow Gold, mirror-polished)
+- DESIGN DETAILS: (e.g., Increase the 3D relief of the facial engraving / Add a twisted cord border)
+- REMOVE OR MODIFY: (e.g., Remove the central gemstone and keep the metal clean)
+- ON-MODEL PLACEMENT: (e.g., Zoom in closer to the earring on the model view)</textarea>
 					<p style="color: #e53e3e; font-size: 0.8rem; font-family: ui-sans-serif, system-ui, sans-serif; margin-bottom: 12px;">
 						⚠️ This change will consume 1 credit
 					</p>
 					<button id="redesign-btn"
 					        onclick="(function(){
 					        	const cambios = document.getElementById('cambios-texto').value.trim();
-					        	if (!cambios) return;
+					        	if (!cambios || cambios.startsWith('[Copy and edit')) {
+					        		alert('Please edit the template with your requested changes.');
+					        		return;
+					        	}
 					        	window._redisenar(cambios);
 					        })()"
 					        style="background: hsl(0 0% 0%); color: hsl(0 0% 80%); padding: 12px 32px;

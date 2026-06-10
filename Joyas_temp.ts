@@ -136,6 +136,7 @@ serve(async (req) => {
       perfil_usuario, gema_principal, estilo, presupuesto,
       peso_estimado, talla_medida, sugerencias,
       imagen_subida_url,
+      imagen_subida_url2,
       imagen_referencia_url,
       cambios_solicitados,
     } = body;
@@ -199,8 +200,8 @@ ${sugerencias ? "- Design notes: " + sugerencias : ""}`;
 - No watermarks, no text overlays (EXCEPT the four panel labels FRONT/BACK/SIDE/ON MODEL at the bottom)`;
 
     const esRetoque     = !!imagen_referencia_url;
-    const esImagenSubida = !!imagen_subida_url;
-    const imagenParaGemini = imagen_referencia_url || imagen_subida_url || null;
+    const esImagenSubida = !!imagen_subida_url || !!imagen_subida_url2;
+    const imagenParaGemini = imagen_referencia_url || imagen_subida_url || imagen_subida_url2 || null;
 
     // ── Build prompt (3 modos) ───────────────────────────────────
     let prompt: string;
@@ -229,11 +230,12 @@ CRITICAL: The result must be immediately recognizable as the SAME piece from the
 
     } else if (esImagenSubida) {
       // MODO 3: El cliente sube una foto de referencia
-      prompt = `You are a professional fine jewelry designer. The attached image is a reference uploaded by the client (a design, a sketch, or a portrait photo of a person/family member).
+      prompt = `You are a professional fine jewelry designer. The attached images are references uploaded by the client (a design they like, a sketch, or a portrait photo of a person/family member).
 
-Study the reference carefully and reproduce its key elements faithfully as a professional jewelry piece:
-- EXACT 1-TO-1 PORTRAIT ENGRAVINGS: If the reference shows a person's face or portrait (e.g., a family member, child, or parent), the jewelry piece (especially if it is a medallion pendant, medal, coin, or cameo) MUST feature a masterfully sculpted, high-fidelity 3D bas-relief engraving of that exact person's face on the polished metal surface. Capturing their exact likeness, eye shape, nose shape, mouth structure, jawline, hair details, and facial expression is CRITICAL. The metallic bas-relief must look identical to the person in the photo, as if their exact face was directly printed or sculpted onto the gold/silver surface with perfect fidelity. Do NOT generalize, simplify, or stylize the face. It must be an exact, recognizable portrait of the specific individual shown in the reference photo.
-- SKETCHES & DESIGNS: If the reference shows a sketch or drawing, reproduce its shape, proportions, and details faithfully as a real, wearable piece of jewelry.
+Study the references carefully and reproduce their key elements faithfully as a professional jewelry piece:
+- EXACT 1-TO-1 PORTRAIT ENGRAVINGS: If any of the references show a person's face or portrait (e.g., a family member, child, or parent), the jewelry piece (especially if it is a medallion pendant, medal, coin, or cameo) MUST feature a masterfully sculpted, high-fidelity 3D bas-relief engraving of that exact person's face on the polished metal surface. Capturing their exact likeness, eye shape, nose shape, mouth structure, jawline, hair details, and facial expression is CRITICAL. The metallic bas-relief must look identical to the person in the photo, as if their exact face was directly printed or sculpted onto the gold/silver surface with perfect fidelity. Do NOT generalize, simplify, or stylize the face. It must be an exact, recognizable portrait of the specific individual shown in the reference photo.
+- SKETCHES & DESIGNS: If any of the references show a sketch or drawing of a jewelry style, shape, or clasp, reproduce those design lines and proportions faithfully as a real, wearable piece of jewelry.
+- Combining references: If multiple images are attached (for example, a portrait photo of a relative AND a sketch or reference image of a medallion), combine them masterfully. The face from the portrait photo must be engraved onto the jewelry style shown in the other reference image.
 
 ${especificaciones}
 ${glosarioInyectado}
@@ -262,29 +264,39 @@ ${reglasEncuadre}
 ${reglasRender}`;
     }
 
-    // ── Load reference image if provided ────────────────────────
-    let imagenBase64: string | null = null;
-    let imagenMimeType = "image/jpeg";
-
-    if (imagenParaGemini) {
+    // ── Load reference images if provided ────────────────────────
+    const fetchImagePart = async (url: string) => {
       try {
-        const imgRes = await fetch(imagenParaGemini);
+        const imgRes = await fetch(url);
         if (imgRes.ok) {
           const buf = await imgRes.arrayBuffer();
-          imagenBase64 = encode(new Uint8Array(buf));
-          imagenMimeType = imgRes.headers.get("content-type")?.split(";")[0] || "image/jpeg";
-          console.log("Reference image loaded, bytes:", buf.byteLength);
+          const base64 = encode(new Uint8Array(buf));
+          const mimeType = imgRes.headers.get("content-type")?.split(";")[0] || "image/jpeg";
+          console.log("Reference image loaded from URL:", url, "bytes:", buf.byteLength);
+          return { inlineData: { mimeType, data: base64 } };
         }
       } catch (e) {
-        console.warn("Could not load reference image:", e);
+        console.warn("Could not load reference image from URL:", url, e);
       }
-    }
+      return null;
+    };
 
     // ── Call Gemini ──────────────────────────────────────────────
     const parts: any[] = [];
-    if (imagenBase64) {
-      parts.push({ inlineData: { mimeType: imagenMimeType, data: imagenBase64 } });
+
+    if (imagen_referencia_url) {
+      const p = await fetchImagePart(imagen_referencia_url);
+      if (p) parts.push(p);
     }
+    if (imagen_subida_url) {
+      const p = await fetchImagePart(imagen_subida_url);
+      if (p) parts.push(p);
+    }
+    if (imagen_subida_url2) {
+      const p = await fetchImagePart(imagen_subida_url2);
+      if (p) parts.push(p);
+    }
+
     parts.push({ text: prompt });
 
     const modo = esRetoque ? "retoque" : esImagenSubida ? "imagen_subida" : "desde_cero";
@@ -343,7 +355,9 @@ ${reglasRender}`;
     dbFields.forEach(f => { if (body[f] !== undefined) insertPayload[f] = body[f]; });
     if (body.presupuesto !== undefined) insertPayload.presupuesto = body.presupuesto ? String(body.presupuesto) : null;
     if (body.peso_estimado !== undefined) insertPayload.peso_estimado = body.peso_estimado ? String(body.peso_estimado) : null;
-    if (imagenParaGemini) insertPayload.imagen_subida_url = imagenParaGemini;
+    if (imagen_subida_url) insertPayload.imagen_subida_url = imagen_subida_url;
+    if (imagen_subida_url2) insertPayload.imagen_subida_url2 = imagen_subida_url2;
+    if (imagen_referencia_url) insertPayload.imagen_subida_url = imagen_referencia_url;
 
     const { data: insertedData, error: dbError } = await supabase
       .from("solicitudes_disenos_romet")

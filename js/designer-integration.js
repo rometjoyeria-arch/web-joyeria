@@ -304,17 +304,26 @@
 				</div>
 
 				<div id="cambios-panel" style="display:none;" class="bg-white p-6 rounded-2xl shadow-lg border border-border/50 mb-6 text-left">
-					<p class="text-sm tracking-widest uppercase text-muted-foreground font-sans font-medium mb-3">Describe los cambios</p>
+					<div class="flex justify-between items-center mb-3">
+						<p class="text-sm tracking-widest uppercase text-muted-foreground font-sans font-medium">Describe los cambios</p>
+						<button type="button" onclick="document.getElementById('cambios-texto').value = ''; this.style.display='none';" class="text-xs text-primary/70 hover:text-primary font-sans underline cursor-pointer">🗑️ Limpiar plantilla</button>
+					</div>
 					<textarea id="cambios-texto"
-					          placeholder="Escribe los cambios con los que quieras ajustar el diseño..."
-					          class="w-full border border-border p-4 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all duration-300 text-base font-serif min-h-[100px] resize-y rounded-md mb-3"></textarea>
+					          class="w-full border border-border p-4 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all duration-300 text-base font-serif min-h-[160px] resize-y rounded-md mb-3">[Copia y edita esta plantilla para detallar tus cambios]
+- MATERIAL Y ACABADO: (Ej. Cambiar a Oro Amarillo 18k pulido brillante)
+- DETALLES DEL DISEÑO: (Ej. Aumentar el relieve 3D del grabado del rostro para mejorar la fidelidad / Añadir borde entorchado tipo cordón)
+- ELEMENTOS A ELIMINAR/MODIFICAR: (Ej. Retirar la gema central y dejar el metal liso)
+- DETALLES DEL MODELO: (Ej. Acercar más el pendiente en la vista del modelo)</textarea>
 					<p style="color: #e53e3e; font-size: 0.8rem; font-family: ui-sans-serif, system-ui, sans-serif; margin-bottom: 12px;">
 						⚠️ Este cambio consumirá 1 crédito
 					</p>
 					<button id="redesign-btn"
 					        onclick="(function(){
 					        	const cambios = document.getElementById('cambios-texto').value.trim();
-					        	if (!cambios) return;
+					        	if (!cambios || cambios.startsWith('[Copia y edita')) {
+					        		alert('Por favor, edita la plantilla indicando los cambios que deseas.');
+					        		return;
+					        	}
 					        	window._redisenar(cambios);
 					        })()"
 					        style="background: hsl(0 0% 0%); color: hsl(0 0% 80%); padding: 12px 32px;
