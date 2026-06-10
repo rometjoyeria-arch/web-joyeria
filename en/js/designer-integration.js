@@ -300,8 +300,9 @@
 						<button type="button" onclick="document.getElementById('cambios-texto').value = ''; this.style.display='none';" class="text-xs text-primary/70 hover:text-primary font-sans underline cursor-pointer">🗑️ Clear template</button>
 					</div>
 					<textarea id="cambios-texto"
+					          rows="8"
 					          class="w-full border border-border p-4 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all duration-300 text-base font-serif resize-y rounded-md mb-3"
-					          style="min-height: 250px; height: 250px;">[Edit this template to describe your changes so the AI can execute them precisely]
+					          style="min-height: 280px !important; height: 280px !important;">[Edit this template to describe your changes so the AI can execute them precisely]
 - WHAT TO KEEP IDENTICAL: (e.g., The face engraving in the center)
 - WHAT TO CHANGE OR ADD: (e.g., Add a simple decorative border)
 - METAL DETAILS: (e.g., Change from yellow gold to silver)
