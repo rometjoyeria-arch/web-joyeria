@@ -309,18 +309,18 @@
 						<button type="button" onclick="document.getElementById('cambios-texto').value = ''; this.style.display='none';" class="text-xs text-primary/70 hover:text-primary font-sans underline cursor-pointer">🗑️ Limpiar plantilla</button>
 					</div>
 					<textarea id="cambios-texto"
-					          class="w-full border border-border p-4 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all duration-300 text-base font-serif min-h-[160px] resize-y rounded-md mb-3">[Copia y edita esta plantilla para detallar tus cambios]
-- MATERIAL Y ACABADO: (Ej. Cambiar a Oro Amarillo 18k pulido brillante)
-- DETALLES DEL DISEÑO: (Ej. Aumentar el relieve 3D del grabado del rostro para mejorar la fidelidad / Añadir borde entorchado tipo cordón)
-- ELEMENTOS A ELIMINAR/MODIFICAR: (Ej. Retirar la gema central y dejar el metal liso)
-- DETALLES DEL MODELO: (Ej. Acercar más el pendiente en la vista del modelo)</textarea>
+					          class="w-full border border-border p-4 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all duration-300 text-base font-serif min-h-[160px] resize-y rounded-md mb-3">[Edita esta plantilla detallando tus cambios para que la IA los ejecute con precisión]
+- QUÉ MANTENER IDÉNTICO: (Ej. Mantener la forma de la medalla y el grabado del retrato intactos)
+- QUÉ CAMBIAR O AÑADIR: (Ej. Cambiar el borde liso por un borde entorchado tipo cordón)
+- DETALLES DEL METAL: (Ej. Cambiar el material de oro amarillo a oro rosa de 18k pulido)
+- PIEZAS / CORTES: (Ej. Sustituir la anilla superior por una reasa clásica triangular)</textarea>
 					<p style="color: #e53e3e; font-size: 0.8rem; font-family: ui-sans-serif, system-ui, sans-serif; margin-bottom: 12px;">
 						⚠️ Este cambio consumirá 1 crédito
 					</p>
 					<button id="redesign-btn"
 					        onclick="(function(){
 					        	const cambios = document.getElementById('cambios-texto').value.trim();
-					        	if (!cambios || cambios.startsWith('[Copia y edita')) {
+					        	if (!cambios || cambios.startsWith('[Edita esta plantilla')) {
 					        		alert('Por favor, edita la plantilla indicando los cambios que deseas.');
 					        		return;
 					        	}
