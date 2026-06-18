@@ -579,18 +579,13 @@
 						<input type="text" id="ent-company" placeholder="Jewelers Ltd." required>
 					</div>
 					<div class="form-group">
-						<label for="ent-email">Corporate Email</label>
-						<input type="email" id="ent-email" placeholder="contact@company.com" required autocomplete="email">
+						<label for="ent-phone">Contact Phone</label>
+						<input type="tel" id="ent-phone" placeholder="+44 20 7946 0192" required>
 					</div>
 					<div class="form-group">
 						<label for="ent-location">Location / City & Country</label>
 						<input type="text" id="ent-location" placeholder="London, UK" required>
 					</div>
-				</div>
-				
-				<div class="form-group full-width">
-					<label for="ent-phone">Contact Phone</label>
-					<input type="tel" id="ent-phone" placeholder="+44 20 7946 0192" required>
 				</div>
 				
 				<div class="form-group full-width">
@@ -766,7 +761,7 @@
 
 			const nombre = document.getElementById('ent-name').value.trim();
 			const empresa = document.getElementById('ent-company').value.trim();
-			const email = document.getElementById('ent-email').value.trim();
+			const email = currentUser?.email || '';
 			const localidad = document.getElementById('ent-location').value.trim();
 			const telefono = document.getElementById('ent-phone').value.trim();
 			const mensaje = document.getElementById('ent-message').value.trim();
