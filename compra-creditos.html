@@ -8,7 +8,7 @@
 	<meta name="description" content="Adquiere créditos para diseñar tus joyas personalizadas con inteligencia artificial en Romet Joyería.">
 	<link rel="stylesheet" crossorigin="" href="./index_files/index-xtSdOPat.css?v=2">
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-	<script src="./js/supabase-config.js?v=36"></script>
+	<script src="./js/supabase-config.js?v=37"></script>
 
 	<style>
 		@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap');
@@ -536,7 +536,7 @@
 						<div class="card-credits">10 Generaciones IA</div>
 						<div class="card-price">4,99 €</div>
 						<p class="card-description">La opción ideal para definir tu pieza perfecta. Obtén 10 generaciones de alta resolución para explorar variaciones de diseño, acabados y estilos de joyas en detalle.</p>
-						<button id="btn-499" class="card-btn" onclick="openPaymentModal(10, '4,99')">Comprar</button>
+						<button id="btn-499" class="card-btn" onclick="redirectToStripeCheckout('10_designs', this)">Comprar</button>
 					</div>
 
 					<!-- 250 Designs -->
@@ -545,7 +545,7 @@
 						<div class="card-credits">250 Generaciones IA</div>
 						<div class="card-price">99,00 €</div>
 						<p class="card-description">Diseñado para creadores apasionados y colecciones completas. Disfruta de 250 generaciones para diseñar sin límites y refinar cada aspecto de tus joyas.</p>
-						<button id="btn-99" class="card-btn" onclick="openPaymentModal(250, '99,00')">Comprar</button>
+						<button id="btn-99" class="card-btn" onclick="redirectToStripeCheckout('250_designs', this)">Comprar</button>
 					</div>
 				</div>
 
@@ -559,44 +559,7 @@
 		</main>
 	</div>
 
-	<!-- Payment Simulation Modal -->
-	<div id="payment-modal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'payment-modal')">
-		<div class="modal-card">
-			<button class="modal-close" onclick="closeModal('payment-modal')">&times;</button>
-			<h2 class="modal-title">Confirmar Pago</h2>
-			<p class="modal-desc" id="payment-desc">Pasarela de pago de Romet Joyería. Estás adquiriendo 10 Diseños por 4,99 €.</p>
-			
-			<form class="modal-form" onsubmit="processSimulatedPayment(event)">
-				<input type="hidden" id="payment-credits">
-				<input type="hidden" id="payment-price">
-				
-				<div class="form-group">
-					<label for="card-holder">Titular de la tarjeta</label>
-					<input type="text" id="card-holder" placeholder="Nombre completo" required>
-				</div>
-				
-				<div class="form-group">
-					<label for="card-number">Número de tarjeta (Mockup)</label>
-					<input type="text" id="card-number" placeholder="4242 4242 4242 4242" value="4242 4242 4242 4242" required maxlength="19">
-				</div>
-				
-				<div class="form-grid">
-					<div class="form-group">
-						<label for="card-expiry">Fecha de caducidad</label>
-						<input type="text" id="card-expiry" placeholder="MM/AA" value="12/29" required maxlength="5">
-					</div>
-					<div class="form-group">
-						<label for="card-cvc">CVC</label>
-						<input type="text" id="card-cvc" placeholder="123" value="123" required maxlength="3">
-					</div>
-				</div>
-				
-				<button type="submit" id="btn-submit-payment" class="form-btn">
-					Confirmar Pago y Activar
-				</button>
-			</form>
-		</div>
-	</div>
+	<!-- Payment modal removed: now using Stripe Checkout redirect -->
 
 	<!-- Enterprise Inquiry Modal -->
 	<div id="enterprise-modal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'enterprise-modal')">
@@ -645,14 +608,80 @@
 	<script>
 		let currentUser = null;
 
-		// Asegurar que el usuario esté autenticado para interactuar con los paquetes
+		// ═══════════════════════════════════════════════
+		// Stripe Checkout Integration
+		// ═══════════════════════════════════════════════
+
+		// Redirigir al usuario a Stripe Checkout
+		async function redirectToStripeCheckout(plan, btnElement) {
+			const originalText = btnElement.textContent;
+			btnElement.disabled = true;
+			btnElement.innerHTML = '<span class="spinner"></span>';
+
+			try {
+				// Llamar a la Edge Function create-checkout
+				const result = await callEdgeFunction('create-checkout', {
+					plan: plan,
+					lang: 'es'
+				});
+
+				if (result.url) {
+					// Redirigir a la pasarela segura de Stripe
+					window.location.href = result.url;
+				} else {
+					throw new Error(result.error || 'No se pudo crear la sesión de pago');
+				}
+			} catch(e) {
+				console.error('Error al crear sesión de Stripe:', e);
+				showNotification('Error al conectar con la pasarela de pago: ' + e.message, 'error');
+				btnElement.disabled = false;
+				btnElement.textContent = originalText;
+			}
+		}
+
+		// Detectar resultado del pago desde los parámetros de la URL
+		function handlePaymentResult() {
+			const params = new URLSearchParams(window.location.search);
+			const paymentStatus = params.get('payment');
+
+			if (paymentStatus === 'success') {
+				showNotification('¡Pago completado con éxito! Tus créditos se han actualizado. Recarga la página si no ves el cambio.', 'success');
+				// Limpiar la URL para que no se muestre el parámetro
+				window.history.replaceState({}, document.title, window.location.pathname);
+				// Refrescar sesión para obtener créditos actualizados
+				refreshCreditsAfterPayment();
+			} else if (paymentStatus === 'cancelled') {
+				showNotification('El pago ha sido cancelado. No se ha realizado ningún cargo.', 'error');
+				window.history.replaceState({}, document.title, window.location.pathname);
+			}
+		}
+
+		// Refrescar créditos tras pago exitoso (puede tardar unos segundos por el webhook)
+		async function refreshCreditsAfterPayment() {
+			const sb = getSupabase();
+			// Intentar varias veces con retraso para esperar al webhook
+			for (let i = 0; i < 5; i++) {
+				await new Promise(r => setTimeout(r, 2000));
+				const { data: { user } } = await sb.auth.getUser();
+				if (user) {
+					currentUser = user;
+					const credits = user.user_metadata?.credits || 0;
+					const displays = document.querySelectorAll('#credit-count-display, #credit-count-header');
+					displays.forEach(d => d.textContent = credits);
+				}
+			}
+		}
+
+		// ═══════════════════════════════════════════════
+		// Autenticación y estado de paquetes
+		// ═══════════════════════════════════════════════
+
 		async function checkAuthAndSetup() {
 			await ensureSupabaseReady();
 			const sb = getSupabase();
 			const session = await getSession();
 			
 			if (!session) {
-				// Guardar redireccionamiento y forzar login
 				sessionStorage.setItem('redirectAfterLogin', window.location.href);
 				window.location.href = './login.html';
 				return;
@@ -661,15 +690,13 @@
 			currentUser = session.user;
 			initHeaderAuth();
 			updatePackageStatus();
+			handlePaymentResult();
 		}
 
-		// Deshabilitar paquetes de acuerdo a restricciones de usuario
 		async function updatePackageStatus() {
 			if (!currentUser) return;
-			
 			const metadata = currentUser.user_metadata || {};
 
-			// Opcional: Limitar el Token Gratis a una sola recarga
 			if (metadata.claimed_free === true) {
 				const btnFree = document.getElementById('btn-free');
 				if (btnFree) {
@@ -704,11 +731,9 @@
 				
 				showNotification("¡Enhorabuena! Has activado tu Token Gratis. Se han añadido 5 diseños a tu cuenta.", "success");
 				
-				// Refrescar sesión local
 				const { data: { session } } = await sb.auth.getSession();
 				if (session) currentUser = session.user;
 				
-				// Actualizar interfaz
 				const displays = document.querySelectorAll('#credit-count-display, #credit-count-header');
 				displays.forEach(d => d.textContent = newCredits);
 				updatePackageStatus();
@@ -721,15 +746,9 @@
 			}
 		}
 
-		// Modales de Pago y Empresas
-		function openPaymentModal(credits, price) {
-			document.getElementById('payment-credits').value = credits;
-			document.getElementById('payment-price').value = price;
-			document.getElementById('payment-desc').innerHTML = `Pasarela de pago de Romet Joyería. Estás adquiriendo <strong>${credits} Diseños</strong> por <strong>${price} €</strong>.`;
-			
-			const modal = document.getElementById('payment-modal');
-			modal.classList.add('active');
-		}
+		// ═══════════════════════════════════════════════
+		// Modales y formularios
+		// ═══════════════════════════════════════════════
 
 		function openEnterpriseModal() {
 			const modal = document.getElementById('enterprise-modal');
@@ -743,57 +762,6 @@
 		function closeModalOnOverlay(event, id) {
 			if (event.target.id === id) {
 				closeModal(id);
-			}
-		}
-
-		// Procesar Pago Simulado
-		async function processSimulatedPayment(event) {
-			event.preventDefault();
-			const btnSubmit = document.getElementById('btn-submit-payment');
-			const originalText = btnSubmit.innerHTML;
-			
-			const creditsToAdd = parseInt(document.getElementById('payment-credits').value);
-			const price = document.getElementById('payment-price').value;
-			
-			btnSubmit.disabled = true;
-			btnSubmit.innerHTML = '<span class="spinner"></span> Procesando pago...';
-
-			try {
-				const sb = getSupabase();
-				const credits = await getCredits();
-				const newCredits = credits + creditsToAdd;
-				
-				const updatePayload = {
-					credits: newCredits
-				};
-
-				// Simular retardo de red para la pasarela de pago (1.5 segundos)
-				await new Promise(resolve => setTimeout(resolve, 1500));
-
-				const { error } = await sb.auth.updateUser({
-					data: updatePayload
-				});
-
-				if (error) throw error;
-				
-				closeModal('payment-modal');
-				showNotification(`¡Pago completado con éxito! Se han añadido ${creditsToAdd} diseños a tu cuenta de Romet Joyería.`, "success");
-				
-				// Refrescar sesión local
-				const { data: { session } } = await sb.auth.getSession();
-				if (session) currentUser = session.user;
-				
-				// Actualizar interfaz
-				const displays = document.querySelectorAll('#credit-count-display, #credit-count-header');
-				displays.forEach(d => d.textContent = newCredits);
-				updatePackageStatus();
-				
-			} catch(e) {
-				console.error("Error al procesar el pago simulado:", e);
-				showNotification("Error al procesar la simulación de pago: " + e.message, "error");
-			} finally {
-				btnSubmit.disabled = false;
-				btnSubmit.innerHTML = originalText;
 			}
 		}
 
@@ -826,17 +794,16 @@
 
 				if (error) throw error;
 
-				// Enviar correo de notificación al propietario y de confirmación al cliente utilizando la Edge Function send-email
 				try {
 					const emailPayload = {
 						type: 'Contacto Empresas',
-						to: email, // Cliente
+						to: email,
 						customerName: nombre,
 						customerPhone: telefono,
 						orderId: Math.floor(100000 + Math.random() * 900000),
-						categoria: empresa, // Mapeado como "Tipo de joya" en la plantilla de correo
-						material: localidad, // Mapeado como "Material"
-						sugerencias: mensaje // Mapeado como "Instrucciones" / "Notas"
+						categoria: empresa,
+						material: localidad,
+						sugerencias: mensaje
 					};
 					await callEdgeFunction('send-email', emailPayload);
 				} catch(mailErr) {
@@ -858,7 +825,6 @@
 
 		// Sistema de notificaciones elegante
 		function showNotification(message, type = 'success') {
-			// Eliminar notificaciones previas
 			const prev = document.querySelectorAll('.notification');
 			prev.forEach(n => n.remove());
 
@@ -874,7 +840,6 @@
 		}
 
 		window.addEventListener('load', () => {
-			// Esperar a que Supabase esté inicializado
 			initWhenReady(() => {
 				checkAuthAndSetup();
 			});

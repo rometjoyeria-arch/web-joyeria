@@ -8,7 +8,7 @@
 	<meta name="description" content="Purchase credits to design your custom jewelry with artificial intelligence at Romet Jewelry.">
 	<link rel="stylesheet" crossorigin="" href="../index_files/index-xtSdOPat.css?v=2">
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-	<script src="./js/supabase-config.js?v=36"></script>
+	<script src="./js/supabase-config.js?v=37"></script>
 
 	<style>
 		@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap');
@@ -536,7 +536,7 @@
 						<div class="card-credits">10 AI Generations</div>
 						<div class="card-price">4,99 €</div>
 						<p class="card-description">The ideal option to define your perfect piece. Get 10 high-resolution generations to explore jewelry design variations and styles in detail.</p>
-						<button id="btn-499" class="card-btn" onclick="openPaymentModal(10, '4,99')">Buy</button>
+						<button id="btn-499" class="card-btn" onclick="redirectToStripeCheckout('10_designs', this)">Buy</button>
 					</div>
 
 					<!-- 250 Designs -->
@@ -545,7 +545,7 @@
 						<div class="card-credits">250 AI Generations</div>
 						<div class="card-price">99,00 €</div>
 						<p class="card-description">Designed for passionate creators and complete collections. Enjoy 250 generations to design without limits and refine every detail of your luxury pieces.</p>
-						<button id="btn-99" class="card-btn" onclick="openPaymentModal(250, '99,00')">Buy</button>
+						<button id="btn-99" class="card-btn" onclick="redirectToStripeCheckout('250_designs', this)">Buy</button>
 					</div>
 				</div>
 
@@ -559,44 +559,7 @@
 		</main>
 	</div>
 
-	<!-- Payment Simulation Modal -->
-	<div id="payment-modal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'payment-modal')">
-		<div class="modal-card">
-			<button class="modal-close" onclick="closeModal('payment-modal')">&times;</button>
-			<h2 class="modal-title">Confirm Payment</h2>
-			<p class="modal-desc" id="payment-desc">Romet Jewelry payment gateway. You are purchasing 10 Designs for 4.99 €.</p>
-			
-			<form class="modal-form" onsubmit="processSimulatedPayment(event)">
-				<input type="hidden" id="payment-credits">
-				<input type="hidden" id="payment-price">
-				
-				<div class="form-group">
-					<label for="card-holder">Cardholder Name</label>
-					<input type="text" id="card-holder" placeholder="John Doe" required>
-				</div>
-				
-				<div class="form-group">
-					<label for="card-number">Card Number (Mockup)</label>
-					<input type="text" id="card-number" placeholder="4242 4242 4242 4242" value="4242 4242 4242 4242" required maxlength="19">
-				</div>
-				
-				<div class="form-grid">
-					<div class="form-group">
-						<label for="card-expiry">Expiry Date</label>
-						<input type="text" id="card-expiry" placeholder="MM/YY" value="12/29" required maxlength="5">
-					</div>
-					<div class="form-group">
-						<label for="card-cvc">CVC</label>
-						<input type="text" id="card-cvc" placeholder="123" value="123" required maxlength="3">
-					</div>
-				</div>
-				
-				<button type="submit" id="btn-submit-payment" class="form-btn">
-					Confirm Payment & Activate
-				</button>
-			</form>
-		</div>
-	</div>
+	<!-- Payment modal removed: now using Stripe Checkout redirect -->
 
 	<!-- Enterprise Inquiry Modal -->
 	<div id="enterprise-modal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'enterprise-modal')">
@@ -645,14 +608,72 @@
 	<script>
 		let currentUser = null;
 
-		// Ensure user is authenticated to interact with packages
+		// ═══════════════════════════════════════════════
+		// Stripe Checkout Integration
+		// ═══════════════════════════════════════════════
+
+		async function redirectToStripeCheckout(plan, btnElement) {
+			const originalText = btnElement.textContent;
+			btnElement.disabled = true;
+			btnElement.innerHTML = '<span class="spinner"></span>';
+
+			try {
+				const result = await callEdgeFunction('create-checkout', {
+					plan: plan,
+					lang: 'en'
+				});
+
+				if (result.url) {
+					window.location.href = result.url;
+				} else {
+					throw new Error(result.error || 'Could not create payment session');
+				}
+			} catch(e) {
+				console.error('Error creating Stripe session:', e);
+				showNotification('Error connecting to payment gateway: ' + e.message, 'error');
+				btnElement.disabled = false;
+				btnElement.textContent = originalText;
+			}
+		}
+
+		function handlePaymentResult() {
+			const params = new URLSearchParams(window.location.search);
+			const paymentStatus = params.get('payment');
+
+			if (paymentStatus === 'success') {
+				showNotification('Payment completed successfully! Your credits have been updated.', 'success');
+				window.history.replaceState({}, document.title, window.location.pathname);
+				refreshCreditsAfterPayment();
+			} else if (paymentStatus === 'cancelled') {
+				showNotification('Payment was cancelled. No charges were made.', 'error');
+				window.history.replaceState({}, document.title, window.location.pathname);
+			}
+		}
+
+		async function refreshCreditsAfterPayment() {
+			const sb = getSupabase();
+			for (let i = 0; i < 5; i++) {
+				await new Promise(r => setTimeout(r, 2000));
+				const { data: { user } } = await sb.auth.getUser();
+				if (user) {
+					currentUser = user;
+					const credits = user.user_metadata?.credits || 0;
+					const displays = document.querySelectorAll('#credit-count-display, #credit-count-header');
+					displays.forEach(d => d.textContent = credits);
+				}
+			}
+		}
+
+		// ═══════════════════════════════════════════════
+		// Auth & Package Status
+		// ═══════════════════════════════════════════════
+
 		async function checkAuthAndSetup() {
 			await ensureSupabaseReady();
 			const sb = getSupabase();
 			const session = await getSession();
 			
 			if (!session) {
-				// Save redirect state and force login
 				sessionStorage.setItem('redirectAfterLogin', window.location.href);
 				window.location.href = './login.html';
 				return;
@@ -661,15 +682,13 @@
 			currentUser = session.user;
 			initHeaderAuth();
 			updatePackageStatus();
+			handlePaymentResult();
 		}
 
-		// Disable packages based on user metadata constraints
 		async function updatePackageStatus() {
 			if (!currentUser) return;
-			
 			const metadata = currentUser.user_metadata || {};
 
-			// Opcional: Limit Free Token to a single claim
 			if (metadata.claimed_free === true) {
 				const btnFree = document.getElementById('btn-free');
 				if (btnFree) {
@@ -680,7 +699,6 @@
 			}
 		}
 
-		// Claim Free Trial Token (5 credits)
 		async function claimFreeToken() {
 			const btn = document.getElementById('btn-free');
 			const originalText = btn.textContent;
@@ -704,11 +722,9 @@
 				
 				showNotification("Success! Free Token activated. 5 designs added to your account.", "success");
 				
-				// Refresh local session
 				const { data: { session } } = await sb.auth.getSession();
 				if (session) currentUser = session.user;
 				
-				// Update UI displays
 				const displays = document.querySelectorAll('#credit-count-display, #credit-count-header');
 				displays.forEach(d => d.textContent = newCredits);
 				updatePackageStatus();
@@ -721,15 +737,9 @@
 			}
 		}
 
-		// Modal managers
-		function openPaymentModal(credits, price) {
-			document.getElementById('payment-credits').value = credits;
-			document.getElementById('payment-price').value = price;
-			document.getElementById('payment-desc').innerHTML = `Romet Jewelry payment gateway. You are purchasing <strong>${credits} Designs</strong> for <strong>${price} €</strong>.`;
-			
-			const modal = document.getElementById('payment-modal');
-			modal.classList.add('active');
-		}
+		// ═══════════════════════════════════════════════
+		// Modals & Forms
+		// ═══════════════════════════════════════════════
 
 		function openEnterpriseModal() {
 			const modal = document.getElementById('enterprise-modal');
@@ -746,58 +756,6 @@
 			}
 		}
 
-		// Process Simulated Payment
-		async function processSimulatedPayment(event) {
-			event.preventDefault();
-			const btnSubmit = document.getElementById('btn-submit-payment');
-			const originalText = btnSubmit.innerHTML;
-			
-			const creditsToAdd = parseInt(document.getElementById('payment-credits').value);
-			const price = document.getElementById('payment-price').value;
-			
-			btnSubmit.disabled = true;
-			btnSubmit.innerHTML = '<span class="spinner"></span> Processing payment...';
-
-			try {
-				const sb = getSupabase();
-				const credits = await getCredits();
-				const newCredits = credits + creditsToAdd;
-				
-				const updatePayload = {
-					credits: newCredits
-				};
-
-				// Simulate gateway delay (1.5 seconds)
-				await new Promise(resolve => setTimeout(resolve, 1500));
-
-				const { error } = await sb.auth.updateUser({
-					data: updatePayload
-				});
-
-				if (error) throw error;
-				
-				closeModal('payment-modal');
-				showNotification(`Payment completed successfully! Added ${creditsToAdd} designs to your Romet account.`, "success");
-				
-				// Refresh session
-				const { data: { session } } = await sb.auth.getSession();
-				if (session) currentUser = session.user;
-				
-				// Update UI
-				const displays = document.querySelectorAll('#credit-count-display, #credit-count-header');
-				displays.forEach(d => d.textContent = newCredits);
-				updatePackageStatus();
-				
-			} catch(e) {
-				console.error("Error processing simulated payment:", e);
-				showNotification("Simulated payment failed: " + e.message, "error");
-			} finally {
-				btnSubmit.disabled = false;
-				btnSubmit.innerHTML = originalText;
-			}
-		}
-
-		// Submit Enterprise form
 		async function submitEnterpriseForm(event) {
 			event.preventDefault();
 			const btnSubmit = document.getElementById('btn-submit-enterprise');
@@ -826,17 +784,16 @@
 
 				if (error) throw error;
 
-				// Send notification email to the owner and confirmation to the client using send-email Edge Function
 				try {
 					const emailPayload = {
 						type: 'Contacto Empresas',
-						to: email, // Client
+						to: email,
 						customerName: nombre,
 						customerPhone: telefono,
 						orderId: Math.floor(100000 + Math.random() * 900000),
-						categoria: empresa, // Mapped as "Tipo de joya" in the email template
-						material: localidad, // Mapped as "Material"
-						sugerencias: mensaje // Mapped as "Instrucciones" / "Notes"
+						categoria: empresa,
+						material: localidad,
+						sugerencias: mensaje
 					};
 					await callEdgeFunction('send-email', emailPayload);
 				} catch(mailErr) {
@@ -856,7 +813,6 @@
 			}
 		}
 
-		// Elegant Notification Drawer
 		function showNotification(message, type = 'success') {
 			const prev = document.querySelectorAll('.notification');
 			prev.forEach(n => n.remove());
