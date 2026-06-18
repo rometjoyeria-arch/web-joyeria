@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="icon" type="image/png" href="./favicon.png">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Comprar Créditos - Romet Joyería IA</title>
+	<meta name="description" content="Adquiere créditos para diseñar tus joyas personalizadas con inteligencia artificial en Romet Joyería.">
+	<link rel="stylesheet" crossorigin="" href="./index_files/index-xtSdOPat.css?v=2">
+	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+	<script src="./js/supabase-config.js?v=35"></script>
+
+	<style>
+		@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap');
+
+		* { box-sizing: border-box; margin: 0; padding: 0; }
+
+		body {
+			font-family: 'Cormorant Garamond', serif;
+			background-color: hsl(0 0% 91%);
+			color: hsl(0 0% 15%);
+			min-height: 100vh;
+			display: flex;
+			flex-direction: column;
+			-webkit-font-smoothing: antialiased;
+		}
+
+		.pricing-wrapper {
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			padding: 4rem 1.5rem;
+			position: relative;
+			overflow: hidden;
+		}
+
+		.pricing-wrapper::before {
+			content: '';
+			position: absolute;
+			top: 30%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			width: 800px;
+			height: 800px;
+			background: white;
+			border-radius: 50%;
+			filter: blur(120px);
+			opacity: 0.4;
+			pointer-events: none;
+		}
+
+		.pricing-container {
+			position: relative;
+			z-index: 10;
+			width: 100%;
+			max-width: 1100px;
+			margin: 0 auto;
+		}
+
+		.page-title {
+			text-align: center;
+			font-size: 2.5rem;
+			font-weight: 600;
+			letter-spacing: 0.15em;
+			text-transform: uppercase;
+			margin-bottom: 0.5rem;
+			color: hsl(0 0% 15%);
+		}
+
+		.page-subtitle {
+			text-align: center;
+			color: hsl(0 0% 40%);
+			font-size: 1.05rem;
+			letter-spacing: 0.1em;
+			margin-bottom: 3.5rem;
+			font-weight: 300;
+			max-width: 600px;
+			margin-left: auto;
+			margin-right: auto;
+		}
+
+		.accent-line {
+			width: 60px;
+			height: 1px;
+			background: hsl(0 0% 40%);
+			margin: 0 auto 1.5rem;
+		}
+
+		.pricing-grid {
+			display: grid;
+			grid-template-columns: repeat(1, 1fr);
+			gap: 2rem;
+			margin-bottom: 3rem;
+		}
+
+		@media (min-width: 768px) {
+			.pricing-grid {
+				grid-template-columns: repeat(3, 1fr);
+			}
+		}
+
+		.pricing-card {
+			background: hsl(0 0% 95%);
+			border: 1px solid hsl(0 0% 80%);
+			padding: 3rem 2rem;
+			display: flex;
+			flex-direction: column;
+			position: relative;
+			transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+		}
+
+		.pricing-card:hover {
+			transform: translateY(-8px);
+			border-color: hsl(0 0% 50%);
+			box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+		}
+
+		.pricing-card.featured {
+			border: 2px solid hsl(45 70% 50%);
+			background: hsl(0 0% 96%);
+		}
+
+		.pricing-card.featured::before {
+			content: 'RECOMENDADO';
+			position: absolute;
+			top: 0;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			background: hsl(45 70% 50%);
+			color: hsl(45 100% 10%);
+			font-family: ui-sans-serif, system-ui, sans-serif;
+			font-size: 0.65rem;
+			font-weight: 800;
+			letter-spacing: 0.15em;
+			padding: 4px 12px;
+			border-radius: 100px;
+			box-shadow: 0 4px 10px rgba(212, 175, 55, 0.2);
+		}
+
+		.card-title {
+			font-size: 1.75rem;
+			font-weight: 500;
+			letter-spacing: 0.1em;
+			text-transform: uppercase;
+			margin-bottom: 0.5rem;
+			text-align: center;
+		}
+
+		.card-credits {
+			font-family: ui-sans-serif, system-ui, sans-serif;
+			font-size: 0.9rem;
+			color: hsl(0 0% 40%);
+			letter-spacing: 0.05em;
+			text-transform: uppercase;
+			text-align: center;
+			margin-bottom: 2rem;
+		}
+
+		.card-price {
+			font-size: 3rem;
+			font-weight: 300;
+			text-align: center;
+			margin-bottom: 2rem;
+			color: hsl(0 0% 10%);
+			display: flex;
+			align-items: baseline;
+			justify-content: center;
+		}
+
+		.card-price span {
+			font-size: 1.25rem;
+			margin-left: 0.25rem;
+		}
+
+		.card-description {
+			font-family: ui-sans-serif, system-ui, sans-serif;
+			font-size: 0.9rem;
+			color: hsl(0 0% 45%);
+			line-height: 1.6;
+			text-align: center;
+			margin-bottom: 2.5rem;
+			flex: 1;
+		}
+
+		.card-btn {
+			width: 100%;
+			padding: 1rem;
+			background: hsl(0 0% 0%);
+			color: white;
+			border: none;
+			font-family: 'Cormorant Garamond', serif;
+			font-size: 1.05rem;
+			font-weight: 600;
+			letter-spacing: 0.15em;
+			text-transform: uppercase;
+			cursor: pointer;
+			transition: all 0.3s;
+			text-align: center;
+		}
+
+		.card-btn:hover:not(:disabled) {
+			background: hsl(0 0% 20%);
+		}
+
+		.card-btn:disabled {
+			background: hsl(0 0% 75%);
+			color: hsl(0 0% 50%);
+			border-color: hsl(0 0% 75%);
+			cursor: not-allowed;
+		}
+
+		/* Enterprise Section */
+		.enterprise-card {
+			background: linear-gradient(135deg, hsl(0 0% 12%) 0%, hsl(0 0% 5%) 100%);
+			color: white;
+			border: 1px solid hsl(0 0% 25%);
+			padding: 3rem;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			text-align: center;
+			margin-top: 2rem;
+			position: relative;
+			overflow: hidden;
+		}
+
+		.enterprise-card::before {
+			content: '';
+			position: absolute;
+			top: -50%;
+			right: -20%;
+			width: 300px;
+			height: 300px;
+			background: rgba(212, 175, 55, 0.05);
+			border-radius: 50%;
+			filter: blur(50px);
+			pointer-events: none;
+		}
+
+		.enterprise-title {
+			font-size: 2rem;
+			font-weight: 500;
+			letter-spacing: 0.15em;
+			text-transform: uppercase;
+			margin-bottom: 1rem;
+			color: hsl(45 70% 60%);
+		}
+
+		.enterprise-desc {
+			font-family: ui-sans-serif, system-ui, sans-serif;
+			font-size: 0.95rem;
+			color: hsl(0 0% 75%);
+			line-height: 1.6;
+			max-width: 700px;
+			margin-bottom: 2rem;
+		}
+
+		.enterprise-btn {
+			padding: 1rem 3rem;
+			background: white;
+			color: black;
+			border: none;
+			font-family: 'Cormorant Garamond', serif;
+			font-size: 1.1rem;
+			font-weight: 600;
+			letter-spacing: 0.15em;
+			text-transform: uppercase;
+			cursor: pointer;
+			transition: all 0.3s;
+		}
+
+		.enterprise-btn:hover {
+			background: hsl(45 70% 60%);
+			color: hsl(0 0% 5%);
+		}
+
+		/* Modal Glassmorphism Styles */
+		.modal-overlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(0, 0, 0, 0.5);
+			backdrop-filter: blur(8px);
+			z-index: 1000;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			opacity: 0;
+			pointer-events: none;
+			transition: opacity 0.4s ease;
+		}
+
+		.modal-overlay.active {
+			opacity: 1;
+			pointer-events: auto;
+		}
+
+		.modal-card {
+			background: hsl(0 0% 95%);
+			border: 1px solid hsl(0 0% 80%);
+			width: 90%;
+			max-width: 550px;
+			padding: 3rem 2.5rem;
+			box-shadow: 0 30px 60px rgba(0,0,0,0.2);
+			position: relative;
+			transform: translateY(30px);
+			transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+		}
+
+		.modal-overlay.active .modal-card {
+			transform: translateY(0);
+		}
+
+		.modal-close {
+			position: absolute;
+			top: 1.5rem;
+			right: 1.5rem;
+			background: none;
+			border: none;
+			cursor: pointer;
+			color: hsl(0 0% 40%);
+			font-size: 1.5rem;
+			transition: color 0.3s;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.modal-close:hover {
+			color: hsl(0 0% 10%);
+		}
+
+		.modal-title {
+			font-size: 1.75rem;
+			font-weight: 600;
+			letter-spacing: 0.15em;
+			text-transform: uppercase;
+			text-align: center;
+			margin-bottom: 0.5rem;
+		}
+
+		.modal-desc {
+			font-family: ui-sans-serif, system-ui, sans-serif;
+			font-size: 0.85rem;
+			color: hsl(0 0% 45%);
+			text-align: center;
+			margin-bottom: 2rem;
+			line-height: 1.5;
+		}
+
+		/* Form Styling */
+		.modal-form {
+			display: flex;
+			flex-direction: column;
+			gap: 1.25rem;
+		}
+
+		.form-grid {
+			display: grid;
+			grid-template-columns: 1fr;
+			gap: 1.25rem;
+		}
+
+		@media (min-width: 480px) {
+			.form-grid {
+				grid-template-columns: 1fr 1fr;
+			}
+		}
+
+		.form-group {
+			display: flex;
+			flex-direction: column;
+			gap: 0.4rem;
+		}
+
+		.form-group.full-width {
+			grid-column: span 1;
+		}
+
+		@media (min-width: 480px) {
+			.form-group.full-width {
+				grid-column: span 2;
+			}
+		}
+
+		.form-group label {
+			font-family: ui-sans-serif, system-ui, sans-serif;
+			font-size: 0.75rem;
+			font-weight: 600;
+			letter-spacing: 0.1em;
+			text-transform: uppercase;
+			color: hsl(0 0% 40%);
+		}
+
+		.form-group input, .form-group textarea {
+			padding: 0.75rem 1rem;
+			border: 1px solid hsl(0 0% 80%);
+			background: hsl(0 0% 92%);
+			font-family: 'Cormorant Garamond', serif;
+			font-size: 1rem;
+			color: hsl(0 0% 15%);
+			outline: none;
+			transition: all 0.3s;
+		}
+
+		.form-group input:focus, .form-group textarea:focus {
+			border-color: hsl(0 0% 20%);
+			background: white;
+		}
+
+		.form-group textarea {
+			resize: vertical;
+			min-height: 100px;
+		}
+
+		.form-btn {
+			padding: 1rem;
+			background: black;
+			color: white;
+			border: none;
+			font-family: 'Cormorant Garamond', serif;
+			font-size: 1.05rem;
+			font-weight: 600;
+			letter-spacing: 0.15em;
+			text-transform: uppercase;
+			cursor: pointer;
+			transition: all 0.3s;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 0.5rem;
+		}
+
+		.form-btn:hover {
+			background: hsl(0 0% 20%);
+		}
+
+		/* Spinner */
+		.spinner {
+			display: inline-block;
+			width: 18px;
+			height: 18px;
+			border: 2px solid transparent;
+			border-top-color: white;
+			border-radius: 50%;
+			animation: spin 0.7s linear infinite;
+		}
+
+		@keyframes spin { to { transform: rotate(360deg); } }
+
+		/* Notification styles */
+		.notification {
+			position: fixed;
+			top: 24px;
+			right: 24px;
+			z-index: 9999;
+			padding: 16px 24px;
+			max-width: 400px;
+			border-radius: 8px;
+			box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+			font-family: ui-sans-serif, system-ui, sans-serif;
+			font-size: 14px;
+			animation: slideIn 0.3s ease-out;
+		}
+
+		@keyframes slideIn {
+			from { transform: translateY(-20px); opacity: 0; }
+			to { transform: translateY(0); opacity: 1; }
+		}
+
+		.notification.success {
+			background: hsl(120 40% 96%);
+			border: 1px solid hsl(120 40% 80%);
+			color: hsl(120 40% 30%);
+		}
+
+		.notification.error {
+			background: hsl(0 84% 97%);
+			border: 1px solid hsl(0 84% 85%);
+			color: hsl(0 84% 40%);
+		}
+	</style>
+</head>
+<body>
+	<div id="root" class="min-h-screen flex flex-col relative bg-background overflow-hidden">
+		<!-- Header -->
+		<header class="bg-background border-b border-border px-4 md:px-8 py-4 md:py-6 flex flex-col sm:flex-row justify-between items-center gap-4 sticky top-0 z-50 shadow-sm">
+			<a style="display:flex; align-items:center; gap:16px; text-decoration:none;" href="./index.html">
+				<img src="./logo-romet.png" alt="Romet Joyería Logo" style="height: 45px; width: auto; mix-blend-mode: multiply; transform: scale(1.7); transform-origin: left center; margin-right: 18px;">
+				<span class="hidden md:block text-2xl tracking-[0.2em] uppercase font-bold whitespace-nowrap text-foreground" style="font-family: 'Cormorant Garamond', serif; letter-spacing: 0.15em;">Romet Joyería</span>
+			</a>
+			<nav class="flex items-center gap-4 md:flex-wrap justify-center gap-4 md:gap-8">
+				<a href="./designer-paso1.html"
+				   class="text-sm md:text-base tracking-[0.15em] uppercase text-foreground hover:text-muted-foreground transition-colors font-medium"
+				   style="text-decoration:none;">
+					Diseñar Joya
+				</a>
+				<a href="./login.html" id="header-auth-link"
+				   class="text-sm md:text-base tracking-[0.15em] uppercase text-foreground hover:text-muted-foreground transition-colors font-medium"
+				   style="text-decoration:none;">
+					Mi Cuenta
+				</a>
+				<div class="flex items-center gap-2 border-l border-border pl-4 md:pl-8">
+					<a href="#" class="text-sm md:text-base font-bold text-[hsl(var(--button-bg))] tracking-widest" style="text-decoration:none;">ES</a>
+					<span class="text-sm md:text-base text-muted-foreground">|</span>
+					<a href="./en/compra-creditos.html" class="text-sm md:text-base text-foreground hover:text-[hsl(var(--button-bg))] transition-colors tracking-widest" style="text-decoration:none;">EN</a>
+				</div>
+			</nav>
+		</header>
+
+		<!-- Main -->
+		<main class="pricing-wrapper relative z-10">
+			<div class="pricing-container">
+				<h1 class="page-title">Adquirir Diseños</h1>
+				<div class="accent-line"></div>
+				<p class="page-subtitle">Obtén créditos para dar rienda suelta a tu imaginación y generar diseños exclusivos con nuestra Inteligencia Artificial especializada en joyería fina.</p>
+
+				<!-- Pricing Grid -->
+				<div class="pricing-grid">
+					<!-- Free Token -->
+					<div class="pricing-card">
+						<h2 class="card-title">Token Gratis</h2>
+						<div class="card-credits">5 Diseños</div>
+						<div class="card-price">0 €</div>
+						<p class="card-description">Prueba la magia de la Inteligencia Artificial de Romet Joyería. Genera tus primeros bocetos y experimenta con formas, metales y gemas sin coste alguno.</p>
+						<button id="btn-free" class="card-btn" onclick="claimFreeToken()">Obtener</button>
+					</div>
+
+					<!-- 10 Designs -->
+					<div class="pricing-card featured">
+						<h2 class="card-title">10 Diseños</h2>
+						<div class="card-credits">10 Generaciones IA</div>
+						<div class="card-price">4,99 €</div>
+						<p class="card-description">La opción ideal para definir tu pieza perfecta. Obtén 10 generaciones de alta resolución para explorar variaciones de metal, acabados y engastes en detalle. <br><strong>(Límite: 1 por usuario)</strong></p>
+						<button id="btn-499" class="card-btn" onclick="openPaymentModal(10, '4,99')">Comprar</button>
+					</div>
+
+					<!-- 150 Designs -->
+					<div class="pricing-card">
+						<h2 class="card-title">150 Diseños</h2>
+						<div class="card-credits">150 Generaciones IA</div>
+						<div class="card-price">99,00 €</div>
+						<p class="card-description">Diseñado para creadores apasionados y colecciones completas. Disfruta de 150 generaciones para diseñar sin límites y refinar cada aspecto de tus joyas.</p>
+						<button id="btn-99" class="card-btn" onclick="openPaymentModal(150, '99,00')">Comprar</button>
+					</div>
+				</div>
+
+				<!-- Enterprise Section -->
+				<div class="enterprise-card">
+					<h2 class="enterprise-title">Empresas & Firmas</h2>
+					<p class="enterprise-desc">¿Eres joyero profesional, estudio de diseño o marca de joyería? Ofrecemos volumen a gran escala, soporte prioritario, integraciones personalizadas y control total para tu catálogo comercial.</p>
+					<button class="enterprise-btn" onclick="openEnterpriseModal()">Más Información</button>
+				</div>
+			</div>
+		</main>
+	</div>
+
+	<!-- Payment Simulation Modal -->
+	<div id="payment-modal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'payment-modal')">
+		<div class="modal-card">
+			<button class="modal-close" onclick="closeModal('payment-modal')">&times;</button>
+			<h2 class="modal-title">Confirmar Pago</h2>
+			<p class="modal-desc" id="payment-desc">Pasarela de pago de Romet Joyería. Estás adquiriendo 10 Diseños por 4,99 €.</p>
+			
+			<form class="modal-form" onsubmit="processSimulatedPayment(event)">
+				<input type="hidden" id="payment-credits">
+				<input type="hidden" id="payment-price">
+				
+				<div class="form-group">
+					<label for="card-holder">Titular de la tarjeta</label>
+					<input type="text" id="card-holder" placeholder="Nombre completo" required>
+				</div>
+				
+				<div class="form-group">
+					<label for="card-number">Número de tarjeta (Mockup)</label>
+					<input type="text" id="card-number" placeholder="4242 4242 4242 4242" value="4242 4242 4242 4242" required maxlength="19">
+				</div>
+				
+				<div class="form-grid">
+					<div class="form-group">
+						<label for="card-expiry">Fecha de caducidad</label>
+						<input type="text" id="card-expiry" placeholder="MM/AA" value="12/29" required maxlength="5">
+					</div>
+					<div class="form-group">
+						<label for="card-cvc">CVC</label>
+						<input type="text" id="card-cvc" placeholder="123" value="123" required maxlength="3">
+					</div>
+				</div>
+				
+				<button type="submit" id="btn-submit-payment" class="form-btn">
+					Confirmar Pago y Activar
+				</button>
+			</form>
+		</div>
+	</div>
+
+	<!-- Enterprise Inquiry Modal -->
+	<div id="enterprise-modal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'enterprise-modal')">
+		<div class="modal-card">
+			<button class="modal-close" onclick="closeModal('enterprise-modal')">&times;</button>
+			<h2 class="modal-title">Contacto Empresas</h2>
+			<p class="modal-desc">Déjanos tus datos de contacto y cuéntanos sobre tu proyecto. Un agente de Romet Joyería se pondrá en contacto contigo en un plazo de 24 horas laborables.</p>
+			
+			<form class="modal-form" onsubmit="submitEnterpriseForm(event)">
+				<div class="form-grid">
+					<div class="form-group">
+						<label for="ent-name">Persona de contacto</label>
+						<input type="text" id="ent-name" placeholder="Tu nombre" required>
+					</div>
+					<div class="form-group">
+						<label for="ent-company">Nombre de la empresa</label>
+						<input type="text" id="ent-company" placeholder="Empresa S.L." required>
+					</div>
+					<div class="form-group">
+						<label for="ent-email">Email corporativo</label>
+						<input type="email" id="ent-email" placeholder="contacto@empresa.com" required autocomplete="email">
+					</div>
+					<div class="form-group">
+						<label for="ent-location">Localidad / Provincia</label>
+						<input type="text" id="ent-location" placeholder="Madrid, España" required>
+					</div>
+				</div>
+				
+				<div class="form-group full-width">
+					<label for="ent-phone">Teléfono de contacto</label>
+					<input type="tel" id="ent-phone" placeholder="+34 600 000 000" required>
+				</div>
+				
+				<div class="form-group full-width">
+					<label for="ent-message">Cuéntanos sobre tu negocio / Más información</label>
+					<textarea id="ent-message" placeholder="¿Cuántos diseños estimas necesitar mensualmente? ¿Requieres integración especial?..." required></textarea>
+				</div>
+				
+				<button type="submit" id="btn-submit-enterprise" class="form-btn">
+					Enviar Solicitud
+				</button>
+			</form>
+		</div>
+	</div>
+
+	<script>
+		let currentUser = null;
+
+		// Asegurar que el usuario esté autenticado para interactuar con los paquetes
+		async function checkAuthAndSetup() {
+			await ensureSupabaseReady();
+			const sb = getSupabase();
+			const session = await getSession();
+			
+			if (!session) {
+				// Guardar redireccionamiento y forzar login
+				sessionStorage.setItem('redirectAfterLogin', window.location.href);
+				window.location.href = './login.html';
+				return;
+			}
+			
+			currentUser = session.user;
+			initHeaderAuth();
+			updatePackageStatus();
+		}
+
+		// Deshabilitar paquetes de acuerdo a restricciones de usuario
+		async function updatePackageStatus() {
+			if (!currentUser) return;
+			
+			const metadata = currentUser.user_metadata || {};
+			
+			// 1. Limitar el paquete de 4.99 € a una sola compra
+			if (metadata.purchased_499 === true) {
+				const btn499 = document.getElementById('btn-499');
+				if (btn499) {
+					btn499.disabled = true;
+					btn499.textContent = "Ya adquirido";
+					btn499.title = "Esta oferta exclusiva de bienvenida está limitada a 1 compra por usuario.";
+				}
+			}
+
+			// 2. Opcional: Limitar el Token Gratis a una sola recarga
+			if (metadata.claimed_free === true) {
+				const btnFree = document.getElementById('btn-free');
+				if (btnFree) {
+					btnFree.disabled = true;
+					btnFree.textContent = "Token Reclamado";
+					btnFree.title = "El token de prueba gratuita ya ha sido activado en tu cuenta.";
+				}
+			}
+		}
+
+		// Reclamar Token de Prueba Gratis (5 créditos)
+		async function claimFreeToken() {
+			const btn = document.getElementById('btn-free');
+			const originalText = btn.textContent;
+			
+			btn.disabled = true;
+			btn.innerHTML = '<span class="spinner"></span>';
+
+			try {
+				const sb = getSupabase();
+				const credits = await getCredits();
+				const newCredits = credits + 5;
+				
+				const { error } = await sb.auth.updateUser({
+					data: {
+						credits: newCredits,
+						claimed_free: true
+					}
+				});
+
+				if (error) throw error;
+				
+				showNotification("¡Enhorabuena! Has activado tu Token Gratis. Se han añadido 5 diseños a tu cuenta.", "success");
+				
+				// Refrescar sesión local
+				const { data: { session } } = await sb.auth.getSession();
+				if (session) currentUser = session.user;
+				
+				// Actualizar interfaz
+				const displays = document.querySelectorAll('#credit-count-display, #credit-count-header');
+				displays.forEach(d => d.textContent = newCredits);
+				updatePackageStatus();
+				
+			} catch(e) {
+				console.error("Error al reclamar token gratis:", e);
+				showNotification("Ha ocurrido un error al procesar tu solicitud: " + e.message, "error");
+				btn.disabled = false;
+				btn.textContent = originalText;
+			}
+		}
+
+		// Modales de Pago y Empresas
+		function openPaymentModal(credits, price) {
+			document.getElementById('payment-credits').value = credits;
+			document.getElementById('payment-price').value = price;
+			document.getElementById('payment-desc').innerHTML = `Pasarela de pago de Romet Joyería. Estás adquiriendo <strong>${credits} Diseños</strong> por <strong>${price} €</strong>.`;
+			
+			const modal = document.getElementById('payment-modal');
+			modal.classList.add('active');
+		}
+
+		function openEnterpriseModal() {
+			const modal = document.getElementById('enterprise-modal');
+			modal.classList.add('active');
+		}
+
+		function closeModal(id) {
+			document.getElementById(id).classList.remove('active');
+		}
+
+		function closeModalOnOverlay(event, id) {
+			if (event.target.id === id) {
+				closeModal(id);
+			}
+		}
+
+		// Procesar Pago Simulado
+		async function processSimulatedPayment(event) {
+			event.preventDefault();
+			const btnSubmit = document.getElementById('btn-submit-payment');
+			const originalText = btnSubmit.innerHTML;
+			
+			const creditsToAdd = parseInt(document.getElementById('payment-credits').value);
+			const price = document.getElementById('payment-price').value;
+			
+			btnSubmit.disabled = true;
+			btnSubmit.innerHTML = '<span class="spinner"></span> Procesando pago...';
+
+			try {
+				const sb = getSupabase();
+				const credits = await getCredits();
+				const newCredits = credits + creditsToAdd;
+				
+				const updatePayload = {
+					credits: newCredits
+				};
+
+				// Si compra el paquete de 4.99 €, bloquear compras futuras del mismo
+				if (creditsToAdd === 10 && price === '4,99') {
+					updatePayload.purchased_499 = true;
+				}
+
+				// Simular retardo de red para la pasarela de pago (1.5 segundos)
+				await new Promise(resolve => setTimeout(resolve, 1500));
+
+				const { error } = await sb.auth.updateUser({
+					data: updatePayload
+				});
+
+				if (error) throw error;
+				
+				closeModal('payment-modal');
+				showNotification(`¡Pago completado con éxito! Se han añadido ${creditsToAdd} diseños a tu cuenta de Romet Joyería.`, "success");
+				
+				// Refrescar sesión local
+				const { data: { session } } = await sb.auth.getSession();
+				if (session) currentUser = session.user;
+				
+				// Actualizar interfaz
+				const displays = document.querySelectorAll('#credit-count-display, #credit-count-header');
+				displays.forEach(d => d.textContent = newCredits);
+				updatePackageStatus();
+				
+			} catch(e) {
+				console.error("Error al procesar el pago simulado:", e);
+				showNotification("Error al procesar la simulación de pago: " + e.message, "error");
+			} finally {
+				btnSubmit.disabled = false;
+				btnSubmit.innerHTML = originalText;
+			}
+		}
+
+		// Enviar formulario de contacto Empresas
+		async function submitEnterpriseForm(event) {
+			event.preventDefault();
+			const btnSubmit = document.getElementById('btn-submit-enterprise');
+			const originalText = btnSubmit.innerHTML;
+			
+			btnSubmit.disabled = true;
+			btnSubmit.innerHTML = '<span class="spinner"></span> Enviando...';
+
+			const nombre = document.getElementById('ent-name').value.trim();
+			const empresa = document.getElementById('ent-company').value.trim();
+			const email = document.getElementById('ent-email').value.trim();
+			const localidad = document.getElementById('ent-location').value.trim();
+			const telefono = document.getElementById('ent-phone').value.trim();
+			const mensaje = document.getElementById('ent-message').value.trim();
+
+			try {
+				const sb = getSupabase();
+				const { error } = await sb.from('solicitudes_empresas_romet').insert({
+					nombre: nombre,
+					empresa: empresa,
+					email: email,
+					localidad_provincia: localidad,
+					telefono: telefono,
+					mensaje: mensaje
+				});
+
+				if (error) throw error;
+
+				closeModal('enterprise-modal');
+				showNotification("¡Solicitud enviada! Nos pondremos en contacto contigo a la brevedad.", "success");
+				document.querySelector('#enterprise-modal form').reset();
+				
+			} catch(e) {
+				console.error("Error al enviar el formulario de empresas:", e);
+				showNotification("Error al enviar la solicitud: " + e.message, "error");
+			} finally {
+				btnSubmit.disabled = false;
+				btnSubmit.innerHTML = originalText;
+			}
+		}
+
+		// Sistema de notificaciones elegante
+		function showNotification(message, type = 'success') {
+			// Eliminar notificaciones previas
+			const prev = document.querySelectorAll('.notification');
+			prev.forEach(n => n.remove());
+
+			const notif = document.createElement('div');
+			notif.className = `notification ${type}`;
+			notif.textContent = message;
+			document.body.appendChild(notif);
+
+			setTimeout(() => {
+				notif.style.animation = 'slideIn 0.3s ease-in reverse';
+				setTimeout(() => notif.remove(), 300);
+			}, 5000);
+		}
+
+		window.addEventListener('load', () => {
+			// Esperar a que Supabase esté inicializado
+			initWhenReady(() => {
+				checkAuthAndSetup();
+			});
+		});
+	</script>
+</body>
+</html>

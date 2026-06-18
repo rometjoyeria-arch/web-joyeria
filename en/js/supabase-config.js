@@ -94,6 +94,75 @@ async function consumeCredit() {
 
 async function initHeaderAuth() {
 	try {
+		// Inject premium responsive styles for Romet header
+		if (!document.getElementById('romet-header-responsive-styles')) {
+			const style = document.createElement('style');
+			style.id = 'romet-header-responsive-styles';
+			style.textContent = `
+				@media (max-width: 640px) {
+					header {
+						padding: 10px 12px !important;
+						gap: 6px !important;
+					}
+					header a[href*="rometjoyeria.com"] {
+						gap: 8px !important;
+					}
+					header a img {
+						height: 28px !important;
+						margin-right: 4px !important;
+					}
+					header nav {
+						width: 100% !important;
+						justify-content: space-between !important;
+						gap: 6px !important;
+					}
+					#header-auth-container {
+						gap: 10px !important;
+					}
+					#header-credits-badge {
+						padding: 4px 8px !important;
+						gap: 4px !important;
+						font-size: 0.78rem !important;
+					}
+					#header-credits-badge .credits-label {
+						display: none !important;
+					}
+					#header-credits-badge .credits-plus {
+						display: none !important;
+					}
+					#user-menu-btn {
+						font-size: 0.7rem !important;
+						max-width: 70px !important;
+						overflow: hidden !important;
+						text-overflow: ellipsis !important;
+						white-space: nowrap !important;
+						gap: 3px !important;
+					}
+					header nav > a {
+						font-size: 0.7rem !important;
+						letter-spacing: 0.06em !important;
+					}
+					header nav .border-l {
+						padding-left: 6px !important;
+						margin-left: 0px !important;
+						gap: 3px !important;
+					}
+					header nav .border-l a {
+						font-size: 0.7rem !important;
+					}
+				}
+				@media (max-width: 375px) {
+					#user-menu-btn {
+						max-width: 50px !important;
+					}
+					header nav > a {
+						font-size: 0.65rem !important;
+					}
+				}
+			`;
+			document.head.appendChild(style);
+		}
+
 		const session = await getSession();
 		const authLink = document.getElementById('header-auth-link');
 		if (!authLink) return;
@@ -106,32 +175,50 @@ async function initHeaderAuth() {
 			const credits = await getCredits();
 
 			const container = document.createElement('div');
-			container.style.cssText = 'position:relative; display:inline-block;';
+			container.id = 'header-auth-container';
+			container.style.cssText = 'position:relative; display:flex; align-items:center; gap:24px;';
 			container.innerHTML = `
-				<button id="user-menu-btn" class="text-sm md:text-base tracking-[0.15em] uppercase text-foreground hover:text-muted-foreground transition-colors font-medium flex items-center gap-2" style="background:none; border:none; cursor:pointer;">
-					Hello, ${name} <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-				</button>
-				<div id="user-dropdown" style="display:none; position:absolute; right:0; top:100%; margin-top:8px; width:230px; background:white; border:1px solid hsl(0 0% 85%); box-shadow:0 10px 25px rgba(0,0,0,0.08); z-index:100; text-align:left; border-radius:4px; overflow:hidden;">
-					<div style="padding:16px; border-bottom:1px solid hsl(0 0% 85%); background:hsl(0 0% 98%);">
-						 <div style="font-size:0.75rem; color:hsl(0 0% 40%); padding-bottom:6px; letter-spacing:0.1em; text-transform:uppercase; font-family: ui-sans-serif, system-ui, sans-serif;">Your Credits</div>
-						 <div style="font-size:1.6rem; font-weight:600; color:hsl(0 0% 15%); display:flex; align-items:center; gap:8px;">
-							 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ca8a04" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
-							 <span id="credit-count-display">${credits}</span>
-						 </div>
+				<div id="header-credits-badge" onclick="window.location.href='./compra-creditos.html'" style="background:linear-gradient(135deg, hsl(45 95% 95%) 0%, hsl(45 90% 88%) 100%); border:1px solid hsl(45 70% 60%); color:hsl(45 100% 15%); padding:6px 14px; border-radius:100px; display:flex; align-items:center; gap:10px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:0.9rem; font-weight:800; box-shadow:0 4px 12px rgba(212,175,55,0.15); cursor:pointer; transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1); user-select:none;" onmouseover="this.style.transform='translateY(-1px) scale(1.02)'; this.style.boxShadow='0 6px 15px rgba(212,175,55,0.25)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 12px rgba(212,175,55,0.15)'" title="Your credits - Click to add more">
+					<div style="display:flex; align-items:center; gap:6px;">
+						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+						<span id="credit-count-header" style="font-feature-settings: 'tnum' 1; min-width: 1.5ch; text-align: center;">${credits}</span>
 					</div>
-					<a href="javascript:void(0)" onclick="alert('La compra de créditos estará disponible muy pronto')" style="display:block; padding:12px 16px; color:hsl(0 0% 15%); text-decoration:none; font-size:0.8rem; font-family: ui-sans-serif, system-ui, sans-serif; letter-spacing:0.1em; text-transform:uppercase; border-bottom:1px solid hsl(0 0% 90%); transition:background 0.2s;" onmouseover="this.style.background='hsl(0 0% 95%)'" onmouseout="this.style.background='transparent'">
-						 Buy Credits
-					</a>
-					<a href="#" id="logout-btn" style="display:block; padding:12px 16px; color:#e53e3e; text-decoration:none; font-size:0.8rem; font-family: ui-sans-serif, system-ui, sans-serif; letter-spacing:0.1em; text-transform:uppercase; transition:background 0.2s;" onmouseover="this.style.background='#fff5f5'" onmouseout="this.style.background='transparent'">
-						 Sign Out
-					</a>
+					<span class="credits-label" style="font-size:0.65rem; text-transform:uppercase; letter-spacing:0.08em; opacity:0.9; font-weight:700; border-left:1px solid rgba(0,0,0,0.1); padding-left:10px; margin-left:2px;">Credits</span>
+					<div class="credits-plus" style="background:white; color:hsl(45 100% 20%); width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:bold; box-shadow:0 2px 4px rgba(0,0,0,0.1);">+</div>
+				</div>
+
+				<div style="position:relative;">
+					<button id="user-menu-btn" class="text-sm md:text-base tracking-[0.15em] uppercase text-foreground hover:text-muted-foreground transition-colors font-medium flex items-center gap-2" style="background:none; border:none; cursor:pointer;">
+						${name} <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+					</button>
+					<div id="user-dropdown" style="display:none; position:absolute; right:0; top:100%; margin-top:12px; width:220px; background:white; border:1px solid hsl(0 0% 90%); box-shadow:0 15px 35px rgba(0,0,0,0.12); z-index:100; text-align:left; border-radius:8px; overflow:hidden;">
+						<div style="padding:18px; border-bottom:1px solid hsl(0 0% 92%); background:hsl(0 0% 99%);">
+							 <div style="font-size:0.65rem; color:hsl(0 0% 50%); padding-bottom:8px; letter-spacing:0.12em; text-transform:uppercase; font-family: ui-sans-serif, system-ui, sans-serif; font-weight:700;">Account Status</div>
+							 <div style="display:flex; align-items:center; justify-content:space-between;">
+								 <span style="font-size:0.9rem; color:hsl(0 0% 30%); font-family:ui-sans-serif, system-ui, sans-serif;">Credits</span>
+								 <span id="credit-count-display" style="font-size:1.3rem; font-weight:700; color:hsl(0 0% 10%);">${credits}</span>
+							 </div>
+						</div>
+						<a href="./compra-creditos.html" style="display:block; padding:14px 18px; color:hsl(0 0% 20%); text-decoration:none; font-size:0.75rem; font-family: ui-sans-serif, system-ui, sans-serif; letter-spacing:0.08em; text-transform:uppercase; border-bottom:1px solid hsl(0 0% 95%); transition:background 0.2s;" onmouseover="this.style.background='hsl(0 0% 97%)'" onmouseout="this.style.background='transparent'">
+							 <span style="display:flex; align-items:center; gap:10px;">
+							 	<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+							 	Buy Credits
+							 </span>
+						</a>
+						<a href="#" id="logout-btn" style="display:block; padding:14px 18px; color:#c53030; text-decoration:none; font-size:0.75rem; font-family: ui-sans-serif, system-ui, sans-serif; letter-spacing:0.08em; text-transform:uppercase; transition:background 0.2s;" onmouseover="this.style.background='#fff5f5'" onmouseout="this.style.background='transparent'">
+							 <span style="display:flex; align-items:center; gap:10px;">
+							 	<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+							 	Sign Out
+							 </span>
+						</a>
+					</div>
 				</div>
 			`;
 			
 			const nav = authLink.parentElement;
 			nav.replaceChild(container, authLink);
 			
-			// Si existía un saludo antiguo 'Hello, Francisco', lo eliminamos porque ya va en el dropdown
+			// Remove old greeting if it exists
 			const existingGreeting = nav.querySelector('.user-greeting');
 			if (existingGreeting) existingGreeting.remove();
 			
@@ -252,5 +339,32 @@ function initWhenReady(callback) {
 		setTimeout(() => initWhenReady(callback), 100);
 	}
 }
+
+window.showOutOfCreditsModal = function() {
+	const overlay = document.createElement('div');
+	overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:10000; backdrop-filter:blur(4px); animation:fadeIn 0.3s;';
+	
+	const modal = document.createElement('div');
+	modal.style.cssText = 'background:hsl(0 0% 98%); padding:40px; border-radius:16px; max-width:400px; text-align:center; box-shadow:0 25px 50px rgba(0,0,0,0.15); border:1px solid hsl(0 0% 85%); position:relative;';
+	
+	modal.innerHTML = `
+		<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#e53e3e" stroke-width="2" style="margin:0 auto 16px;">
+			<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>
+		</svg>
+		<h2 style="font-family:'Cormorant Garamond', serif; font-size:2rem; font-weight:600; margin-bottom:12px; color:hsl(0 0% 15%); text-transform:uppercase; letter-spacing:0.1em;">Out of Credits</h2>
+		<p style="font-family: ui-sans-serif, system-ui, sans-serif; color:hsl(0 0% 40%); margin-bottom:24px; font-size:0.95rem; line-height:1.5;">
+			You have exhausted all your design generations. Purchase more credits to keep creating jewelry magic.
+		</p>
+		<button onclick="window.location.href='./compra-creditos.html'; this.closest('div').parentElement.remove()" style="background:hsl(0 0% 0%); color:white; border:none; padding:14px 24px; width:100%; text-transform:uppercase; font-family:ui-sans-serif, system-ui, sans-serif; letter-spacing:0.15em; font-size:0.85rem; font-weight:500; cursor:pointer; margin-bottom:12px; transition:all 0.3s;" onmouseover="this.style.background='hsl(0 0% 20%)'" onmouseout="this.style.background='hsl(0 0% 0%)'">
+			Buy Credits
+		</button>
+		<button onclick="this.closest('div').parentElement.remove()" style="background:transparent; color:hsl(0 0% 40%); border:1px solid hsl(0 0% 80%); padding:12px 24px; width:100%; text-transform:uppercase; font-family:ui-sans-serif, system-ui, sans-serif; letter-spacing:0.15em; font-size:0.85rem; font-weight:500; cursor:pointer; transition:all 0.3s;" onmouseover="this.style.background='hsl(0 0% 95%)'; this.style.color='hsl(0 0% 15%)'" onmouseout="this.style.background='transparent'; this.style.color='hsl(0 0% 40%)'">
+			Cancel
+		</button>
+	`;
+	
+	overlay.appendChild(modal);
+	document.body.appendChild(overlay);
+};
 
 window.addEventListener('load', () => initWhenReady(null));
