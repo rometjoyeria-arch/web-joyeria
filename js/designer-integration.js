@@ -169,6 +169,7 @@
 				sugerencias: state.notes,
 			});
 
+			window._currentDesignId = result?.id || null;
 			showSuccessScreen(state, result?.imagenUrl || null);
 			clearState();
 
@@ -237,6 +238,7 @@
 			});
 
 			if (imagenContainer && result?.imagenUrl) {
+				window._currentDesignId = result?.id || null;
 				state._lastImagenUrl = result.imagenUrl;
 				imagenContainer.innerHTML = `<img src="${result.imagenUrl}" style="width:100%; max-width:900px; border-radius:12px; box-shadow:0 8px 25px rgba(0,0,0,0.08);" alt="Diseño rediseñado — Frontal · Trasera · Lateral · En Persona" />`;
 				imagenContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -385,14 +387,42 @@ function showSuccessScreen(state, imagenUrl) {
 						</button>
 
 						<a href="javascript:void(0)"
-						   onclick="window.redirectToStripeCheckout('custom_design', this, 'es')"
-						   style="display: block; text-decoration: none;
-						          width: 185px; height: 185px;
-						          cursor: pointer; overflow: hidden;">
-							<img src="./designer-paso7_files/Meneses-joyas-stl-dis.png"
-							     style="width: 100%; height: 100%; object-fit: cover; display: block;" />
+						   onclick="document.getElementById('prototipado-modal').style.display='flex'"
+						   style="background: hsl(0 0% 0%); color: hsl(0 0% 75%);
+						          font-family: 'Cormorant Garamond', serif; font-size: 1.1rem;
+						          font-weight: 400; letter-spacing: 0.03em;
+						          border: none; cursor: pointer; transition: opacity 0.3s;
+						          text-align: center; width: 185px; height: 185px;
+						          display: flex; align-items: center; justify-content: center;
+						          padding: 16px; line-height: 1.3; text-decoration: none;">
+							¿QUIERES ESTE DISEÑO EN 3D?
 						</a>
 
+					</div>
+
+					<div id="prototipado-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center; padding:20px; animation:fadeIn 0.3s ease;">
+						<div style="background:#fff; border-radius:16px; max-width:500px; width:100%; padding:30px; position:relative; text-align:center; box-shadow:0 10px 40px rgba(0,0,0,0.2);">
+							<button onclick="document.getElementById('prototipado-modal').style.display='none'" style="position:absolute; top:15px; right:15px; background:none; border:none; font-size:24px; cursor:pointer; color:#666;">&times;</button>
+							
+							<h3 style="font-family:'Cormorant Garamond',serif; font-size:1.8rem; margin-bottom:10px; color:#000; text-transform:none; letter-spacing:normal;">Elige tu opción</h3>
+							<p style="font-family:sans-serif; font-size:0.9rem; color:#666; margin-bottom:24px; text-transform:none; letter-spacing:normal;">¿Cómo te gustaría proceder con tu diseño?</p>
+							
+							<div style="display:flex; flex-direction:column; gap:12px; font-family:sans-serif;">
+								<button onclick="window.redirectToStripeCheckout('custom_design', this, 'es', window._currentDesignId)" style="background:#000; color:#fff; border:none; padding:16px; border-radius:8px; cursor:pointer; font-size:1rem; font-weight:500; transition:all 0.2s;">
+									Archivo 3D para imprimir y fundir
+								</button>
+								<button onclick="window.requestQuote('B', 'es', this)" style="background:#f5f5f5; color:#000; border:1px solid #ddd; padding:16px; border-radius:8px; cursor:pointer; font-size:1rem; font-weight:500; transition:all 0.2s;">
+									Modelo prototipado en resina fundible
+								</button>
+								<button onclick="window.requestQuote('C', 'es', this)" style="background:#f5f5f5; color:#000; border:1px solid #ddd; padding:16px; border-radius:8px; cursor:pointer; font-size:1rem; font-weight:500; transition:all 0.2s;">
+									Modelo prototipado y fundido (plata u oro)
+								</button>
+								<button onclick="window.requestQuote('D', 'es', this)" style="background:#f5f5f5; color:#000; border:1px solid #ddd; padding:16px; border-radius:8px; cursor:pointer; font-size:1rem; font-weight:500; transition:all 0.2s;">
+									Pieza totalmente terminada
+								</button>
+							</div>
+							<div id="quote-feedback" style="margin-top:16px; font-size:0.9rem; min-height:20px; color:hsl(120,40%,40%);"></div>
+						</div>
 					</div>
 
 					<div style="text-align: center; padding-top: 8px;">
@@ -476,6 +506,65 @@ function showSuccessScreen(state, imagenUrl) {
 		saveState,
 		clearState,
 		showNotification,
+	};
+
+	window.requestQuote = async function(option, lang, btnElement) {
+		if (!window._currentDesignId) {
+			document.getElementById('quote-feedback').textContent = lang === 'en' ? 'Design ID not found. Please try again.' : 'No se encontró el ID del diseño. Por favor, inténtalo de nuevo.';
+			document.getElementById('quote-feedback').style.color = 'hsl(0, 84%, 40%)';
+			return;
+		}
+
+		const originalText = btnElement.textContent;
+		btnElement.disabled = true;
+		btnElement.textContent = lang === 'en' ? 'Sending request...' : 'Enviando solicitud...';
+		document.getElementById('quote-feedback').textContent = '';
+
+		try {
+			const { data: session } = await window.supabase.auth.getSession();
+			const token = session?.session?.access_token;
+			
+			if (!token) {
+				throw new Error('Not authenticated');
+			}
+
+			const payload = {
+				option,
+				design_id: window._currentDesignId,
+				lang
+			};
+
+			const response = await fetch('https://ktysptwemewbyanagdwu.supabase.co/functions/v1/request-quote', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${token}`
+				},
+				body: JSON.stringify(payload)
+			});
+
+			const result = await response.json();
+
+			if (!response.ok) {
+				throw new Error(result.error || 'Failed to request quote');
+			}
+
+			document.getElementById('quote-feedback').textContent = lang === 'en' ? 'Request sent successfully! We will contact you soon.' : '¡Solicitud enviada con éxito! Te contactaremos pronto.';
+			document.getElementById('quote-feedback').style.color = 'hsl(120,40%,40%)';
+			
+			setTimeout(() => {
+				const modal = document.getElementById('prototipado-modal');
+				if (modal) modal.style.display = 'none';
+			}, 3000);
+
+		} catch (error) {
+			console.error('requestQuote error:', error);
+			document.getElementById('quote-feedback').textContent = lang === 'en' ? 'Error sending request. Please try again.' : 'Error al enviar la solicitud. Por favor, inténtalo de nuevo.';
+			document.getElementById('quote-feedback').style.color = 'hsl(0, 84%, 40%)';
+		} finally {
+			btnElement.disabled = false;
+			btnElement.textContent = originalText;
+		}
 	};
 
 })();
