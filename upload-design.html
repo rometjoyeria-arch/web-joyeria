@@ -336,6 +336,7 @@
 		let _uploadState = {};
 
 		function showUploadSuccess(data, imagenUrl) {
+			sessionStorage.setItem('redesignCount', '0');
 			_uploadState = {
 				data,
 				imagenUrl,
@@ -390,9 +391,7 @@
 - QUÉ CAMBIAR O AÑADIR: (Ej. Añadir un borde decorativo simple / Hacer el borde más grueso)
 - DETALLES DEL METAL: (Ej. Cambiar el color del oro a plata)
 - TIPO DE PIEZA: (Ej. Cambiar de colgante a pendientes)</textarea>
-						<p style="color: #e53e3e; font-size: 0.8rem; font-family: ui-sans-serif, system-ui, sans-serif; margin-bottom: 12px;">
-							⚠️ Este cambio consumirá 1 crédito
-						</p>
+						<p id="credit-info" style="font-size: 0.8rem; margin-bottom: 12px;"></p>
 						<button id="redesign-btn"
 						        onclick="(function(){
 						        	const cambios = document.getElementById('cambios-texto').value.trim();
@@ -453,34 +452,61 @@
 				</div>
 			`;
 
+			function updateCreditInfo() {
+				const count = parseInt(sessionStorage.getItem('redesignCount') || '0', 10);
+				const remaining = Math.max(0, 5 - count);
+				const infoEl = document.getElementById('credit-info');
+				if (!infoEl) return;
+				if (remaining > 0) {
+					infoEl.textContent = `Te quedan ${remaining} de 5 cambios gratuitos`;
+					infoEl.style.color = 'hsl(120, 40%, 40%)';
+				} else {
+					infoEl.textContent = `Este cambio consumirá 1 crédito`;
+					infoEl.style.color = 'hsl(0, 84%, 40%)';
+				}
+			}
+
 			window._uploadToggleCambios = () => {
 				const panel = document.getElementById('cambios-panel');
 				if (!panel) return;
-				panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+				const visible = panel.style.display !== 'none';
+				panel.style.display = visible ? 'none' : 'block';
+				updateCreditInfo();
 			};
 
 			window._uploadRedisenar = async (cambios) => {
 				const redesignBtn = document.getElementById('redesign-btn');
 				const imagenContainer = document.getElementById('imagen-generada');
+				const prevImgHTML = imagenContainer ? imagenContainer.innerHTML : '';
+
 				if (redesignBtn) {
 					redesignBtn.disabled = true;
-					redesignBtn.textContent = 'Rediseñando...';
+					redesignBtn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px;"><svg style="animation:spin 1s linear infinite" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>Rediseñando...</span>';
 				}
 
-				try {
-					const hasCredits = typeof consumeCredit === 'function' ? await consumeCredit() : true;
-					if (!hasCredits) {
-						if (typeof window.showOutOfCreditsModal === 'function') window.showOutOfCreditsModal();
-						else alert('No tienes suficientes créditos.');
-						if (redesignBtn) {
-							redesignBtn.disabled = false;
-							redesignBtn.textContent = 'Rediseñar';
-						}
-						return;
-					}
-				} catch(e) {}
-
 				if (imagenContainer) {
+					let redesignCount = parseInt(sessionStorage.getItem('redesignCount') || '0', 10);
+					if (redesignCount < 5) {
+						// Free redesign
+						redesignCount++;
+						sessionStorage.setItem('redesignCount', redesignCount.toString());
+						updateCreditInfo();
+					} else {
+						// Paid redesign
+						try {
+							const hasCredits = typeof consumeCredit === 'function' ? await consumeCredit() : true;
+							if (!hasCredits) {
+								if (typeof window.showOutOfCreditsModal === 'function') window.showOutOfCreditsModal();
+								else alert('No tienes suficientes créditos.');
+								if (redesignBtn) {
+									redesignBtn.disabled = false;
+									redesignBtn.textContent = 'Rediseñar';
+								}
+								imagenContainer.innerHTML = prevImgHTML;
+								return;
+							}
+						} catch(e) {}
+					}
 					imagenContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:200px;"><svg style="animation:spin 1s linear infinite" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></div>';
 				}
 
@@ -512,6 +538,7 @@
 				if (redesignBtn) {
 					redesignBtn.disabled = false;
 					redesignBtn.textContent = 'Rediseñar';
+					updateCreditInfo();
 				}
 			};
 		}
