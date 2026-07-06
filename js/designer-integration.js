@@ -191,29 +191,32 @@
 		}
 
 		if (imagenContainer) {
+			// Free redesign logic: first 5 redesigns are free
+			let redesignCount = parseInt(sessionStorage.getItem('redesignCount') || '0', 10);
+			if (redesignCount < 5) {
+				showNotification(`Rediseño gratuito (${5 - redesignCount} restantes)`, 'info');
+				redesignCount++;
+				sessionStorage.setItem('redesignCount', redesignCount.toString());
+		updateCreditInfo();
+			} else {
+				const hasCredits = typeof window.consumeCredit === 'function' ? await window.consumeCredit() : true;
+				if (!hasCredits) {
+					if (typeof window.showOutOfCreditsModal === 'function') {
+						window.showOutOfCreditsModal();
+					} else {
+						showNotification('No tienes suficientes créditos para rediseñar. Compra más créditos en tu cuenta.', 'error');
+					}
+					if (redesignBtn) {
+						redesignBtn.disabled = false;
+						redesignBtn.textContent = 'Rediseñar';
+					}
+					imagenContainer.innerHTML = prevImgHTML;
+					return;
+				}
+			}
 			imagenContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:200px;"><svg class="animate-spin" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></div>';
 		}
 
-		try {
-			const hasCredits = typeof window.consumeCredit === 'function' ? await window.consumeCredit() : true;
-			if (!hasCredits) {
-				if (typeof window.showOutOfCreditsModal === 'function') {
-					window.showOutOfCreditsModal();
-				} else {
-					showNotification('No tienes suficientes créditos para rediseñar. Compra más créditos en tu cuenta.', 'error');
-				}
-				if (redesignBtn) {
-					redesignBtn.disabled = false;
-					redesignBtn.textContent = 'Rediseñar';
-				}
-				if (imagenContainer) {
-					imagenContainer.innerHTML = prevImgHTML;
-				}
-				return;
-			}
-		} catch(e) {
-			console.warn('Verificación de créditos omitida', e);
-		}
 
 		try {
 			const result = await callEdgeFunction('Joyas', {
@@ -245,6 +248,7 @@
 			if (redesignBtn) {
 				redesignBtn.disabled = false;
 				redesignBtn.textContent = 'Rediseñar';
+				updateCreditInfo();
 			}
 
 		} catch (error) {
@@ -265,14 +269,32 @@
 		if (!panel) return;
 		const visible = panel.style.display !== 'none';
 		panel.style.display = visible ? 'none' : 'block';
+updateCreditInfo();
 	}
 
-	function showSuccessScreen(state, imagenUrl) {
+	function updateCreditInfo() {
+	const count = parseInt(sessionStorage.getItem('redesignCount') || '0', 10);
+	const remaining = Math.max(0, 5 - count);
+	const infoEl = document.getElementById('credit-info');
+	if (!infoEl) return;
+	if (remaining > 0) {
+		infoEl.textContent = `Te quedan ${remaining} de 5 cambios gratuitos`;
+		infoEl.style.color = 'hsl(120, 40%, 40%)';
+	} else {
+		infoEl.textContent = `Este cambio consumirá 1 crédito`;
+		infoEl.style.color = 'hsl(0, 84%, 40%)';
+	}
+}
+
+function showSuccessScreen(state, imagenUrl) {
 		const main = document.querySelector('main') || document.querySelector('.flex-1');
 		if (!main) return;
 
+		// Guardar URL de la imagen generada para futuros rediseños
 		state._lastImagenUrl = imagenUrl;
-		const hasImages = !!imagenUrl;
+		// Reiniciar contador de rediseños gratuitos para este nuevo diseño
+					sessionStorage.setItem('redesignCount', '0');
+			updateCreditInfo();
 
 		main.innerHTML = `
 			<div class="max-w-4xl mx-auto px-4 py-8 text-center" style="animation: fadeInUp 0.8s ease-out;">
@@ -316,9 +338,7 @@
 - QUÉ CAMBIAR O AÑADIR: (Ej. Añadir un borde decorativo simple / Hacer el borde más grueso)
 - DETALLES DEL METAL: (Ej. Cambiar el color del oro a plata)
 - TIPO DE PIEZA: (Ej. Cambiar de colgante a pendientes)</textarea>
-					<p style="color: #e53e3e; font-size: 0.8rem; font-family: ui-sans-serif, system-ui, sans-serif; margin-bottom: 12px;">
-						⚠️ Este cambio consumirá 1 crédito
-					</p>
+					<p id="credit-info" style="font-size: 0.8rem; margin-bottom: 12px;"></p>
 					<button id="redesign-btn"
 					        onclick="(function(){
 					        	const cambios = document.getElementById('cambios-texto').value.trim();
