@@ -409,7 +409,7 @@ window.showOutOfCreditsModal = function() {
 };
 
 // Redirigir al usuario a Stripe Checkout de forma global
-window.redirectToStripeCheckout = async function(plan, element, lang = 'es') {
+window.redirectToStripeCheckout = async function(plan, element, lang = 'es', designId = null) {
 	let originalContent = '';
 	let isButton = false;
 	
@@ -426,10 +426,14 @@ window.redirectToStripeCheckout = async function(plan, element, lang = 'es') {
 	}
 
 	try {
-		const result = await callEdgeFunction('create-checkout', {
+		const payload = {
 			plan: plan,
 			lang: lang
-		});
+		};
+		if (designId) {
+			payload.design_id = designId;
+		}
+		const result = await callEdgeFunction('create-checkout', payload);
 
 		if (result.url) {
 			window.location.href = result.url;

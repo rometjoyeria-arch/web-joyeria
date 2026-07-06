@@ -531,11 +531,10 @@ function showSuccessScreen(state, imagenUrl) {
 			};
 
 			const headers = {
-				'Content-Type': 'application/json'
+				'Content-Type': 'application/json',
+				'apikey': SUPABASE_ANON_KEY,
+				'Authorization': token ? `Bearer ${token}` : `Bearer ${SUPABASE_ANON_KEY}`
 			};
-			if (token) {
-				headers['Authorization'] = `Bearer ${token}`;
-			}
 
 			const response = await fetch('https://ktysptwemewbyanagdwu.supabase.co/functions/v1/request-quote', {
 				method: 'POST',

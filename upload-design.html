@@ -7,7 +7,7 @@
 	<title>Sube tu Diseño - Romet Joyería</title>
 	<link rel="stylesheet" crossorigin="" href="./upload-design_files/index-xtSdOPat.css?v=3">
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-	<script src="./js/supabase-config.js?v=41"></script>
+	<script src="./js/supabase-config.js?v=42"></script>
 	<script src="./js/upload-integration.js"></script>
 	<script>
 		initWhenReady(() => {
@@ -597,11 +597,10 @@
 				};
 
 				const headers = {
-					'Content-Type': 'application/json'
+					'Content-Type': 'application/json',
+					'apikey': SUPABASE_ANON_KEY,
+					'Authorization': token ? `Bearer ${token}` : `Bearer ${SUPABASE_ANON_KEY}`
 				};
-				if (token) {
-					headers['Authorization'] = `Bearer ${token}`;
-				}
 
 				const response = await fetch('https://ktysptwemewbyanagdwu.supabase.co/functions/v1/request-quote', {
 					method: 'POST',

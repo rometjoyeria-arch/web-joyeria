@@ -529,11 +529,10 @@
 			};
 
 			const headers = {
-				'Content-Type': 'application/json'
+				'Content-Type': 'application/json',
+				'apikey': SUPABASE_ANON_KEY,
+				'Authorization': token ? `Bearer ${token}` : `Bearer ${SUPABASE_ANON_KEY}`
 			};
-			if (token) {
-				headers['Authorization'] = `Bearer ${token}`;
-			}
 
 			const response = await fetch('https://ktysptwemewbyanagdwu.supabase.co/functions/v1/request-quote', {
 				method: 'POST',
@@ -557,7 +556,7 @@
 
 		} catch (error) {
 			console.error('requestQuote error:', error);
-			document.getElementById('quote-feedback').textContent = lang === 'en' ? 'Error sending request. Please try again.' : 'Error al enviar la solicitud. Por favor, inténtalo de nuevo.';
+			document.getElementById('quote-feedback').textContent = lang === 'en' ? 'Error sending request: ' + error.message : 'Error al enviar la solicitud: ' + error.message;
 			document.getElementById('quote-feedback').style.color = 'hsl(0, 84%, 40%)';
 		} finally {
 			btnElement.disabled = false;
