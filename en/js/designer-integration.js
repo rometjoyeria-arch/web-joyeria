@@ -187,24 +187,30 @@
 		}
 
 		if (imagenContainer) {
-			imagenContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:200px;"><svg class="animate-spin" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></div>';
-		}
-
-		try {
-			const hasCredits = typeof window.consumeCredit === 'function' ? await window.consumeCredit() : true;
-			if (!hasCredits) {
-				showNotification('No tienes suficientes créditos para rediseñar. Compra más créditos en tu cuenta.', 'error');
-				if (redesignBtn) {
-					redesignBtn.disabled = false;
-					redesignBtn.textContent = 'Redesign';
-				}
-				if (imagenContainer) {
+			// Free redesign logic: first 5 redesigns are free
+			let redesignCount = parseInt(sessionStorage.getItem('redesignCount') || '0', 10);
+			if (redesignCount < 5) {
+				showNotification(`Free redesign (${5 - redesignCount} remaining)`, 'info');
+				redesignCount++;
+				sessionStorage.setItem('redesignCount', redesignCount.toString());
+				updateCreditInfo();
+			} else {
+				const hasCredits = typeof window.consumeCredit === 'function' ? await window.consumeCredit() : true;
+				if (!hasCredits) {
+					if (typeof window.showOutOfCreditsModal === 'function') {
+						window.showOutOfCreditsModal();
+					} else {
+						showNotification('You do not have enough credits to redesign. Please purchase more credits.', 'error');
+					}
+					if (redesignBtn) {
+						redesignBtn.disabled = false;
+						redesignBtn.textContent = 'Redesign';
+					}
 					imagenContainer.innerHTML = prevImgHTML;
+					return;
 				}
-				return;
 			}
-		} catch(e) {
-			console.warn('Verificación de créditos omitida', e);
+			imagenContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:200px;"><svg class="animate-spin" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></div>';
 		}
 
 		try {
@@ -244,6 +250,7 @@
 		if (redesignBtn) {
 			redesignBtn.disabled = false;
 			redesignBtn.textContent = 'Redesign';
+			updateCreditInfo();
 		}
 	}
 
@@ -252,11 +259,32 @@
 		if (!panel) return;
 		const visible = panel.style.display !== 'none';
 		panel.style.display = visible ? 'none' : 'block';
+		updateCreditInfo();
+	}
+
+	function updateCreditInfo() {
+		const count = parseInt(sessionStorage.getItem('redesignCount') || '0', 10);
+		const remaining = Math.max(0, 5 - count);
+		const infoEl = document.getElementById('credit-info');
+		if (!infoEl) return;
+		if (remaining > 0) {
+			infoEl.textContent = `You have ${remaining} of 5 free redesigns left`;
+			infoEl.style.color = 'hsl(120, 40%, 40%)';
+		} else {
+			infoEl.textContent = `This change will consume 1 credit`;
+			infoEl.style.color = 'hsl(0, 84%, 40%)';
+		}
 	}
 
 	function showSuccessScreen(state, imagenUrl) {
 		const main = document.querySelector('main') || document.querySelector('.flex-1');
 		if (!main) return;
+
+		// Save last image URL for redesigns
+		state._lastImagenUrl = imagenUrl;
+		// Reset redesign counter for this new design
+		sessionStorage.setItem('redesignCount', '0');
+		updateCreditInfo();
 
 		main.innerHTML = `
 			<div class="max-w-3xl mx-auto px-4 py-12 text-center" style="animation: fadeInUp 0.8s ease-out;">
@@ -276,12 +304,12 @@
 					</p>
 				</div>
 
-				${imagenUrl ? `
+				\${imagenUrl ? `
 				<div class="bg-white p-8 rounded-2xl shadow-lg border border-border/50 mb-8"
 				     style="animation: fadeInUp 0.8s ease-out 0.2s both;">
 					<h2 class="text-xl tracking-widest uppercase text-foreground font-medium mb-4">Your Design — Four Views</h2>
 					<div id="imagen-generada" style="text-align:center;">
-						<img src="${imagenUrl}" style="width:100%; max-width:900px; border-radius:12px; border:1px solid #eee; background:#fafafa; box-shadow:0 8px 25px rgba(0,0,0,0.06);" alt="Generated Design — Front · Back · Side · On Model" />
+						<img src="\${imagenUrl}" style="width:100%; max-width:900px; border-radius:12px; border:1px solid #eee; background:#fafafa; box-shadow:0 8px 25px rgba(0,0,0,0.06);" alt="Generated Design — Front · Back · Side · On Model" />
 						<p style="font-size:0.7rem; color:#aaa; margin-top:8px; font-family:sans-serif; letter-spacing:0.12em; text-transform:uppercase;">Front · Back · Side · On Model</p>
 					</div>
 				</div>` : `
@@ -307,9 +335,7 @@
 - WHAT TO CHANGE OR ADD: (e.g., Add a simple decorative border)
 - METAL DETAILS: (e.g., Change from yellow gold to silver)
 - PIECE TYPE: (e.g., Change from a pendant to earrings)</textarea>
-					<p style="color: #e53e3e; font-size: 0.8rem; font-family: ui-sans-serif, system-ui, sans-serif; margin-bottom: 12px;">
-						⚠️ This change will consume 1 credit
-					</p>
+					<p id="credit-info" style="font-size: 0.8rem; margin-bottom: 12px;"></p>
 					<button id="redesign-btn"
 					        onclick="(function(){
 					        	const cambios = document.getElementById('cambios-texto').value.trim();
