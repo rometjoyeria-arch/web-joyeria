@@ -336,6 +336,7 @@
 		let _uploadState = {};
 
 		function showUploadSuccess(data, imagenUrl) {
+			sessionStorage.setItem('redesignCount', '0');
 			_uploadState = { data, imagenUrl };
 			const main = document.querySelector('main');
 			if (!main) return;
@@ -387,9 +388,7 @@
 - WHAT TO CHANGE OR ADD: (e.g., Add a simple decorative border)
 - METAL DETAILS: (e.g., Change from yellow gold to silver)
 - PIECE TYPE: (e.g., Change from a pendant to earrings)</textarea>
-						<p style="color: #e53e3e; font-size: 0.8rem; font-family: ui-sans-serif, system-ui, sans-serif; margin-bottom: 12px;">
-							⚠️ This change will consume 1 credit
-						</p>
+						<p id="credit-info" style="font-size: 0.8rem; margin-bottom: 12px;"></p>
 						<button id="redesign-btn"
 						        onclick="(function(){
 						        	const cambios = document.getElementById('cambios-texto').value.trim();
@@ -450,37 +449,64 @@
 				</div>
 			`;
 
+			function updateCreditInfo() {
+				const count = parseInt(sessionStorage.getItem('redesignCount') || '0', 10);
+				const remaining = Math.max(0, 5 - count);
+				const infoEl = document.getElementById('credit-info');
+				if (!infoEl) return;
+				if (remaining > 0) {
+					infoEl.textContent = `You have ${remaining} of 5 free redesigns left`;
+					infoEl.style.color = 'hsl(120, 40%, 40%)';
+				} else {
+					infoEl.textContent = `This change will consume 1 credit`;
+					infoEl.style.color = 'hsl(0, 84%, 40%)';
+				}
+			}
+
 			window._uploadToggleCambios = () => {
 				const panel = document.getElementById('cambios-panel');
 				if (!panel) return;
-				panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+				const visible = panel.style.display !== 'none';
+				panel.style.display = visible ? 'none' : 'block';
+				updateCreditInfo();
 			};
 
 			window._uploadRedisenar = async (cambios) => {
 				const redesignBtn = document.getElementById('redesign-btn');
 				const imagenContainer = document.getElementById('imagen-generada');
 				const prevImgHTML = imagenContainer ? imagenContainer.innerHTML : '';
+
 				if (redesignBtn) {
 					redesignBtn.disabled = true;
-					redesignBtn.textContent = 'Redesigning...';
+					redesignBtn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px;"><svg style="animation:spin 1s linear infinite" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>Redesigning...</span>';
 				}
-
-				try {
-					const hasCredits = typeof consumeCredit === 'function' ? await consumeCredit() : true;
-					if (!hasCredits) {
-						if (typeof window.showOutOfCreditsModal === 'function') window.showOutOfCreditsModal();
-						else alert('Not enough credits.');
-						if (redesignBtn) {
-							redesignBtn.disabled = false;
-							redesignBtn.textContent = 'Redesign';
-						}
-						return;
-					}
-				} catch(e) {}
 
 				if (imagenContainer) {
+					let redesignCount = parseInt(sessionStorage.getItem('redesignCount') || '0', 10);
+					if (redesignCount < 5) {
+						// Free redesign
+						redesignCount++;
+						sessionStorage.setItem('redesignCount', redesignCount.toString());
+						updateCreditInfo();
+					} else {
+						// Paid redesign
+						try {
+							const hasCredits = typeof consumeCredit === 'function' ? await consumeCredit() : true;
+							if (!hasCredits) {
+								if (typeof window.showOutOfCreditsModal === 'function') window.showOutOfCreditsModal();
+								else alert('Not enough credits.');
+								if (redesignBtn) {
+									redesignBtn.disabled = false;
+									redesignBtn.textContent = 'Redesign';
+								}
+								imagenContainer.innerHTML = prevImgHTML;
+								return;
+							}
+						} catch(e) {}
+					}
 					imagenContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:200px;"><svg style="animation:spin 1s linear infinite" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></div>';
 				}
+
 				try {
 					const result = await callEdgeFunction('Joyas', {
 						nombre: _uploadState.data.nombre,
@@ -489,6 +515,7 @@
 						material: _uploadState.data.material,
 						sugerencias: 'Cambios solicitados: ' + cambios,
 					});
+
 					if (imagenContainer && result?.imagenUrl) {
 						imagenContainer.innerHTML = `<img loading="lazy" src="${result.imagenUrl}" style="width:100%; max-width:900px; border-radius:12px; box-shadow:0 8px 25px rgba(0,0,0,0.08);" alt="Redesigned Design — Front · Back · Side · On Model" />
 						<p style="font-size:0.7rem; color:#aaa; margin-top:8px; font-family:sans-serif; letter-spacing:0.12em; text-transform:uppercase; text-align:center;">Front · Back · Side · On Model</p>`;
@@ -504,6 +531,7 @@
 				if (redesignBtn) {
 					redesignBtn.disabled = false;
 					redesignBtn.textContent = 'Redesign';
+					updateCreditInfo();
 				}
 			};
 		}
