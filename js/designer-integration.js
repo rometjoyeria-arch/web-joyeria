@@ -521,8 +521,8 @@ function showSuccessScreen(state, imagenUrl) {
 		document.getElementById('quote-feedback').textContent = '';
 
 		try {
-			const { data: session } = await window.supabase.auth.getSession();
-			const token = session?.session?.access_token;
+			const session = await getSession();
+			const token = session?.access_token;
 			
 			const payload = {
 				option,
