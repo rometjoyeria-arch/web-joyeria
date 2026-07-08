@@ -523,7 +523,7 @@
 	<script>
 		const SUPABASE_URL = 'https://ktysptwemewbyanagdwu.supabase.co';
 		const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0eXNwdHdlbWV3YnlhbmFnZHd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NDgwNTcsImV4cCI6MjA5MTIyNDA1N30.TMngS67DASOUD1s6VH8MZa_XDEwMEIG1VSowkc8yx0E';
-		const REDIRECT_URL = 'https://rometjoyeria.com/login.html';
+		const REDIRECT_URL = 'https://rometjoyeria.com/en/login.html';
 
 		let _supabase = null;
 
@@ -812,6 +812,9 @@
 
 			client.auth.getSession().then(({ data: { session } }) => {
 				if (session) {
+					if (window.location.hash.includes('recovery') || window.location.search.includes('recovery')) {
+						return; // Dejar que el flujo de recuperación maneje la vista
+					}
 					if (session.user.user_metadata?.approved !== true && session.user.email !== 'flozros@gmail.com') {
 						client.auth.signOut();
 						return;
