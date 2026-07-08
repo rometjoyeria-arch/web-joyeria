@@ -2,6 +2,17 @@
 // ROMET JOYERIA - Supabase Configuration (Shared Module) - v3.1.2
 // ═══════════════════════════════════════════════════════════
 
+// Redirigir síncronamente a login.html si detectamos parámetros de autenticación en la URL en otra página
+(function() {
+	const hash = window.location.hash || '';
+	const search = window.location.search || '';
+	const isLoginPage = window.location.pathname.includes('login.html');
+	
+	if (!isLoginPage && (hash.includes('recovery') || search.includes('recovery') || search.includes('code=') || hash.includes('access_token=') || hash.includes('error=') || search.includes('error='))) {
+		window.location.href = './login.html' + search + hash;
+	}
+})();
+
 const SUPABASE_URL = 'https://ktysptwemewbyanagdwu.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0eXNwdHdlbWV3YnlhbmFnZHd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NDgwNTcsImV4cCI6MjA5MTIyNDA1N30.TMngS67DASOUD1s6VH8MZa_XDEwMEIG1VSowkc8yx0E';
 

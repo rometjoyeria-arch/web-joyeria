@@ -660,6 +660,7 @@
 			if (lc.includes('new password should be different')) return 'The new password must be different from the previous one.';
 			if (lc.includes('provider is not enabled')) return 'This login method is disabled. Contact the administrator.';
 			if (lc.includes('popup_closed') || lc.includes('user cancelled')) return 'The authentication window was closed.';
+			if (lc.includes('email link is invalid') || lc.includes('expired')) return 'The recovery link is invalid or has expired. Please request a new one.';
 			return message || 'An error occurred. Please try again.';
 		}
 
@@ -794,16 +795,26 @@
 			}
 		}
 
+		let isRecoveryActive = false;
+
+		// Check for errors in URL (hash or search) on load
+		const params = new URLSearchParams(window.location.search || window.location.hash.substring(1));
+		const errorMsg = params.get('error_description') || params.get('error');
+		if (errorMsg) {
+			showMessage(translateError(decodeURIComponent(errorMsg.replace(/\+/g, ' '))), 'error');
+		}
+
 		// Inicializar al cargar — escuchar OAuth redirect y verificar sesión existente
 		getClientAsync().then(client => {
 			client.auth.onAuthStateChange((event, session) => {
 				if (event === 'PASSWORD_RECOVERY') {
+					isRecoveryActive = true;
 					document.getElementById('loginView').classList.add('hidden');
 					document.getElementById('resetView').classList.add('hidden');
 					document.getElementById('updatePasswordView').classList.remove('hidden');
 					clearMessage();
 				} else if (event === 'SIGNED_IN' && session) {
-					if (window.location.hash.includes('recovery') || window.location.search.includes('recovery')) {
+					if (isRecoveryActive || window.location.hash.includes('recovery') || window.location.search.includes('recovery')) {
 						// Si venimos de un flujo de recuperación (pero el evento ya se procesó o redirigió),
 						// también debemos mostrar el formulario de actualización de contraseña.
 						document.getElementById('loginView').classList.add('hidden');
@@ -818,7 +829,7 @@
 
 			client.auth.getSession().then(({ data: { session } }) => {
 				if (session) {
-					if (window.location.hash.includes('recovery') || window.location.search.includes('recovery') || window.location.search.includes('code')) {
+					if (isRecoveryActive || window.location.hash.includes('recovery') || window.location.search.includes('recovery') || window.location.search.includes('code')) {
 						return; // Dejar que el flujo de recuperación o intercambio de código maneje la vista
 					}
 					if (session.user.user_metadata?.approved !== true && session.user.email !== 'flozros@gmail.com') {
