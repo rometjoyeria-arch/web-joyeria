@@ -15,6 +15,18 @@ function getSupabase() {
 		}
 		const { createClient } = supabaseLib;
 		_supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+		// Escuchar eventos globales de autenticación, como la recuperación de contraseña
+		_supabaseClient.auth.onAuthStateChange((event, session) => {
+			if (event === 'PASSWORD_RECOVERY' && !window.location.pathname.includes('login.html')) {
+				console.log('Detectado evento PASSWORD_RECOVERY en modulo compartido. Redirigiendo...');
+				const isEn = window.location.pathname.includes('/en/');
+				const loginPath = isEn ? '/en/login.html' : '/login.html';
+				// Conservar el hash de recuperación original si existe
+				const hash = window.location.hash || '#type=recovery';
+				window.location.href = loginPath + hash;
+			}
+		});
 	}
 	return _supabaseClient;
 }

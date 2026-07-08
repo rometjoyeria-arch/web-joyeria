@@ -803,8 +803,14 @@
 					document.getElementById('updatePasswordView').classList.remove('hidden');
 					clearMessage();
 				} else if (event === 'SIGNED_IN' && session) {
-					if (window.location.hash.includes('type=recovery')) {
-						return; // Dejar que el evento PASSWORD_RECOVERY maneje la vista
+					if (window.location.hash.includes('recovery') || window.location.search.includes('recovery')) {
+						// Si venimos de un flujo de recuperación (pero el evento ya se procesó o redirigió),
+						// también debemos mostrar el formulario de actualización de contraseña.
+						document.getElementById('loginView').classList.add('hidden');
+						document.getElementById('resetView').classList.add('hidden');
+						document.getElementById('updatePasswordView').classList.remove('hidden');
+						clearMessage();
+						return; // Dejar que el flujo de recuperación maneje la vista
 					}
 					onLoginSuccess(session.user);
 				}
@@ -812,8 +818,8 @@
 
 			client.auth.getSession().then(({ data: { session } }) => {
 				if (session) {
-					if (window.location.hash.includes('recovery') || window.location.search.includes('recovery')) {
-						return; // Dejar que el flujo de recuperación maneje la vista
+					if (window.location.hash.includes('recovery') || window.location.search.includes('recovery') || window.location.search.includes('code')) {
+						return; // Dejar que el flujo de recuperación o intercambio de código maneje la vista
 					}
 					if (session.user.user_metadata?.approved !== true && session.user.email !== 'flozros@gmail.com') {
 						client.auth.signOut();
