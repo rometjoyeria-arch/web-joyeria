@@ -35,10 +35,7 @@ async function ensureSupabaseReady() {
 	return new Promise((resolve) => {
 		function check() {
 			if (typeof window.supabase !== 'undefined') {
-				if (!_supabaseClient) {
-					const { createClient } = window.supabase;
-					_supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-				}
+				getSupabase();
 				resolve();
 			} else {
 				setTimeout(check, 100);
