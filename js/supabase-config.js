@@ -56,6 +56,30 @@ async function ensureSupabaseReady() {
 	});
 }
 
+function parseJwt(token) {
+	try {
+		const base64Url = token.split('.')[1];
+		const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+		const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+			return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+		}).join(''));
+		return JSON.parse(jsonPayload);
+	} catch (e) {
+		return null;
+	}
+}
+
+function isRecoverySession(session) {
+	if (!session || !session.access_token) return false;
+	const payload = parseJwt(session.access_token);
+	if (!payload || !payload.amr) return false;
+	return payload.amr.some(item => {
+		if (typeof item === 'string') return item === 'recovery';
+		if (item && typeof item === 'object') return item.method === 'recovery';
+		return false;
+	});
+}
+
 async function initWhenReady(callback) {
 	try {
 		await ensureSupabaseReady();
@@ -64,6 +88,16 @@ async function initWhenReady(callback) {
 		const session = await getSession();
 		const authorizedEmail = 'flozros@gmail.com';
 		const isLoginPage = window.location.pathname.includes('login.html');
+		
+		// Si detectamos que la sesión activa es de recuperación de contraseña y no estamos en la página de login,
+		// redirigimos inmediatamente al usuario a la página de login para que restablezca su contraseña.
+		if (session && isRecoverySession(session) && !isLoginPage) {
+			console.log('Detectado JWT con reclamo de recuperación en página externa. Redirigiendo a pantalla de restablecimiento...');
+			const isEn = window.location.pathname.includes('/en/');
+			const loginPath = isEn ? '/en/login.html' : '/login.html';
+			window.location.href = loginPath + '#type=recovery';
+			return; // Detener ejecución
+		}
 		
 		if (!isLoginPage && (!session || (session.user.email !== authorizedEmail && session.user.user_metadata?.approved !== true))) {
 			console.log('Acceso restringido. Redirigiendo a pantalla de bloqueo...');

@@ -764,6 +764,18 @@
 			const client = await getClientAsync();
 			const email = document.getElementById('resetEmail').value.trim();
 			
+			// Comprobar si el correo electrónico está registrado antes de enviar el enlace
+			const { data: emailExists, error: rpcError } = await client.rpc('check_user_email_exists', { email_to_check: email });
+			if (rpcError) {
+				console.error('Error al comprobar la existencia del correo:', rpcError);
+			}
+			
+			if (emailExists === false) {
+				showMessage('Este correo electrónico no está registrado.', 'error');
+				setLoading('resetBtn', false);
+				return;
+			}
+			
 			// Guardar flag en localStorage indicando que este navegador inició un flujo de recuperación
 			localStorage.setItem('isPasswordRecoveryFlow', 'true');
 
@@ -801,6 +813,30 @@
 			}
 		}
 
+		function parseJwt(token) {
+			try {
+				const base64Url = token.split('.')[1];
+				const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+				const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+					return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+				}).join(''));
+				return JSON.parse(jsonPayload);
+			} catch (e) {
+				return null;
+			}
+		}
+
+		function isRecoverySession(session) {
+			if (!session || !session.access_token) return false;
+			const payload = parseJwt(session.access_token);
+			if (!payload || !payload.amr) return false;
+			return payload.amr.some(item => {
+				if (typeof item === 'string') return item === 'recovery';
+				if (item && typeof item === 'object') return item.method === 'recovery';
+				return false;
+			});
+		}
+
 		let isRecoveryActive = localStorage.getItem('isPasswordRecoveryFlow') === 'true';
 
 		// Si no hay parámetros de recuperación ni código en la URL, limpiar el flag de estado
@@ -821,7 +857,9 @@
 		// Inicializar al cargar — escuchar OAuth redirect y verificar sesión existente
 		getClientAsync().then(client => {
 			client.auth.onAuthStateChange((event, session) => {
-				if (event === 'PASSWORD_RECOVERY') {
+				const isRecovery = event === 'PASSWORD_RECOVERY' || isRecoverySession(session) || isRecoveryActive || window.location.hash.includes('recovery') || window.location.search.includes('recovery');
+				
+				if (isRecovery) {
 					isRecoveryActive = true;
 					localStorage.setItem('isPasswordRecoveryFlow', 'true');
 					document.getElementById('loginView').classList.add('hidden');
@@ -829,22 +867,14 @@
 					document.getElementById('updatePasswordView').classList.remove('hidden');
 					clearMessage();
 				} else if (event === 'SIGNED_IN' && session) {
-					if (isRecoveryActive || window.location.hash.includes('recovery') || window.location.search.includes('recovery')) {
-						// Si venimos de un flujo de recuperación (pero el evento ya se procesó o redirigió),
-						// también debemos mostrar el formulario de actualización de contraseña.
-						document.getElementById('loginView').classList.add('hidden');
-						document.getElementById('resetView').classList.add('hidden');
-						document.getElementById('updatePasswordView').classList.remove('hidden');
-						clearMessage();
-						return; // Dejar que el flujo de recuperación maneje la vista
-					}
 					onLoginSuccess(session.user);
 				}
 			});
 
 			client.auth.getSession().then(({ data: { session } }) => {
 				if (session) {
-					if (isRecoveryActive || window.location.hash.includes('recovery') || window.location.search.includes('recovery') || window.location.search.includes('code')) {
+					const isRecovery = isRecoverySession(session) || isRecoveryActive || window.location.hash.includes('recovery') || window.location.search.includes('recovery') || window.location.search.includes('code');
+					if (isRecovery) {
 						return; // Dejar que el flujo de recuperación o intercambio de código maneje la vista
 					}
 					if (session.user.user_metadata?.approved !== true && session.user.email !== 'flozros@gmail.com') {
