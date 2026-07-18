@@ -763,9 +763,14 @@
 			setLoading('resetBtn', true);
 			const client = await getClientAsync();
 			const email = document.getElementById('resetEmail').value.trim();
-			const { error } = await client.auth.resetPasswordForEmail(email, { redirectTo: REDIRECT_URL });
+			
+			// Guardar flag en localStorage indicando que este navegador inició un flujo de recuperación
+			localStorage.setItem('isPasswordRecoveryFlow', 'true');
+
+			const { error } = await client.auth.resetPasswordForEmail(email, { redirectTo: REDIRECT_URL + '?type=recovery' });
 			if (error) {
 				showMessage(translateError(error.message), 'error');
+				localStorage.removeItem('isPasswordRecoveryFlow'); // Limpiar si falla
 			} else {
 				showMessage('Enlace enviado. Revisa tu correo electrónico.', 'success');
 			}
@@ -787,6 +792,7 @@
 				showMessage(translateError(error.message), 'error');
 				setLoading('updateBtn', false);
 			} else {
+				localStorage.removeItem('isPasswordRecoveryFlow'); // Limpiar flag de recuperación
 				showMessage('¡Contraseña actualizada correctamente! Redirigiendo...', 'success');
 				setTimeout(() => {
 					window.location.hash = '';
@@ -795,13 +801,21 @@
 			}
 		}
 
-		let isRecoveryActive = false;
+		let isRecoveryActive = localStorage.getItem('isPasswordRecoveryFlow') === 'true';
+
+		// Si no hay parámetros de recuperación ni código en la URL, limpiar el flag de estado
+		if (!window.location.hash.includes('recovery') && !window.location.search.includes('recovery') && !window.location.search.includes('code')) {
+			localStorage.removeItem('isPasswordRecoveryFlow');
+			isRecoveryActive = false;
+		}
 
 		// Check for errors in URL (hash or search) on load
 		const params = new URLSearchParams(window.location.search || window.location.hash.substring(1));
 		const errorMsg = params.get('error_description') || params.get('error');
 		if (errorMsg) {
 			showMessage(translateError(decodeURIComponent(errorMsg.replace(/\+/g, ' '))), 'error');
+			localStorage.removeItem('isPasswordRecoveryFlow');
+			isRecoveryActive = false;
 		}
 
 		// Inicializar al cargar — escuchar OAuth redirect y verificar sesión existente
@@ -809,6 +823,7 @@
 			client.auth.onAuthStateChange((event, session) => {
 				if (event === 'PASSWORD_RECOVERY') {
 					isRecoveryActive = true;
+					localStorage.setItem('isPasswordRecoveryFlow', 'true');
 					document.getElementById('loginView').classList.add('hidden');
 					document.getElementById('resetView').classList.add('hidden');
 					document.getElementById('updatePasswordView').classList.remove('hidden');
