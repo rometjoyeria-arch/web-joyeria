@@ -3,8 +3,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 // ═══════════════════════════════════════════════════════════
-// ROMET JOYERÍA — Edge Function v62
-// Glosario joyería + 3 modos de prompt + emails directos Resend
+// ROMET JOYERÍA — Edge Function v64
+// Glosario joyería + 3 modos de prompt + emails directos Resend + prompt geometry/numbers fix
 // Modelo: gemini-3.1-flash-image (confirmado funcional)
 // ═══════════════════════════════════════════════════════════
 
@@ -39,6 +39,95 @@ function detectarTerminos(...textos: (string | null | undefined)[]): string {
   }
   if (definiciones.length === 0) return "";
   return `\n\nJEWELRY TERMINOLOGY (the client used these professional terms — follow these definitions exactly):\n${definiciones.map(d => "- " + d).join("\n")}`;
+}
+
+function detectarRestriccionesEspecificas(...textos: (string | null | undefined)[]): string {
+  const textoCompleto = textos.filter(Boolean).join(" ").toLowerCase();
+  const alertas: string[] = [];
+
+  // Buscar dígitos
+  const digitos = textoCompleto.match(/\b\d+\b/g);
+  if (digitos) {
+    digitos.forEach(num => {
+      // Intentar encontrar el contexto del número (ej. "10 pétalos", "3 hojas")
+      const regexContexto = new RegExp(`\\b${num}\\s+\\w+`, 'gi');
+      const matches = textoCompleto.match(regexContexto);
+      if (matches) {
+        matches.forEach(m => alertas.push(`Exact count constraint: "${m}" (ensure EXACTLY ${num} of these elements are rendered)`));
+      } else {
+        alertas.push(`Exact numerical quantity requested: "${num}" (must be strictly respected)`);
+      }
+    });
+  }
+
+  // Buscar números escritos en español
+  const numerosEscritos = [
+    { palabras: ["cero"], valor: 0 },
+    { palabras: ["uno", "una"], valor: 1 },
+    { palabras: ["dos"], valor: 2 },
+    { palabras: ["tres"], valor: 3 },
+    { palabras: ["cuatro"], valor: 4 },
+    { palabras: ["cinco"], valor: 5 },
+    { palabras: ["seis"], valor: 6 },
+    { palabras: ["siete"], valor: 7 },
+    { palabras: ["ocho"], valor: 8 },
+    { palabras: ["nueve"], valor: 9 },
+    { palabras: ["diez"], valor: 10 },
+    { palabras: ["once"], valor: 11 },
+    { palabras: ["doce"], valor: 12 },
+    { palabras: ["trece"], valor: 13 },
+    { palabras: ["catorce"], valor: 14 },
+    { palabras: ["quince"], valor: 15 }
+  ];
+
+  numerosEscritos.forEach(({ palabras, valor }) => {
+    palabras.forEach(palabra => {
+      const regex = new RegExp(`\\b${palabra}\\b`, 'i');
+      if (regex.test(textoCompleto)) {
+        // Encontrar contexto (palabra siguiente)
+        const regexContexto = new RegExp(`\\b${palabra}\\s+(\\w+)`, 'i');
+        const match = regexContexto.exec(textoCompleto);
+        if (match && match[1]) {
+          alertas.push(`Exact count constraint: "${palabra} ${match[1]}" (ensure EXACTLY ${valor} of these elements are rendered)`);
+        } else {
+          alertas.push(`Exact count constraint: "${palabra}" (ensure exactly ${valor} of these elements are rendered)`);
+        }
+      }
+    });
+  });
+
+  // Buscar palabras de geometría/forma y acabados en español
+  const terminosGeometria = [
+    { terminos: ["margarita"], desc: "Shape / Flower: Daisy flower shape" },
+    { terminos: ["pétalo", "petalo", "pétalos", "petalos"], desc: "Flower element: Petals count and shape" },
+    { terminos: ["hoja", "hojas"], desc: "Foliage: Leaf shape and count" },
+    { terminos: ["redondo", "redonda", "redondeado", "redondeada", "redondear", "redondeo"], desc: "Geometric style: Rounded, soft, circular outline and edges (NOT sharp, NOT square, NOT angular)" },
+    { terminos: ["elíptico", "eliptico", "elíptica", "eliptica", "elipse", "heliptico", "heliptica"], desc: "Geometric style: Elliptical, oval, elongated curved outline and edges (ellipse shape)" },
+    { terminos: ["cuadrado", "cuadrada", "cuadrangular"], desc: "Geometric style: Square, rectangular, sharp 90-degree corners, flat straight sides (unmistakably square/rectangular)" },
+    { terminos: ["triangular", "triángulo", "triangulo"], desc: "Geometric style: Triangular shape, three clear points and straight edges (unmistakably triangular)" },
+    { terminos: ["romboidal", "rombo"], desc: "Geometric style: Rhombus / diamond shape" },
+    { terminos: ["plano", "plana"], desc: "Geometric style: Flat, level surface and profile" },
+    { terminos: ["convexo", "convexa"], desc: "Geometric style: Convex, domed profile" },
+    { terminos: ["cóncavo", "concavo", "cóncava", "concava"], desc: "Geometric style: Concave, hollowed profile" },
+    { terminos: ["puntiagudo", "puntiaguda", "punta"], desc: "Geometric style: Pointed, sharp tips and ends" }
+  ];
+
+  terminosGeometria.forEach(({ terminos, desc }) => {
+    const detectado = terminos.some(t => {
+      const regex = new RegExp(`\\b${t}`, 'i');
+      return regex.test(textoCompleto);
+    });
+    if (detectado) {
+      alertas.push(`Geometric / Stylistic constraint: "${terminos[0]}" -> ${desc}`);
+    }
+  });
+
+  if (alertas.length === 0) return "";
+
+  // Filtrar duplicados
+  const alertasUnicas = [...new Set(alertas)];
+
+  return `\n\n⚠️ EXTRA PRIORITY GEOMETRIC & NUMERICAL CONSTRAINTS (the client explicitly requested these details - you MUST execute them with absolute precision):\n${alertasUnicas.map(a => "- " + a).join("\n")}`;
 }
 
 // ═══ MAPS ═══════════════════════════════════════════════════
@@ -151,6 +240,7 @@ serve(async (req) => {
     const bodyPartDesc  = BODY_PART_MAP[categoria_producto] || "worn by a person";
     const tieneGema     = gema_principal && gema_principal !== "sin_gema";
     const glosarioInyectado = detectarTerminos(sugerencias, cambios_solicitados);
+    const restriccionesGeometriaYNumeros = detectarRestriccionesEspecificas(sugerencias, cambios_solicitados);
 
     const especificaciones = `JEWELRY SPECIFICATIONS (must always be respected):
 - Type: ${categoriaDesc}
@@ -164,6 +254,7 @@ ${sugerencias ? "- Design notes: " + sugerencias : ""}`;
 - The piece MUST look like a real, commercially available jewelry store product
 - SIMPLE and CLEAN — no excessive decoration, no fantasy elements
 - Realistic, wearable proportions
+- STRICT NUMERICAL AND GEOMETRIC ACCURACY: You must strictly adhere to the number of elements (such as petals, leaves, gemstones, links) specified. If the user asks for 10 petals, you must render exactly 10 petals, not 12. If a specific geometric finish (e.g. square, triangular, elliptical, rounded) is requested, prioritize it and make it highly defined and clearly visible in the shape of the jewelry. Do not approximate shapes or quantities.
 - DO NOT add faces, animals, crowns, wings, dragons, snakes, skulls or fantasy motifs unless explicitly requested
 - DO NOT invent decorative elements that were not asked for
 - Understated and elegant, never baroque or churrigueresque`;
@@ -217,6 +308,7 @@ ${especificaciones}
 ⚠️ REQUESTED CHANGES — apply ONLY these specific modifications, keep all other features identical to the attached image:
 "${cambios_solicitados || sugerencias}"
 ${glosarioInyectado}
+${restriccionesGeometriaYNumeros}
 
 ${reglasEstilo}
 
@@ -239,6 +331,7 @@ Study the references carefully and reproduce their key elements faithfully as a 
 
 ${especificaciones}
 ${glosarioInyectado}
+${restriccionesGeometriaYNumeros}
 
 ${reglasEstilo}
 
@@ -254,6 +347,7 @@ ${reglasRender}`;
 
 ${especificaciones}
 ${glosarioInyectado}
+${restriccionesGeometriaYNumeros}
 
 ${reglasEstilo}
 
