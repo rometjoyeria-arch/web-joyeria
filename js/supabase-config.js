@@ -529,7 +529,7 @@ function injectWhatsAppButton(lang = 'es') {
 	button.href = `https://wa.me/${WHATSAPP_PHONE}`;
 	button.target = '_blank';
 	button.rel = 'noopener noreferrer';
-	button.style.cssText = 'position:fixed; bottom:24px; right:24px; z-index:999999; width:60px; height:60px; background-color:#25d366; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; box-shadow:0 4px 10px rgba(0,0,0,0.15); cursor:pointer; transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-decoration:none;';
+	button.style.cssText = 'position:fixed; bottom:100px; right:24px; z-index:999999; width:60px; height:60px; background-color:#25d366; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; box-shadow:0 4px 10px rgba(0,0,0,0.15); cursor:pointer; transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-decoration:none;';
 	
 	const iconSvg = `
 		<svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" style="display:block;">
