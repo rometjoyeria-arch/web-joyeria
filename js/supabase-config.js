@@ -99,21 +99,9 @@ async function initWhenReady(callback) {
 			return; // Detener ejecución
 		}
 		
-		if (!isLoginPage && (!session || (session.user.email !== authorizedEmail && session.user.user_metadata?.approved !== true))) {
-			console.log('Acceso restringido. Redirigiendo a pantalla de bloqueo...');
-			document.body.innerHTML = `
-				<div style="height:100vh; width:100vw; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#000; color:#fff; font-family:'Cormorant Garamond', serif; text-align:center; padding:20px;">
-					<img src="./logo-romet.png" style="height:80px; margin-bottom:30px; filter:brightness(0) invert(1);">
-					<h1 style="font-size:2rem; letter-spacing:0.2em; text-transform:uppercase; margin-bottom:15px;">Sitio en Mantenimiento</h1>
-					<p style="font-family:sans-serif; color:#888; max-width:400px; line-height:1.6; font-size:0.9rem;">
-						Estamos realizando mejoras de seguridad en Romet Joyería.
-						El acceso al catálogo y al diseñador estará disponible próximamente.
-					</p>
-					<a href="./login.html" style="margin-top:30px; color:#fff; text-transform:uppercase; font-size:0.7rem; letter-spacing:0.1em; text-decoration:none; border:1px solid #333; padding:10px 20px;">Acceso Administrador</a>
-				</div>
-			`;
-			document.body.style.overflow = 'hidden';
-			injectWhatsAppButton('es');
+		if (!isLoginPage && !session) {
+			console.log('Acceso restringido. Redirigiendo a pantalla de login...');
+			window.location.href = './login.html';
 			return; // Detener ejecución
 		}
 
@@ -158,8 +146,8 @@ async function getCredits() {
 	
 	let credits = user.user_metadata?.credits;
 	if (credits === undefined) {
-		credits = 10;
-		await sb.auth.updateUser({ data: { credits: 10 } });
+		credits = 0;
+		await sb.auth.updateUser({ data: { credits: 0 } });
 	}
 	return credits;
 }

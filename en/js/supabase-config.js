@@ -88,9 +88,9 @@ async function getCredits() {
 	if (!session) return 0;
 	let credits = session.user.user_metadata?.credits;
 	if (credits === undefined) {
-		credits = 10;
+		credits = 0;
 		const sb = getSupabase();
-		await sb.auth.updateUser({ data: { credits: 10 } });
+		await sb.auth.updateUser({ data: { credits: 0 } });
 	}
 	return credits;
 }

@@ -676,14 +676,6 @@
 		// ═══════════════════════════════════════
 
 		function onLoginSuccess(user) {
-			if (user.user_metadata?.approved !== true) {
-				showMessage('Tu cuenta ha sido registrada y está pendiente de aprobación manual por el administrador de Romet Joyería. Te notificaremos cuando sea activada.', 'success');
-				setLoading('registerBtn', false);
-				setLoading('loginBtn', false);
-				getClientAsync().then(client => client.auth.signOut());
-				return;
-			}
-
 			const name = user.user_metadata?.first_name || user.user_metadata?.full_name || user.email.split('@')[0];
 			showMessage('¡Bienvenido, ' + name + '! Redirigiendo...', 'success');
 			setTimeout(() => {
@@ -743,7 +735,7 @@
 			if (data.session) {
 				onLoginSuccess(data.user);
 			} else {
-				showMessage('¡Cuenta creada! Revisa tu correo para confirmarla. Tu cuenta estará activa una vez que el administrador la apruebe manualmente.', 'success');
+				showMessage('¡Cuenta creada! Revisa tu correo para confirmarla e iniciar sesión.', 'success');
 				setLoading('registerBtn', false);
 			}
 		}
@@ -893,10 +885,6 @@
 					const isRecovery = isRecoverySession(session) || isRecoveryActive || window.location.hash.includes('recovery') || window.location.search.includes('recovery') || window.location.search.includes('code');
 					if (isRecovery) {
 						return; // Dejar que el flujo de recuperación o intercambio de código maneje la vista
-					}
-					if (session.user.user_metadata?.approved !== true && session.user.email !== 'flozros@gmail.com') {
-						client.auth.signOut();
-						return;
 					}
 					const redirect = sessionStorage.getItem('redirectAfterLogin') || './index.html';
 					sessionStorage.removeItem('redirectAfterLogin');
