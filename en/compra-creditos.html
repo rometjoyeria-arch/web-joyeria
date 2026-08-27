@@ -483,6 +483,82 @@
 			border: 1px solid hsl(0 84% 85%);
 			color: hsl(0 84% 40%);
 		}
+
+		/* Promo Code Section */
+		.promo-container {
+			max-width: 600px;
+			margin: 0 auto 3.5rem;
+			background: hsl(0 0% 95%);
+			border: 1px solid hsl(0 0% 80%);
+			padding: 2rem;
+			text-align: center;
+			position: relative;
+			z-index: 10;
+		}
+		.promo-title {
+			font-size: 1.5rem;
+			font-weight: 500;
+			letter-spacing: 0.15em;
+			text-transform: uppercase;
+			margin-bottom: 0.5rem;
+			color: hsl(0 0% 15%);
+		}
+		.promo-desc {
+			font-family: ui-sans-serif, system-ui, sans-serif;
+			font-size: 0.9rem;
+			color: hsl(0 0% 45%);
+			margin-bottom: 1.5rem;
+		}
+		.promo-form-group {
+			display: flex;
+			flex-direction: column;
+			gap: 1rem;
+			max-width: 450px;
+			margin: 0 auto;
+		}
+		@media (min-width: 480px) {
+			.promo-form-group {
+				flex-direction: row;
+			}
+		}
+		.promo-input {
+			flex: 1;
+			padding: 0.75rem 1rem;
+			border: 1px solid hsl(0 0% 80%);
+			background: hsl(0 0% 92%);
+			font-family: 'Cormorant Garamond', serif;
+			font-size: 1.1rem;
+			text-align: center;
+			text-transform: uppercase;
+			letter-spacing: 0.1em;
+			outline: none;
+			transition: all 0.3s;
+		}
+		.promo-input:focus {
+			border-color: hsl(0 0% 20%);
+			background: white;
+		}
+		.promo-btn {
+			padding: 0.75rem 2rem;
+			background: black;
+			color: white;
+			border: none;
+			font-family: 'Cormorant Garamond', serif;
+			font-size: 1.05rem;
+			font-weight: 600;
+			letter-spacing: 0.15em;
+			text-transform: uppercase;
+			cursor: pointer;
+			transition: all 0.3s;
+		}
+		.promo-btn:hover:not(:disabled) {
+			background: hsl(0 0% 20%);
+		}
+		.promo-btn:disabled {
+			background: hsl(0 0% 75%);
+			color: hsl(0 0% 50%);
+			cursor: not-allowed;
+		}
 	</style>
 </head>
 <body>
@@ -546,6 +622,16 @@
 						<div class="card-price">99,00 €</div>
 						<p class="card-description">Designed for passionate creators and complete collections. Enjoy 250 generations to design without limits and refine every detail of your luxury pieces.</p>
 						<button id="btn-99" class="card-btn" onclick="redirectToStripeCheckout('250_designs', this)">Buy</button>
+					</div>
+				</div>
+
+				<!-- Promo Code Section -->
+				<div class="promo-container">
+					<h3 class="promo-title">Do you have a promo code?</h3>
+					<p class="promo-desc">Enter your promo code to get 10 free credits instantly added to your account.</p>
+					<div class="promo-form-group">
+						<input type="text" id="promo-code" class="promo-input" placeholder="PROMO CODE">
+						<button id="btn-promo" class="promo-btn" onclick="redeemPromoCode()">Redeem</button>
 					</div>
 				</div>
 
@@ -691,6 +777,79 @@
 					btnFree.textContent = "Claimed";
 					btnFree.title = "The free trial token has already been activated on your account.";
 				}
+			}
+
+			if (metadata.claimed_joyeria10 === true) {
+				const btnPromo = document.getElementById('btn-promo');
+				const inputPromo = document.getElementById('promo-code');
+				if (btnPromo) {
+					btnPromo.disabled = true;
+					btnPromo.textContent = "Redeemed";
+				}
+				if (inputPromo) {
+					inputPromo.disabled = true;
+					inputPromo.placeholder = "JOYERIA10";
+					inputPromo.value = "JOYERIA10";
+				}
+			}
+		}
+
+		// Redeem Promo Code
+		async function redeemPromoCode() {
+			const btn = document.getElementById('btn-promo');
+			const input = document.getElementById('promo-code');
+			const code = input.value.trim().toUpperCase();
+			const originalText = btn.textContent;
+
+			if (!code) {
+				showNotification("Please enter a promo code.", "error");
+				return;
+			}
+
+			if (code !== 'JOYERIA10') {
+				showNotification("The promo code entered is invalid or expired.", "error");
+				return;
+			}
+
+			btn.disabled = true;
+			btn.innerHTML = '<span class="spinner"></span>';
+
+			try {
+				const sb = getSupabase();
+				const metadata = currentUser.user_metadata || {};
+				if (metadata.claimed_joyeria10 === true) {
+					showNotification("You have already redeemed the JOYERIA10 code on this account.", "error");
+					btn.disabled = true;
+					btn.textContent = "Redeemed";
+					return;
+				}
+
+				const credits = await getCredits();
+				const newCredits = credits + 10;
+
+				const { error } = await sb.auth.updateUser({
+					data: {
+						credits: newCredits,
+						claimed_joyeria10: true
+					}
+				});
+
+				if (error) throw error;
+
+				showNotification("Code redeemed successfully! 10 credits added to your account.", "success");
+
+				const { data: { session } } = await sb.auth.getSession();
+				if (session) currentUser = session.user;
+
+				const displays = document.querySelectorAll('#credit-count-display, #credit-count-header');
+				displays.forEach(d => d.textContent = newCredits);
+				updatePackageStatus();
+
+			} catch(e) {
+				console.error("Error redeeming promo code:", e);
+				showNotification("An error occurred while processing your request: " + e.message, "error");
+				btn.disabled = false;
+				btn.textContent = originalText;
 			}
 		}
 
