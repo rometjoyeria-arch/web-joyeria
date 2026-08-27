@@ -796,6 +796,11 @@
 
 		// Redeem Promo Code
 		async function redeemPromoCode() {
+			if (!currentUser) {
+				showNotification("Please log in to redeem a promo code.", "error");
+				return;
+			}
+
 			const btn = document.getElementById('btn-promo');
 			const input = document.getElementById('promo-code');
 			const code = input.value.trim().toUpperCase();

@@ -804,6 +804,11 @@
 
 		// Canjear Código Promocional
 		async function redeemPromoCode() {
+			if (!currentUser) {
+				showNotification("Debes iniciar sesión para canjear un código.", "error");
+				return;
+			}
+
 			const btn = document.getElementById('btn-promo');
 			const input = document.getElementById('promo-code');
 			const code = input.value.trim().toUpperCase();
