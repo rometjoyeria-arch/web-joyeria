@@ -144,6 +144,10 @@ async function getCredits() {
 	const { data: { user } } = await sb.auth.getUser();
 	if (!user) return 0;
 	
+	if (user.user_metadata?.is_unlimited === true || user.user_metadata?.plan === 'profesionales_plus') {
+		return '∞';
+	}
+
 	let credits = user.user_metadata?.credits;
 	if (credits === undefined) {
 		credits = 0;
@@ -155,15 +159,22 @@ async function getCredits() {
 async function consumeCredit() {
 	const session = await getSession();
 	if (!session) return false;
+	
+	if (session.user.user_metadata?.is_unlimited === true || session.user.user_metadata?.plan === 'profesionales_plus') {
+		return true;
+	}
+
 	let credits = await getCredits();
-	if (credits <= 0) return false;
+	if (typeof credits === 'number' && credits <= 0) return false;
 	
-	credits -= 1;
-	const sb = getSupabase();
-	await sb.auth.updateUser({ data: { credits: credits } });
-	
-	const displays = document.querySelectorAll('#credit-count-display, #credit-count-header');
-	displays.forEach(d => d.textContent = credits);
+	if (typeof credits === 'number') {
+		credits -= 1;
+		const sb = getSupabase();
+		await sb.auth.updateUser({ data: { credits: credits } });
+		
+		const displays = document.querySelectorAll('#credit-count-display, #credit-count-header');
+		displays.forEach(d => d.textContent = credits);
+	}
 	
 	return true;
 }

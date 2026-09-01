@@ -86,6 +86,11 @@ async function signOut() {
 async function getCredits() {
 	const session = await getSession();
 	if (!session) return 0;
+	
+	if (session.user.user_metadata?.is_unlimited === true || session.user.user_metadata?.plan === 'profesionales_plus') {
+		return '∞';
+	}
+
 	let credits = session.user.user_metadata?.credits;
 	if (credits === undefined) {
 		credits = 0;
@@ -98,17 +103,23 @@ async function getCredits() {
 async function consumeCredit() {
 	const session = await getSession();
 	if (!session) return false;
-	let credits = await getCredits();
-	if (credits <= 0) return false;
 	
-	credits -= 1;
-	const sb = getSupabase();
-	await sb.auth.updateUser({ data: { credits: credits } });
-	
-	const creditDisplay = document.getElementById('credit-count-display');
-	if (creditDisplay) {
-		creditDisplay.textContent = credits;
+	if (session.user.user_metadata?.is_unlimited === true || session.user.user_metadata?.plan === 'profesionales_plus') {
+		return true;
 	}
+
+	let credits = await getCredits();
+	if (typeof credits === 'number' && credits <= 0) return false;
+	
+	if (typeof credits === 'number') {
+		credits -= 1;
+		const sb = getSupabase();
+		await sb.auth.updateUser({ data: { credits: credits } });
+		
+		const displays = document.querySelectorAll('#credit-count-display, #credit-count-header');
+		displays.forEach(d => d.textContent = credits);
+	}
+	
 	return true;
 }
 

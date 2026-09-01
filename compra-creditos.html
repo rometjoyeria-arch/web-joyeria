@@ -8,7 +8,7 @@
 	<meta name="description" content="Adquiere créditos para diseñar tus joyas personalizadas con inteligencia artificial en Romet Joyería.">
 	<link rel="stylesheet" crossorigin="" href="./index_files/index-xtSdOPat.css?v=2">
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-	<script src="./js/supabase-config.js?v=41"></script>
+	<script src="./js/supabase-config.js?v=42"></script>
 
 	<style>
 		@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap');
@@ -88,17 +88,94 @@
 			margin: 0 auto 1.5rem;
 		}
 
-		.pricing-grid {
+		.pricing-grid-2 {
 			display: grid;
 			grid-template-columns: repeat(1, 1fr);
 			gap: 2rem;
-			margin-bottom: 3rem;
+			max-width: 800px;
+			margin: 0 auto 4rem;
+		}
+
+		@media (min-width: 640px) {
+			.pricing-grid-2 {
+				grid-template-columns: repeat(2, 1fr);
+			}
+		}
+
+		.pricing-grid-3 {
+			display: grid;
+			grid-template-columns: repeat(1, 1fr);
+			gap: 2rem;
+			margin-bottom: 3.5rem;
 		}
 
 		@media (min-width: 768px) {
-			.pricing-grid {
+			.pricing-grid-3 {
 				grid-template-columns: repeat(3, 1fr);
 			}
+		}
+
+		.section-block-header {
+			text-align: center;
+			margin-top: 1rem;
+			margin-bottom: 2.5rem;
+		}
+
+		.section-tag {
+			font-family: ui-sans-serif, system-ui, sans-serif;
+			font-size: 0.72rem;
+			font-weight: 700;
+			letter-spacing: 0.2em;
+			text-transform: uppercase;
+			color: hsl(45 70% 40%);
+			background: hsl(45 90% 94%);
+			padding: 4px 14px;
+			border-radius: 100px;
+			display: inline-block;
+			margin-bottom: 0.75rem;
+		}
+
+		.section-heading {
+			font-size: 2rem;
+			font-weight: 600;
+			letter-spacing: 0.12em;
+			text-transform: uppercase;
+			color: hsl(0 0% 15%);
+			margin-bottom: 0.5rem;
+		}
+
+		.section-subtext {
+			font-family: ui-sans-serif, system-ui, sans-serif;
+			font-size: 0.95rem;
+			color: hsl(0 0% 45%);
+			max-width: 600px;
+			margin: 0 auto;
+			line-height: 1.5;
+		}
+
+		.card-period-badge {
+			align-self: center;
+			font-family: ui-sans-serif, system-ui, sans-serif;
+			font-size: 0.72rem;
+			font-weight: 700;
+			letter-spacing: 0.1em;
+			text-transform: uppercase;
+			padding: 4px 12px;
+			border-radius: 4px;
+			margin-top: -1.2rem;
+			margin-bottom: 1.5rem;
+			background: hsl(0 0% 88%);
+			color: hsl(0 0% 30%);
+		}
+
+		.card-period-badge.unlimited {
+			background: hsl(150 60% 92%);
+			color: hsl(150 80% 25%);
+		}
+
+		.card-period-badge.recurring {
+			background: hsl(45 90% 90%);
+			color: hsl(45 90% 25%);
 		}
 
 		.pricing-card {
@@ -595,33 +672,71 @@
 				<div class="accent-line"></div>
 				<p class="page-subtitle">Obtén créditos para dar rienda suelta a tu imaginación y generar diseños exclusivos con nuestra Inteligencia Artificial especializada en joyería fina.</p>
 
-				<!-- Pricing Grid -->
-				<div class="pricing-grid">
-					<!-- Free Token -->
+				<!-- Sección 1: Acceso y Diseños Puntuales -->
+				<div class="section-block-header">
+					<span class="section-tag">Diseño Individual</span>
+					<h2 class="section-heading">Acceso y Diseños Puntuales</h2>
+					<p class="section-subtext">Comienza gratis o adquiere un paquete puntual de diseños con tiempo ilimitado para utilizarlos cuando tú decidas.</p>
+				</div>
+
+				<div class="pricing-grid-2">
+					<!-- Token Prueba Gratis -->
 					<div class="pricing-card">
-						<h2 class="card-title">Token Gratis</h2>
-						<div class="card-credits">5 Diseños</div>
+						<h3 class="card-title">Token Prueba Gratis</h3>
+						<div class="card-credits">3 Diseños</div>
 						<div class="card-price">0 €</div>
+						<div class="card-period-badge">Prueba de Bienvenida</div>
 						<p class="card-description">Prueba la magia de la Inteligencia Artificial de Romet Joyería. Genera tus primeros bocetos y experimenta con diferentes tipos de joyas y estilos sin coste alguno.</p>
-						<button id="btn-free" class="card-btn" onclick="claimFreeToken()">Obtener</button>
+						<button id="btn-free" class="card-btn" onclick="claimFreeToken()">Obtener Gratis</button>
 					</div>
 
-					<!-- 10 Designs -->
+					<!-- Particular -->
 					<div class="pricing-card">
-						<h2 class="card-title">10 Diseños</h2>
-						<div class="card-credits">10 Generaciones IA</div>
-						<div class="card-price">4,99 €</div>
-						<p class="card-description">La opción ideal para definir tu pieza perfecta. Obtén 10 generaciones de alta resolución para explorar variaciones de diseño, acabados y estilos de joyas en detalle.</p>
-						<button id="btn-499" class="card-btn" onclick="redirectToStripeCheckout('10_designs', this)">Comprar</button>
+						<h3 class="card-title">Particular</h3>
+						<div class="card-credits">3 Diseños</div>
+						<div class="card-price">4,95 €</div>
+						<div class="card-period-badge unlimited">Tiempo Ilimitado</div>
+						<p class="card-description">La opción perfecta para crear una pieza única o un regalo exclusivo. Dispones de 3 generaciones en alta definición que nunca caducan.</p>
+						<button id="btn-particular" class="card-btn" onclick="redirectToStripeCheckout('particular', this)">Comprar</button>
+					</div>
+				</div>
+
+				<!-- Sección 2: Suscripciones Profesionales Renovables -->
+				<div class="section-block-header">
+					<span class="section-tag">Planes Mensuales</span>
+					<h2 class="section-heading">Suscripciones Profesionales</h2>
+					<p class="section-subtext">Diseñadas para joyeros independientes, talleres artesanos y firmas de joyería que requieren un flujo regular de creación.</p>
+				</div>
+
+				<div class="pricing-grid-3">
+					<!-- Profesional 15 -->
+					<div class="pricing-card">
+						<h3 class="card-title">Profesional 15</h3>
+						<div class="card-credits">15 Diseños / mes</div>
+						<div class="card-price">24,90 € <span>/ mes</span></div>
+						<div class="card-period-badge recurring">Mensual Renovable</div>
+						<p class="card-description">Acceso mensual continuo con 15 generaciones para desarrollar colecciones periódicas y atender encargos personalizados de tus clientes.</p>
+						<button id="btn-prof15" class="card-btn" onclick="redirectToStripeCheckout('profesional15', this)">Suscribirse</button>
 					</div>
 
-					<!-- 250 Designs -->
+					<!-- Profesional 30 -->
+					<div class="pricing-card">
+						<h3 class="card-title">Profesional 30</h3>
+						<div class="card-credits">30 Diseños / mes</div>
+						<div class="card-price">44,90 € <span>/ mes</span></div>
+						<div class="card-period-badge recurring">Mensual Renovable</div>
+						<p class="card-description">La solución integral para firmas y joyeros activos. Disfruta de 30 generaciones mensuales para iterar estilos, gemas y variaciones en detalle.</p>
+						<button id="btn-prof30" class="card-btn" onclick="redirectToStripeCheckout('profesional30', this)">Suscribirse</button>
+					</div>
+
+					<!-- Profesionales Plus -->
 					<div class="pricing-card featured">
-						<h2 class="card-title">250 Diseños</h2>
-						<div class="card-credits">250 Generaciones IA</div>
-						<div class="card-price">99,00 €</div>
-						<p class="card-description">Diseñado para creadores apasionados y colecciones completas. Disfruta de 250 generaciones para diseñar sin límites y refinar cada aspecto de tus joyas.</p>
-						<button id="btn-99" class="card-btn" onclick="redirectToStripeCheckout('250_designs', this)">Comprar</button>
+						<h3 class="card-title">Profesionales Plus</h3>
+						<div class="card-credits">Diseños Ilimitados</div>
+						<div class="card-price">99,00 € <span>/ mes</span></div>
+						<div class="card-period-badge recurring">Mensual Renovable</div>
+						<p class="card-description">Máxima potencia sin restricciones. Diseña sin límite de generaciones para catálogos comerciales completos, múltiples clientes y soporte preferente.</p>
+						<button id="btn-prof-plus" class="card-btn" onclick="redirectToStripeCheckout('profesionales_plus', this)">Suscribirse</button>
 					</div>
 				</div>
 
@@ -746,9 +861,11 @@
 				const { data: { user } } = await sb.auth.getUser();
 				if (user) {
 					currentUser = user;
-					const credits = user.user_metadata?.credits || 0;
+					const isUnlimited = user.user_metadata?.is_unlimited === true || user.user_metadata?.plan === 'profesionales_plus';
+					const credits = isUnlimited ? '∞' : (user.user_metadata?.credits || 0);
 					const displays = document.querySelectorAll('#credit-count-display, #credit-count-header');
 					displays.forEach(d => d.textContent = credits);
+					updatePackageStatus();
 				}
 			}
 		}
@@ -784,6 +901,27 @@
 					btnFree.disabled = true;
 					btnFree.textContent = "Token Reclamado";
 					btnFree.title = "El token de prueba gratuita ya ha sido activado en tu cuenta.";
+				}
+			}
+
+			// Resaltar plan o suscripción activa si existe
+			if (metadata.is_unlimited === true || metadata.plan === 'profesionales_plus') {
+				const btnPlus = document.getElementById('btn-prof-plus');
+				if (btnPlus) {
+					btnPlus.textContent = "Suscripción Activa";
+					btnPlus.style.background = "hsl(150 70% 30%)";
+				}
+			} else if (metadata.plan === 'profesional15') {
+				const btn15 = document.getElementById('btn-prof15');
+				if (btn15) {
+					btn15.textContent = "Suscripción Activa";
+					btn15.style.background = "hsl(150 70% 30%)";
+				}
+			} else if (metadata.plan === 'profesional30') {
+				const btn30 = document.getElementById('btn-prof30');
+				if (btn30) {
+					btn30.textContent = "Suscripción Activa";
+					btn30.style.background = "hsl(150 70% 30%)";
 				}
 			}
 
@@ -838,7 +976,8 @@
 				}
 
 				const credits = await getCredits();
-				const newCredits = credits + 10;
+				const currentNum = typeof credits === 'number' ? credits : 0;
+				const newCredits = currentNum + 10;
 
 				const { error } = await sb.auth.updateUser({
 					data: {
@@ -866,7 +1005,7 @@
 			}
 		}
 
-		// Reclamar Token de Prueba Gratis (5 créditos)
+		// Reclamar Token de Prueba Gratis (3 diseños)
 		async function claimFreeToken() {
 			const btn = document.getElementById('btn-free');
 			const originalText = btn.textContent;
@@ -877,7 +1016,8 @@
 			try {
 				const sb = getSupabase();
 				const credits = await getCredits();
-				const newCredits = credits + 5;
+				const currentNum = typeof credits === 'number' ? credits : 0;
+				const newCredits = currentNum + 3;
 				
 				const { error } = await sb.auth.updateUser({
 					data: {
@@ -888,7 +1028,7 @@
 
 				if (error) throw error;
 				
-				showNotification("¡Enhorabuena! Has activado tu Token Gratis. Se han añadido 5 diseños a tu cuenta.", "success");
+				showNotification("¡Enhorabuena! Has activado tu Token Gratis. Se han añadido 3 diseños a tu cuenta.", "success");
 				
 				const { data: { session } } = await sb.auth.getSession();
 				if (session) currentUser = session.user;

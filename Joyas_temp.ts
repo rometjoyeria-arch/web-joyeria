@@ -208,8 +208,9 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await supabase.auth.getUser(userToken);
     if (authError || !user) throw new Error("Unauthorized");
 
+    const isUnlimited = user.user_metadata?.is_unlimited === true || user.user_metadata?.plan === 'profesionales_plus';
     const credits = user.user_metadata?.credits ?? 0;
-    if (credits <= 0) {
+    if (!isUnlimited && credits <= 0) {
       return new Response(JSON.stringify({ error: "Sin créditos" }), { status: 402, headers: corsHeaders });
     }
 
