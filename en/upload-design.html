@@ -7,7 +7,7 @@
 	<title>Sube tu Diseño - Romet Joyería</title>
 	<link rel="stylesheet" crossorigin="" href="../upload-design_files/index-xtSdOPat.css?v=3">
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-	<script src="./js/supabase-config.js?v=42"></script>
+	<script src="./js/supabase-config.js?v=43"></script>
 	<script src="./js/upload-integration.js"></script>
 	<script>
 		initWhenReady(() => {
@@ -288,8 +288,8 @@
 			submitBtn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px;"><svg style="animation:spin 1s linear infinite" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>Generating design with AI...</span>';
 
 			try {
-				const hasCredits = typeof consumeCredit === 'function' ? await consumeCredit() : true;
-				if (!hasCredits) {
+				const credits = typeof getCredits === 'function' ? await getCredits() : null;
+				if (credits !== '∞' && typeof credits === 'number' && credits <= 0) {
 					if (typeof window.showOutOfCreditsModal === 'function') window.showOutOfCreditsModal();
 					else alert('Not enough credits.');
 					submitBtn.disabled = false;
@@ -323,13 +323,17 @@
 					imagen_subida_url2: imagenSubidaUrl2,
 				});
 
+				if (typeof consumeCredit === 'function') {
+					await consumeCredit();
+				}
+
 				showUploadSuccess({ nombre, email, categoria, material }, result?.imagenUrl || null, result?.id || null);
 
 			} catch (error) {
 				console.error('Error:', error);
 				submitBtn.disabled = false;
 				submitBtn.textContent = 'Generate Design';
-				alert('Ha ocurrido un error. Por favor, inténtalo de nuevo.');
+				alert(error?.message || 'An error has occurred. Please try again.');
 			}
 		});
 
@@ -519,9 +523,10 @@
 						updateCreditInfo();
 					} else {
 						// Paid redesign
+						isPaidRedesign = true;
 						try {
-							const hasCredits = typeof consumeCredit === 'function' ? await consumeCredit() : true;
-							if (!hasCredits) {
+							const credits = typeof getCredits === 'function' ? await getCredits() : null;
+							if (credits !== '∞' && typeof credits === 'number' && credits <= 0) {
 								if (typeof window.showOutOfCreditsModal === 'function') window.showOutOfCreditsModal();
 								else alert('Not enough credits.');
 								if (redesignBtn) {
@@ -544,6 +549,10 @@
 						material: _uploadState.data.material,
 						sugerencias: 'Cambios solicitados: ' + cambios,
 					});
+
+					if (isPaidRedesign && typeof consumeCredit === 'function') {
+						await consumeCredit();
+					}
 
 					if (imagenContainer && result?.imagenUrl) {
 						_uploadState.imagenUrl = result.imagenUrl;

@@ -138,8 +138,8 @@
 		submitBtn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px;"><svg class="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>Generando tu diseño con IA...</span>';
 
 		try {
-			const hasCredits = typeof window.consumeCredit === 'function' ? await window.consumeCredit() : true;
-			if (!hasCredits) {
+			const credits = typeof window.getCredits === 'function' ? await window.getCredits() : null;
+			if (credits !== '∞' && typeof credits === 'number' && credits <= 0) {
 				if (typeof window.showOutOfCreditsModal === 'function') {
 					window.showOutOfCreditsModal();
 				} else {
@@ -169,13 +169,18 @@
 				sugerencias: state.notes,
 			});
 
+			if (typeof window.consumeCredit === 'function') {
+				await window.consumeCredit();
+			}
+
 			window._currentDesignId = result?.id || null;
 			showSuccessScreen(state, result?.imagenUrl || null);
 			clearState();
 
 		} catch (error) {
 			console.error('Error:', error);
-			showNotification('Ha ocurrido un error. Por favor, inténtalo de nuevo.', 'error');
+			const msg = error?.message || 'Ha ocurrido un error. Por favor, inténtalo de nuevo.';
+			showNotification(msg, 'error');
 			submitBtn.disabled = false;
 			submitBtn.textContent = originalText;
 		}
@@ -191,6 +196,7 @@
 			redesignBtn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px;"><svg class="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>Rediseñando...</span>';
 		}
 
+		let isPaidRedesign = false;
 		if (imagenContainer) {
 			// Free redesign logic: first 5 redesigns are free
 			let redesignCount = parseInt(sessionStorage.getItem('redesignCount') || '0', 10);
@@ -198,10 +204,11 @@
 				showNotification(`Rediseño gratuito (${5 - redesignCount} restantes)`, 'info');
 				redesignCount++;
 				sessionStorage.setItem('redesignCount', redesignCount.toString());
-		updateCreditInfo();
+				updateCreditInfo();
 			} else {
-				const hasCredits = typeof window.consumeCredit === 'function' ? await window.consumeCredit() : true;
-				if (!hasCredits) {
+				isPaidRedesign = true;
+				const credits = typeof window.getCredits === 'function' ? await window.getCredits() : null;
+				if (credits !== '∞' && typeof credits === 'number' && credits <= 0) {
 					if (typeof window.showOutOfCreditsModal === 'function') {
 						window.showOutOfCreditsModal();
 					} else {
@@ -236,6 +243,10 @@
 				imagen_referencia_url: state._lastImagenUrl,
 				cambios_solicitados: cambios,
 			});
+
+			if (isPaidRedesign && typeof window.consumeCredit === 'function') {
+				await window.consumeCredit();
+			}
 
 			if (imagenContainer && result?.imagenUrl) {
 				window._currentDesignId = result?.id || null;
