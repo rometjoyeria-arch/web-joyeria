@@ -84,17 +84,17 @@ async function signOut() {
 }
 
 async function getCredits() {
-	const session = await getSession();
-	if (!session) return 0;
+	const sb = getSupabase();
+	const { data: { user } } = await sb.auth.getUser();
+	if (!user) return 0;
 	
-	if (session.user.user_metadata?.is_unlimited === true || session.user.user_metadata?.plan === 'profesionales_plus') {
+	if (user.user_metadata?.is_unlimited === true || user.user_metadata?.plan === 'profesionales_plus') {
 		return '∞';
 	}
 
-	let credits = session.user.user_metadata?.credits;
+	let credits = user.user_metadata?.credits;
 	if (credits === undefined) {
 		credits = 0;
-		const sb = getSupabase();
 		await sb.auth.updateUser({ data: { credits: 0 } });
 	}
 	return credits;

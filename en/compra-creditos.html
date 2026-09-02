@@ -8,7 +8,7 @@
 	<meta name="description" content="Purchase credits to design your custom jewelry with artificial intelligence at Romet Jewelry.">
 	<link rel="stylesheet" crossorigin="" href="../index_files/index-xtSdOPat.css?v=2">
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-	<script src="./js/supabase-config.js?v=43"></script>
+	<script src="./js/supabase-config.js?v=44"></script>
 
 	<style>
 		@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap');
@@ -971,7 +971,7 @@
 				const currentNum = typeof credits === 'number' ? credits : 0;
 				const newCredits = currentNum + 10;
 
-				const { error } = await sb.auth.updateUser({
+				const { data: updateRes, error } = await sb.auth.updateUser({
 					data: {
 						credits: newCredits,
 						claimed_joyeria10: true
@@ -982,8 +982,12 @@
 
 				showNotification("Code redeemed successfully! 10 credits added to your account.", "success");
 
-				const { data: { session } } = await sb.auth.getSession();
-				if (session) currentUser = session.user;
+				if (updateRes?.user) {
+					currentUser = updateRes.user;
+				} else {
+					const { data: { user } } = await sb.auth.getUser();
+					if (user) currentUser = user;
+				}
 
 				const displays = document.querySelectorAll('#credit-count-display, #credit-count-header');
 				displays.forEach(d => d.textContent = newCredits);
@@ -1010,7 +1014,7 @@
 				const currentNum = typeof credits === 'number' ? credits : 0;
 				const newCredits = currentNum + 3;
 				
-				const { error } = await sb.auth.updateUser({
+				const { data: updateRes, error } = await sb.auth.updateUser({
 					data: {
 						credits: newCredits,
 						claimed_free: true
@@ -1021,8 +1025,12 @@
 				
 				showNotification("Success! Free Token activated. 3 designs added to your account.", "success");
 				
-				const { data: { session } } = await sb.auth.getSession();
-				if (session) currentUser = session.user;
+				if (updateRes?.user) {
+					currentUser = updateRes.user;
+				} else {
+					const { data: { user } } = await sb.auth.getUser();
+					if (user) currentUser = user;
+				}
 				
 				const displays = document.querySelectorAll('#credit-count-display, #credit-count-header');
 				displays.forEach(d => d.textContent = newCredits);
