@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	<link rel="icon" type="image/png" href="./favicon.png">
+	<link rel="icon" type="image/png" href="../favicon.png">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Login - Romet Jewelry AI</title>
-	<meta name="description" content="Accede a tu cuenta de Romet Joyería IA para diseñar joyas personalizadas con inteligencia artificial.">
-	<link rel="stylesheet" crossorigin="" href="./index_files/index-xtSdOPat.css?v=2">
+	<meta name="description" content="Access your Romet Jewelry AI account to design custom jewelry with artificial intelligence.">
+	<link rel="stylesheet" crossorigin="" href="../index_files/index-xtSdOPat.css?v=2">
 
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
@@ -396,18 +396,24 @@
 </head>
 <body>
 	<header class="bg-background border-b border-border px-4 md:px-8 py-4 md:py-6 flex flex-col sm:flex-row justify-between items-center gap-4 sticky top-0 z-50 shadow-sm">
-		<a style="display:flex; align-items:center; gap:16px; text-decoration:none;" href="../index.html">
-					<img src="../logo-romet.png" alt="Romet Joyería Logo" style="height: 45px; width: auto; mix-blend-mode: multiply; transform: scale(1.7); transform-origin: left center; margin-right: 18px;">
-					<span class="hidden md:block text-2xl tracking-[0.2em] uppercase font-bold whitespace-nowrap text-foreground" style="font-family: 'Cormorant Garamond', serif; letter-spacing: 0.15em;">Romet Joyería</span>
-				</a>
-		<nav></nav>
+		<a style="display:flex; align-items:center; gap:16px; text-decoration:none;" href="./index.html">
+			<img src="../logo-romet.png" alt="Romet Joyería Logo" style="height: 45px; width: auto; mix-blend-mode: multiply; transform: scale(1.7); transform-origin: left center; margin-right: 18px;">
+			<span class="hidden md:block text-2xl tracking-[0.2em] uppercase font-bold whitespace-nowrap text-foreground" style="font-family: 'Cormorant Garamond', serif; letter-spacing: 0.15em;">Romet Joyería</span>
+		</a>
+		<nav class="flex items-center gap-2">
+			<div class="flex items-center gap-2">
+				<a href="../login.html" class="text-sm md:text-base text-foreground hover:text-[hsl(var(--button-bg))] transition-colors tracking-widest" style="text-decoration:none;">ES</a>
+				<span class="text-sm md:text-base text-muted-foreground">|</span>
+				<a href="#" class="text-sm md:text-base font-bold text-[hsl(var(--button-bg))] tracking-widest" style="text-decoration:none;">EN</a>
+			</div>
+		</nav>
 	</header>
 
 	<main class="login-wrapper">
 		<div class="login-card" id="loginCard">
-			<h1>Bienvenido</h1>
+			<h1>Welcome</h1>
 			<div class="accent-line"></div>
-			<p class="subtitle">Accede a tu espacio de creación</p>
+			<p class="subtitle">Access your creative space</p>
 
 			<div id="authMessage" class="auth-message"></div>
 
@@ -425,7 +431,7 @@
 					<div class="form-group">
 						<label for="loginPassword">Password</label>
 						<input type="password" id="loginPassword" placeholder="••••••••" required autocomplete="current-password">
-						<button type="button" class="password-toggle" onclick="togglePassword('loginPassword', this)" aria-label="Mostrar contraseña">
+						<button type="button" class="password-toggle" onclick="togglePassword('loginPassword', this)" aria-label="Show password">
 							<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
 						</button>
 					</div>
@@ -442,8 +448,8 @@
 							<input type="text" id="regName" placeholder="First Name" required autocomplete="given-name">
 						</div>
 						<div class="form-group">
-							<label for="regSurname">Apellido</label>
-							<input type="text" id="regSurname" placeholder="Apellido" required autocomplete="family-name">
+							<label for="regSurname">Last Name</label>
+							<input type="text" id="regSurname" placeholder="Last Name" required autocomplete="family-name">
 						</div>
 					</div>
 					<div class="form-group">
@@ -453,7 +459,7 @@
 					<div class="form-group">
 						<label for="regPassword">Password</label>
 						<input type="password" id="regPassword" placeholder="At least 6 characters" required minlength="6" autocomplete="new-password" oninput="checkPasswordStrength(this.value)">
-						<button type="button" class="password-toggle" onclick="togglePassword('regPassword', this)" aria-label="Mostrar contraseña">
+						<button type="button" class="password-toggle" onclick="togglePassword('regPassword', this)" aria-label="Show password">
 							<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
 						</button>
 						<div class="password-strength">
@@ -462,12 +468,12 @@
 					</div>
 					<div class="form-group">
 						<label for="regPasswordConfirm">Confirm password</label>
-						<input type="password" id="regPasswordConfirm" placeholder="Repite la contraseña" required minlength="6" autocomplete="new-password">
+						<input type="password" id="regPasswordConfirm" placeholder="Repeat your password" required minlength="6" autocomplete="new-password">
 					</div>
 					<button type="submit" class="btn-submit" id="registerBtn">Create Account</button>
 				</form>
 
-				<div class="auth-divider"><span>o continúa con</span></div>
+				<div class="auth-divider"><span>or continue with</span></div>
 
 				<div class="oauth-buttons">
 					<button class="btn-oauth" onclick="loginWithGoogle()" id="googleBtn">
@@ -488,7 +494,7 @@
 					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
 					Back to login
 				</button>
-				<h1 style="font-size:1.6rem; margin-bottom:0.5rem;">Restablecer Password</h1>
+				<h1 style="font-size:1.6rem; margin-bottom:0.5rem;">Reset Password</h1>
 				<p class="subtitle" style="margin-bottom:2rem;">Enter your email and we will send you a reset link.</p>
 				<form class="auth-form" onsubmit="handleResetPassword(event)">
 					<div class="form-group">
@@ -522,7 +528,7 @@
 			</div>
 
 			<div class="auth-footer" id="authFooter">
-				By continuing, you accept our <a href="./terminos-y-privacidad.html#terms">Terms of Use</a> y <a href="./terminos-y-privacidad.html#privacy">Privacy Policy</a>
+				By continuing, you accept our <a href="./terminos-y-privacidad.html#terms">Terms of Use</a> and <a href="./terminos-y-privacidad.html#privacy">Privacy Policy</a>
 			</div>
 		</div>
 	</main>

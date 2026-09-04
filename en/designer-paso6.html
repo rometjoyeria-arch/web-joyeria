@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	<link rel="icon" type="image/png" href="./favicon.png">
+	<link rel="icon" type="image/png" href="../favicon.png">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Diseñador - Romet Jewelry AI</title>
+	<title>Designer - Romet Jewelry AI</title>
 	<link rel="stylesheet" crossorigin="" href="../designer-paso6_files/index-xtSdOPat.css?v=2">
 
 	<!-- Supabase + integración -->
@@ -40,12 +40,17 @@
 					<span class="hidden md:block text-2xl tracking-[0.2em] uppercase font-bold whitespace-nowrap text-foreground" style="font-family: 'Cormorant Garamond', serif; letter-spacing: 0.15em;">Romet Joyería</span>
 				</a>
 				<nav class="flex items-center flex-wrap justify-center gap-4 md:gap-8">
-					<a href="https://rometjoyeria.com/designer"
+					<a href="./designer-paso1.html"
 					   class="text-sm md:text-base tracking-[0.15em] uppercase text-foreground hover:text-muted-foreground transition-colors font-medium"
 					   style="text-decoration:none;">Design Jewelry</a>
 					<a href="./login.html" id="header-auth-link"
 					   class="text-sm md:text-base tracking-[0.15em] uppercase text-foreground hover:text-muted-foreground transition-colors font-medium"
 					   style="text-decoration:none;">My Account</a>
+					<div class="flex items-center gap-2 border-l border-border pl-4 md:pl-8">
+						<a href="../designer-paso6.html" class="text-sm md:text-base text-foreground hover:text-[hsl(var(--button-bg))] transition-colors tracking-widest" style="text-decoration:none;">ES</a>
+						<span class="text-sm md:text-base text-muted-foreground">|</span>
+						<a href="#" class="text-sm md:text-base font-bold text-[hsl(var(--button-bg))] tracking-widest" style="text-decoration:none;">EN</a>
+					</div>
 				</nav>
 			</header>
 
@@ -67,22 +72,22 @@
 							<div class="space-y-8">
 
 								<div class="space-y-2">
-									<label class="text-sm tracking-widest uppercase text-muted-foreground font-medium">Presupuesto aproximado (€)</label>
-									<input type="number" id="inputBudget" placeholder="ej: 500"
+									<label class="text-sm tracking-widest uppercase text-muted-foreground font-medium">Approximate budget (€)</label>
+									<input type="number" id="inputBudget" placeholder="e.g. 500"
 									       class="w-full border-b border-border py-3 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all duration-300 text-lg font-serif"
 									       oninput="saveField('budget', this.value)">
 								</div>
 
 								<div class="space-y-2">
-									<label class="text-sm tracking-widest uppercase text-muted-foreground font-medium">Peso estimado (gr)</label>
-									<input type="number" id="inputWeight" step="0.1" placeholder="ej: 5.5"
+									<label class="text-sm tracking-widest uppercase text-muted-foreground font-medium">Estimated weight (g)</label>
+									<input type="number" id="inputWeight" step="0.1" placeholder="e.g. 5.5"
 									       class="w-full border-b border-border py-3 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all duration-300 text-lg font-serif"
 									       oninput="saveField('weight', this.value)">
 								</div>
 
 								<div class="space-y-2">
-									<label class="text-sm tracking-widest uppercase text-muted-foreground font-medium">Talla/Medida</label>
-									<input type="text" id="inputSize" placeholder="ej: Talla 16"
+									<label class="text-sm tracking-widest uppercase text-muted-foreground font-medium">Size / Measurement</label>
+									<input type="text" id="inputSize" placeholder="e.g. Size 16"
 									       class="w-full border-b border-border py-3 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all duration-300 text-lg font-serif"
 									       oninput="saveField('size', this.value)">
 								</div>

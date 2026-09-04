@@ -37,14 +37,17 @@
 	}
 
 	function detectCurrentStep() {
+		const match = window.location.pathname.match(/designer-paso(\d)\.html/);
+		if (match) return parseInt(match[1], 10);
+
 		const bodyText = document.body.textContent || '';
-		if (bodyText.includes('Paso 1 de 7') || bodyText.includes('Categoría')) return 1;
-		if (bodyText.includes('Paso 2 de 7') || bodyText.includes('Material')) return 2;
-		if (bodyText.includes('Paso 3 de 7') || bodyText.includes('Perfil')) return 3;
-		if (bodyText.includes('Paso 4 de 7') || bodyText.includes('Gema')) return 4;
-		if (bodyText.includes('Paso 5 de 7') || bodyText.includes('Estilo')) return 5;
-		if (bodyText.includes('Paso 6 de 7') || bodyText.includes('Especificaciones')) return 6;
-		if (bodyText.includes('Paso 7 de 7') || bodyText.includes('Registro')) return 7;
+		if (bodyText.includes('Step 1') || bodyText.includes('Paso 1 de 7') || bodyText.includes('Categoría') || bodyText.includes('Category')) return 1;
+		if (bodyText.includes('Step 2') || bodyText.includes('Paso 2 de 7') || bodyText.includes('Material')) return 2;
+		if (bodyText.includes('Step 3') || bodyText.includes('Paso 3 de 7') || bodyText.includes('Perfil') || bodyText.includes('Profile')) return 3;
+		if (bodyText.includes('Step 4') || bodyText.includes('Paso 4 de 7') || bodyText.includes('Gema') || bodyText.includes('Gemstone')) return 4;
+		if (bodyText.includes('Step 5') || bodyText.includes('Paso 5 de 7') || bodyText.includes('Estilo') || bodyText.includes('Style')) return 5;
+		if (bodyText.includes('Step 6') || bodyText.includes('Paso 6 de 7') || bodyText.includes('Especificaciones') || bodyText.includes('Specifications')) return 6;
+		if (bodyText.includes('Step 7') || bodyText.includes('Paso 7 de 7') || bodyText.includes('Registro') || bodyText.includes('Registration')) return 7;
 		return null;
 	}
 
@@ -74,9 +77,9 @@
 				const label = input.closest('.space-y-2')?.querySelector('label')?.textContent?.toLowerCase() || '';
 
 				input.addEventListener('input', function() {
-					if (label.includes('nombre') || (type === 'text' && !label.includes('talla'))) {
+					if (label.includes('nombre') || label.includes('name') || (type === 'text' && !label.includes('talla') && !label.includes('size'))) {
 						state.name = input.value;
-					} else if (label.includes('telefono') || label.includes('teléfono') || type === 'tel') {
+					} else if (label.includes('telefono') || label.includes('teléfono') || label.includes('phone') || type === 'tel') {
 						state.phone = input.value;
 					} else if (label.includes('correo') || label.includes('email') || type === 'email') {
 						state.email = input.value;
@@ -87,9 +90,9 @@
 					checkSubmitValidity();
 				});
 
-				if ((label.includes('nombre') || type === 'text') && state.name) input.value = state.name;
-				if ((label.includes('telefono') || type === 'tel') && state.phone) input.value = state.phone;
-				if ((label.includes('correo') || type === 'email') && state.email) input.value = state.email;
+				if ((label.includes('nombre') || label.includes('name') || type === 'text') && state.name) input.value = state.name;
+				if ((label.includes('telefono') || label.includes('phone') || type === 'tel') && state.phone) input.value = state.phone;
+				if ((label.includes('correo') || label.includes('email') || type === 'email') && state.email) input.value = state.email;
 				if (input.tagName === 'TEXTAREA' && state.notes) input.value = state.notes;
 			});
 
@@ -129,7 +132,7 @@
 		const submitBtn = document.querySelector('button[type="submit"]');
 
 		if (!state.name || !state.email) {
-			showNotification('Por favor, completa tu nombre y correo electrónico.', 'error');
+			showNotification('Please enter your name and email address.', 'error');
 			return;
 		}
 
@@ -314,7 +317,7 @@
 						<polyline points="22 4 12 14.01 9 11.01"/>
 					</svg>
 					<h1 class="text-4xl md:text-5xl text-foreground tracking-widest uppercase font-medium mb-4">
-						¡Diseño Creado!
+						Design Created!
 					</h1>
 					<p class="text-muted-foreground font-sans tracking-wide max-w-lg mx-auto text-lg">
 						We have received your request, <strong>${state.name}</strong>.
