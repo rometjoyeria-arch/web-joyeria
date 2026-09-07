@@ -3,9 +3,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 // ═══════════════════════════════════════════════════════════
-// ROMET JOYERÍA — Edge Function v78
+// ROMET JOYERÍA — Edge Function v80
 // Glosario joyería + 3 modos de prompt + emails directos Resend + prompt geometry/numbers/stone fix
-// Rediseño gratuito (1 a 5) protegido de bloqueo de créditos + descarga directa de Storage
+// Rediseño gratuito (1 a 5) protegido de bloqueo de créditos + fetch directo con fallback a Storage y validación MIME
 // Modelo: gemini-3.1-flash-image (confirmado funcional)
 // ═══════════════════════════════════════════════════════════
 
@@ -29,6 +29,23 @@ const GLOSARIO: Record<string, string> = {
   "eslabón": "ESLABÓN (link): individual loop of a chain. '5 eslabones' = a chain of 5 links.",
   "eslabones": "ESLABONES (links): individual loops of a chain.",
 };
+
+function detectImageMimeType(buf: Uint8Array, filePath?: string, headerType?: string | null): string {
+  if (headerType && headerType.startsWith("image/") && !headerType.includes("octet-stream")) {
+    return headerType.split(";")[0].trim();
+  }
+  if (buf.length >= 4) {
+    if (buf[0] === 0xFF && buf[1] === 0xD8 && buf[2] === 0xFF) return "image/jpeg";
+    if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4E && buf[3] === 0x47) return "image/png";
+    if (buf[0] === 0x52 && buf[1] === 0x49 && buf[2] === 0x46 && buf[3] === 0x46) return "image/webp";
+  }
+  const ext = filePath?.split("?")[0].split(".").pop()?.toLowerCase();
+  if (ext === "jpg" || ext === "jpeg") return "image/jpeg";
+  if (ext === "png") return "image/png";
+  if (ext === "webp") return "image/webp";
+  if (ext === "gif") return "image/gif";
+  return "image/jpeg";
+}
 
 function detectarTerminos(...textos: (string | null | undefined)[]): string {
   const textoCompleto = textos.filter(Boolean).join(" ").toLowerCase();
@@ -398,7 +415,24 @@ ${reglasRender}`;
     // ── Load reference images if provided ────────────────────────
     const fetchImagePart = async (url: string) => {
       try {
-        // Direct download from Supabase Storage if it is a storage URL
+        // First try direct fetch (proven reliable for public URLs)
+        const imgRes = await fetch(url);
+        if (imgRes.ok) {
+          const buf = await imgRes.arrayBuffer();
+          const bytes = new Uint8Array(buf);
+          const base64 = encode(bytes);
+          const mimeType = detectImageMimeType(bytes, url, imgRes.headers.get("content-type"));
+          console.log("Reference image loaded from URL:", url, "mimeType:", mimeType, "bytes:", bytes.byteLength);
+          return { inlineData: { mimeType, data: base64 } };
+        } else {
+          console.warn("Direct fetch image failed with status:", imgRes.status, url);
+        }
+      } catch (e) {
+        console.warn("Could not fetch image directly, attempting storage fallback:", url, e);
+      }
+
+      // Storage download fallback if direct fetch failed
+      try {
         const storageMatch = url.match(/\/storage\/v1\/object\/(?:public\/|authenticated\/)?([^\/]+)\/(.+)$/);
         if (storageMatch) {
           const bucket = storageMatch[1];
@@ -406,28 +440,19 @@ ${reglasRender}`;
           const { data, error } = await supabase.storage.from(bucket).download(filePath);
           if (!error && data) {
             const buf = await data.arrayBuffer();
-            const base64 = encode(new Uint8Array(buf));
-            const mimeType = data.type || "image/png";
-            console.log("Reference image downloaded from Storage:", bucket, filePath, "bytes:", buf.byteLength);
+            const bytes = new Uint8Array(buf);
+            const base64 = encode(bytes);
+            const mimeType = detectImageMimeType(bytes, filePath, data.type);
+            console.log("Reference image downloaded from Storage fallback:", bucket, filePath, "mimeType:", mimeType, "bytes:", bytes.byteLength);
             return { inlineData: { mimeType, data: base64 } };
           } else {
-            console.warn("Direct storage download failed, falling back to fetch:", error?.message);
+            console.warn("Storage fallback download failed:", error?.message);
           }
         }
-
-        const imgRes = await fetch(url);
-        if (imgRes.ok) {
-          const buf = await imgRes.arrayBuffer();
-          const base64 = encode(new Uint8Array(buf));
-          const mimeType = imgRes.headers.get("content-type")?.split(";")[0] || "image/jpeg";
-          console.log("Reference image loaded from URL:", url, "bytes:", buf.byteLength);
-          return { inlineData: { mimeType, data: base64 } };
-        } else {
-          console.warn("Fetch image failed with status:", imgRes.status, url);
-        }
-      } catch (e) {
-        console.warn("Could not load reference image from URL:", url, e);
+      } catch (err) {
+        console.warn("Could not load reference image from storage fallback:", url, err);
       }
+
       return null;
     };
 
@@ -450,7 +475,7 @@ ${reglasRender}`;
     parts.push({ text: prompt });
 
     const modo = esRetoque ? "retoque" : esImagenSubida ? "imagen_subida" : "desde_cero";
-    console.log(`v78 — mode: ${modo}, model: ${GEMINI_MODEL}, hasRefImage: ${!!imagenParaGemini}`);
+    console.log(`v80 — mode: ${modo}, model: ${GEMINI_MODEL}, hasRefImage: ${!!imagenParaGemini}`);
 
     const geminiRes = await fetch(GEMINI_URL, {
       method: "POST",
@@ -472,10 +497,11 @@ ${reglasRender}`;
     );
 
     if (!imagePart) {
-      console.error("Gemini returned no image. Parts:", JSON.stringify(
-        geminiData.candidates?.[0]?.content?.parts?.map((p: any) => Object.keys(p))
-      ));
-      throw new Error("Gemini did not return an image. Check API key and model availability.");
+      const candidate = geminiData.candidates?.[0];
+      const textParts = candidate?.content?.parts?.filter((p: any) => p.text).map((p: any) => p.text).join(" ").trim();
+      const finishReason = candidate?.finishReason || geminiData.promptFeedback?.blockReason;
+      console.error("Gemini returned no image. FinishReason:", finishReason, "Text:", textParts, "Full candidates:", JSON.stringify(geminiData.candidates));
+      throw new Error(`Gemini no generó imagen (${finishReason || "SIN_IMAGEN"})${textParts ? ": " + textParts.substring(0, 200) : ". Reintenta la solicitud."}`);
     }
 
     // ── Save image to Supabase Storage ───────────────────────────
@@ -617,7 +643,7 @@ ${reglasRender}`;
     );
 
   } catch (error: any) {
-    console.error("v78 ERROR:", error.message);
+    console.error("v80 ERROR:", error.message);
     return new Response(
       JSON.stringify({ success: false, error: error.message }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
