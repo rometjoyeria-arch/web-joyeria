@@ -86,8 +86,9 @@
 									<div class="space-y-2">
 										<label class="text-xs tracking-widest uppercase text-muted-foreground font-medium">Categoría</label>
 										<select id="category" class="w-full border-b border-border py-3 bg-transparent text-foreground focus:outline-none focus:border-primary transition-all duration-300 text-base font-sans">
-											<option value="medallas">Medallas</option>
+											<option value="sin_detalle" selected>Sin detalle</option>
 											<option value="anillo">Anillo</option>
+											<option value="medallas">Medallas</option>
 											<option value="colgante">Colgante</option>
 											<option value="pendientes">Pendientes</option>
 											<option value="pulsera">Pulsera</option>
@@ -97,6 +98,7 @@
 									<div class="space-y-2">
 										<label class="text-xs tracking-widest uppercase text-muted-foreground font-medium">Material</label>
 										<select id="material" class="w-full border-b border-border py-3 bg-transparent text-foreground focus:outline-none focus:border-primary transition-all duration-300 text-base font-sans">
+											<option value="sin_detalle" selected>Sin detalle</option>
 											<option value="oro_amarillo">Oro Amarillo</option>
 											<option value="oro_blanco">Oro Blanco</option>
 											<option value="oro_rosa">Oro Rosa</option>
@@ -432,8 +434,8 @@
 					<div class="bg-white p-6 rounded-2xl shadow-lg border border-border/50 text-left mb-8">
 						<h2 class="text-xl tracking-widest uppercase text-foreground font-medium mb-4">Resumen</h2>
 						<div class="grid grid-cols-2 gap-4 font-sans text-sm">
-							${data.categoria ? `<div><span class="text-muted-foreground">Categoría:</span> <strong class="capitalize">${data.categoria}</strong></div>` : ''}
-							${data.material ? `<div><span class="text-muted-foreground">Material:</span> <strong class="capitalize">${data.material.replace(/_/g, ' ')}</strong></div>` : ''}
+							<div><span class="text-muted-foreground">Categoría:</span> <strong class="capitalize">${data.categoria && data.categoria !== 'sin_detalle' ? data.categoria : 'Sin detalle'}</strong></div>
+							<div><span class="text-muted-foreground">Material:</span> <strong class="capitalize">${data.material && data.material !== 'sin_detalle' ? data.material.replace(/_/g, ' ') : 'Sin detalle'}</strong></div>
 						</div>
 					</div>
 

@@ -259,6 +259,7 @@ const BODY_PART_MAP: Record<string, string> = {
 const CATEGORY_LABELS: Record<string, string> = {
   anillo: "Anillo", colgante: "Colgante", pendientes: "Pendientes",
   pulsera: "Pulsera", gemelos: "Gemelos", medallas: "Medalla",
+  sin_detalle: "Sin detalle (según foto)",
 };
 
 const MATERIAL_MAP: Record<string, string> = {
@@ -272,6 +273,7 @@ const MATERIAL_MAP: Record<string, string> = {
 const MATERIAL_LABELS: Record<string, string> = {
   oro_amarillo: "Oro Amarillo 18k", oro_blanco: "Oro Blanco 18k",
   oro_rosa: "Oro Rosa 18k", platino: "Platino 950", plata: "Plata 925",
+  sin_detalle: "Sin detalle (según foto)",
 };
 
 const STYLE_MAP: Record<string, string> = {
@@ -347,11 +349,28 @@ serve(async (req) => {
     const marca_temporal = new Date().toISOString();
 
     // ── Build descriptions ───────────────────────────────────────
-    const categoriaDesc = CATEGORY_MAP[categoria_producto] || categoria_producto || "jewelry piece";
-    const materialDesc  = MATERIAL_MAP[material]           || material           || "precious metal";
+    const tieneCategoria = !!(
+      categoria_producto &&
+      categoria_producto !== "sin_detalle" &&
+      categoria_producto !== "sin_especificar" &&
+      categoria_producto !== "auto" &&
+      categoria_producto !== "ninguno"
+    );
+    const tieneMaterial = !!(
+      material &&
+      material !== "sin_detalle" &&
+      material !== "sin_especificar" &&
+      material !== "auto" &&
+      material !== "ninguno"
+    );
+
+    const categoriaDesc = tieneCategoria ? (CATEGORY_MAP[categoria_producto] || categoria_producto) : null;
+    const materialDesc  = tieneMaterial  ? (MATERIAL_MAP[material] || material) : null;
     const estiloDesc    = STYLE_MAP[estilo]                || estilo             || "classic";
     const perfilDesc    = PROFILE_MAP[perfil_usuario]      || perfil_usuario      || "adult";
-    const bodyPartDesc  = BODY_PART_MAP[categoria_producto] || "worn by a person";
+    const bodyPartDesc  = tieneCategoria
+      ? (BODY_PART_MAP[categoria_producto] || "worn naturally by a person")
+      : "worn naturally by a model according to the jewelry piece type shown in the image (e.g. on finger if ring, on neck/chest if pendant/medal, on ear if earring, on wrist if bracelet)";
 
     const gemaInfo = detectarGema(gema_principal, sugerencias, cambios_solicitados);
 
@@ -371,13 +390,31 @@ serve(async (req) => {
     const glosarioInyectado = detectarTerminos(sugerencias, cambios_solicitados);
     const restriccionesGeometriaYNumeros = detectarRestriccionesEspecificas(sugerencias, cambios_solicitados);
 
-    const especificaciones = `JEWELRY SPECIFICATIONS (must always be respected):
-- Type: ${categoriaDesc}
-- Metal: ${materialDesc}
-${gemstoneLine}
-- Style: ${estiloDesc}
-- Target wearer: ${perfilDesc}
-${sugerencias ? "- Design notes: " + sugerencias : ""}`;
+    const specLines: string[] = [];
+    if (tieneCategoria) {
+      if (esImagenSubida) {
+        specLines.push(`- Target Category: ${categoriaDesc} (The client explicitly selected this category. If the reference image shows a different piece or motif, transform/adapt that motif into this specific jewelry category: ${categoriaDesc})`);
+      } else {
+        specLines.push(`- Type: ${categoriaDesc}`);
+      }
+    }
+    if (tieneMaterial) {
+      specLines.push(`- Metal: ${materialDesc}`);
+    }
+    specLines.push(gemstoneLine);
+    if (estilo && estilo !== "sin_detalle" && estilo !== "sin_especificar") {
+      specLines.push(`- Style: ${estiloDesc}`);
+    }
+    if (perfil_usuario && perfil_usuario !== "sin_detalle" && perfil_usuario !== "sin_especificar") {
+      specLines.push(`- Target wearer: ${perfilDesc}`);
+    }
+    if (sugerencias) {
+      specLines.push(`- Design notes: ${sugerencias}`);
+    }
+
+    const especificaciones = specLines.length > 0
+      ? `JEWELRY SPECIFICATIONS:\n${specLines.join("\n")}`
+      : "";
 
     const reglasEstilo = `CRITICAL STYLE RULES — follow strictly:
 - The piece MUST look like a real, commercially available jewelry store product
@@ -472,6 +509,7 @@ Study the references carefully and reproduce their key elements faithfully as a 
 - SKETCHES & DESIGNS: If any of the references show a sketch or drawing of a jewelry style, shape, or clasp, reproduce those design lines and proportions faithfully as a real, wearable piece of jewelry.
 - GEMSTONES & EMBELLISHMENTS: If the uploaded reference features any gemstones (like an emerald, diamond, sapphire, etc.), reproduce them faithfully with identical colors, cuts, and proper fine jewelry settings.
 - Combining references: If multiple images are attached (for example, a portrait photo of a relative AND a sketch or reference image of a medallion), combine them masterfully. The face from the portrait photo must be engraved onto the jewelry style shown in the other reference image.
+${tieneCategoria ? "" : "- PIECE TYPE & METAL: Faithful reproduction of the uploaded image. Create the exact type of jewelry shown in the photo (e.g. if the photo is a ring, design a ring; if it is a bracelet, design a bracelet; if it is a pendant, design a pendant) and preserve its metal color and finish."}
 
 ${especificaciones}
 ${glosarioInyectado}
@@ -569,7 +607,7 @@ ${reglasRender}`;
     parts.push({ text: prompt });
 
     const modo = esRetoque ? "retoque" : esImagenSubida ? "imagen_subida" : "desde_cero";
-    console.log(`v81 — mode: ${modo}, model: ${GEMINI_MODEL}, hasRefImage: ${!!imagenParaGemini}`);
+    console.log(`v82 — mode: ${modo}, model: ${GEMINI_MODEL}, hasRefImage: ${!!imagenParaGemini}`);
 
     const geminiRes = await fetch(GEMINI_URL, {
       method: "POST",
@@ -628,6 +666,8 @@ ${reglasRender}`;
     if (imagen_subida_url) insertPayload.imagen_subida_url = imagen_subida_url;
     if (imagen_subida_url2) insertPayload.imagen_subida_url2 = imagen_subida_url2;
     if (imagen_referencia_url) insertPayload.imagen_subida_url = imagen_referencia_url;
+    insertPayload.categoria_producto = tieneCategoria ? categoria_producto : "sin_detalle";
+    insertPayload.material = tieneMaterial ? material : "sin_detalle";
     if (gemaInfo.nombre && (!insertPayload.gema_principal || insertPayload.gema_principal === "sin_gema")) {
       insertPayload.gema_principal = gemaInfo.nombre;
     }
@@ -657,9 +697,13 @@ ${reglasRender}`;
         "Content-Type": "application/json",
       };
 
+      const catEmailLabel = tieneCategoria ? (CATEGORY_LABELS[categoria_producto] || categoria_producto) : "Sin detalle (según foto)";
+      const matEmailLabel = tieneMaterial  ? (MATERIAL_LABELS[material] || material) : "Sin detalle (según foto)";
+      const subjectCat = tieneCategoria ? (CATEGORY_LABELS[categoria_producto] || categoria_producto) : "Joya personalizada";
+
       const ownerSubject = esRetoque
-        ? `🔄 Ajuste de diseño: ${CATEGORY_LABELS[categoria_producto] || categoria_producto || "Joya"} — ${nombre || "Cliente"}`
-        : `⚡ Nueva solicitud: ${CATEGORY_LABELS[categoria_producto] || categoria_producto || "Joya"} — ${nombre || "Cliente"}`;
+        ? `🔄 Ajuste de diseño: ${subjectCat} — ${nombre || "Cliente"}`
+        : `⚡ Nueva solicitud: ${subjectCat} — ${nombre || "Cliente"}`;
 
       const ownerIntro = esRetoque
         ? `<h2 style="color:#b8860b;">Ajuste de diseño solicitado</h2>
@@ -681,8 +725,8 @@ ${reglasRender}`;
                 <tr><td style="padding:8px;border-bottom:1px solid #eee;width:120px;"><strong>Nombre</strong></td><td style="padding:8px;border-bottom:1px solid #eee;">${nombre || ""}</td></tr>
                 <tr><td style="padding:8px;border-bottom:1px solid #eee;"><strong>Teléfono</strong></td><td style="padding:8px;border-bottom:1px solid #eee;">${telefono || ""}</td></tr>
                 <tr><td style="padding:8px;border-bottom:1px solid #eee;"><strong>Email</strong></td><td style="padding:8px;border-bottom:1px solid #eee;">${email || ""}</td></tr>
-                <tr><td style="padding:8px;border-bottom:1px solid #eee;"><strong>Categoría</strong></td><td style="padding:8px;border-bottom:1px solid #eee;">${CATEGORY_LABELS[categoria_producto] || categoria_producto || ""}</td></tr>
-                <tr><td style="padding:8px;border-bottom:1px solid #eee;"><strong>Material</strong></td><td style="padding:8px;border-bottom:1px solid #eee;">${MATERIAL_LABELS[material] || material || ""}</td></tr>
+                <tr><td style="padding:8px;border-bottom:1px solid #eee;"><strong>Categoría</strong></td><td style="padding:8px;border-bottom:1px solid #eee;">${catEmailLabel}</td></tr>
+                <tr><td style="padding:8px;border-bottom:1px solid #eee;"><strong>Material</strong></td><td style="padding:8px;border-bottom:1px solid #eee;">${matEmailLabel}</td></tr>
                 <tr><td style="padding:8px;border-bottom:1px solid #eee;"><strong>Gema</strong></td><td style="padding:8px;border-bottom:1px solid #eee;">${insertPayload.gema_principal || gema_principal || ""}</td></tr>
                 <tr><td style="padding:8px;border-bottom:1px solid #eee;"><strong>Estilo</strong></td><td style="padding:8px;border-bottom:1px solid #eee;">${estilo || ""}</td></tr>
                 <tr><td style="padding:8px;border-bottom:1px solid #eee;"><strong>Perfil</strong></td><td style="padding:8px;border-bottom:1px solid #eee;">${perfil_usuario || ""}</td></tr>
@@ -740,7 +784,7 @@ ${reglasRender}`;
     );
 
   } catch (error: any) {
-    console.error("v81 ERROR:", error.message);
+    console.error("v82 ERROR:", error.message);
     return new Response(
       JSON.stringify({ success: false, error: error.message }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
