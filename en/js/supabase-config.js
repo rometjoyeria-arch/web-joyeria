@@ -552,7 +552,64 @@ function injectWhatsAppButton(lang = 'en') {
 	document.body.appendChild(button);
 }
 
+// ═══════════════════════════════════════
+// REGISTRO DE VISITAS DESDE FLYER / QR
+// ═══════════════════════════════════════
+async function registrarVisitaFlyer() {
+	try {
+		const params = new URLSearchParams(window.location.search);
+		const origen = params.get('origen') || params.get('ref');
+		if (origen && (origen.toLowerCase() === 'flyer' || origen.toLowerCase().includes('flyer'))) {
+			if (sessionStorage.getItem('romet_flyer_logged')) return;
+			sessionStorage.setItem('romet_flyer_logged', 'true');
+
+			const ua = navigator.userAgent || '';
+			let dispositivo = 'Escritorio';
+			if (/iPhone/i.test(ua)) dispositivo = 'iPhone';
+			else if (/iPad/i.test(ua)) dispositivo = 'iPad';
+			else if (/Android/i.test(ua)) dispositivo = 'Android';
+			else if (/Mobile/i.test(ua)) dispositivo = 'Móvil';
+
+			let navegador = 'Otro';
+			if (/Chrome/i.test(ua) && !/Edg/i.test(ua)) navegador = 'Chrome';
+			else if (/Safari/i.test(ua) && !/Chrome/i.test(ua)) navegador = 'Safari';
+			else if (/Firefox/i.test(ua)) navegador = 'Firefox';
+			else if (/Edg/i.test(ua)) navegador = 'Edge';
+
+			const idioma = navigator.language || 'es';
+			const pantalla = `${window.screen.width}x${window.screen.height}`;
+
+			// Llamada directa y ligera a Edge Function track-flyer
+			fetch(`${SUPABASE_URL}/functions/v1/track-flyer`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'apikey': SUPABASE_ANON_KEY,
+					'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+				},
+				body: JSON.stringify({
+					origen: origen,
+					dispositivo: dispositivo,
+					navegador: navegador,
+					idioma: idioma,
+					pantalla: pantalla
+				})
+			}).catch(e => console.warn('Error al registrar visita flyer:', e));
+
+			// Limpiar discretamente la URL para que el usuario solo vea la URL limpia
+			if (window.history && window.history.replaceState) {
+				const cleanUrl = window.location.pathname + window.location.hash;
+				window.history.replaceState({}, document.title, cleanUrl);
+			}
+		}
+	} catch (e) {
+		console.warn('Error al registrar visita flyer:', e);
+	}
+}
+
 window.addEventListener('load', () => {
 	initWhenReady(null);
 	injectWhatsAppButton('en');
+	registrarVisitaFlyer();
 });
+
