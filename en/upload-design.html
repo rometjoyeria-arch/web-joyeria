@@ -512,50 +512,57 @@
 				const redesignBtn = document.getElementById('redesign-btn');
 				const imagenContainer = document.getElementById('imagen-generada');
 				const prevImgHTML = imagenContainer ? imagenContainer.innerHTML : '';
+				let isPaidRedesign = false;
+
+				const currentRedesignCount = parseInt(sessionStorage.getItem('redesignCount') || '0', 10);
+				const isFreeRedesign = currentRedesignCount < 5;
 
 				if (redesignBtn) {
 					redesignBtn.disabled = true;
 					redesignBtn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px;"><svg style="animation:spin 1s linear infinite" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>Redesigning...</span>';
 				}
 
-				if (imagenContainer) {
-					let redesignCount = parseInt(sessionStorage.getItem('redesignCount') || '0', 10);
-					if (redesignCount < 5) {
-						// Free redesign
-						redesignCount++;
-						sessionStorage.setItem('redesignCount', redesignCount.toString());
-						updateCreditInfo();
-					} else {
-						// Paid redesign
-						isPaidRedesign = true;
-						try {
-							const credits = typeof getCredits === 'function' ? await getCredits() : null;
-							if (credits !== '∞' && typeof credits === 'number' && credits <= 0) {
-								if (typeof window.showOutOfCreditsModal === 'function') window.showOutOfCreditsModal();
-								else alert('Not enough credits.');
-								if (redesignBtn) {
-									redesignBtn.disabled = false;
-									redesignBtn.textContent = 'Redesign';
-								}
-								imagenContainer.innerHTML = prevImgHTML;
-								return;
+				if (!isFreeRedesign) {
+					// Paid redesign
+					isPaidRedesign = true;
+					try {
+						const credits = typeof getCredits === 'function' ? await getCredits() : null;
+						if (credits !== '∞' && typeof credits === 'number' && credits <= 0) {
+							if (typeof window.showOutOfCreditsModal === 'function') window.showOutOfCreditsModal();
+							else alert('Not enough credits.');
+							if (redesignBtn) {
+								redesignBtn.disabled = false;
+								redesignBtn.textContent = 'Redesign';
 							}
-						} catch(e) {}
-					}
+							return;
+						}
+					} catch(e) {}
+				}
+
+				if (imagenContainer) {
 					imagenContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:200px;"><svg style="animation:spin 1s linear infinite" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></div>';
 				}
 
 				try {
 					const result = await callEdgeFunction('Joyas', {
 						nombre: _uploadState.data.nombre,
+						telefono: _uploadState.data.telefono,
 						email: _uploadState.data.email,
 						categoria_producto: _uploadState.data.categoria,
 						material: _uploadState.data.material,
-						sugerencias: 'Cambios solicitados: ' + cambios,
+						sugerencias: _uploadState.data.instructions,
+						imagen_referencia_url: _uploadState.imagenUrl,
+						cambios_solicitados: cambios,
+						es_redisenio_gratuito: isFreeRedesign,
+						numero_redisenio: currentRedesignCount + 1,
 					});
 
 					if (isPaidRedesign && typeof consumeCredit === 'function') {
 						await consumeCredit();
+					} else if (isFreeRedesign) {
+						// Only increment counter on success
+						const newCount = currentRedesignCount + 1;
+						sessionStorage.setItem('redesignCount', newCount.toString());
 					}
 
 					if (imagenContainer && result?.imagenUrl) {
@@ -567,15 +574,19 @@
 					}
 					const panel = document.getElementById('cambios-panel');
 					if (panel) panel.style.display = 'none';
+					const textoEl = document.getElementById('cambios-texto');
+					if (textoEl) textoEl.value = '';
 				} catch (err) {
 					console.error('Error redesigning:', err);
 					if (imagenContainer) {
-						imagenContainer.innerHTML = '<p style="color:#888;text-align:center;">Error redesigning. Try again.</p>';
+						imagenContainer.innerHTML = prevImgHTML;
 					}
-				}
-				if (redesignBtn) {
-					redesignBtn.disabled = false;
-					redesignBtn.textContent = 'Redesign';
+					alert('Error redesigning: ' + (err.message || 'Please try again.'));
+				} finally {
+					if (redesignBtn) {
+						redesignBtn.disabled = false;
+						redesignBtn.textContent = 'Redesign';
+					}
 					updateCreditInfo();
 				}
 			};

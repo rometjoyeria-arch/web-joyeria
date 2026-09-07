@@ -3,8 +3,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 // ═══════════════════════════════════════════════════════════
-// ROMET JOYERÍA — Edge Function v64
-// Glosario joyería + 3 modos de prompt + emails directos Resend + prompt geometry/numbers fix
+// ROMET JOYERÍA — Edge Function v78
+// Glosario joyería + 3 modos de prompt + emails directos Resend + prompt geometry/numbers/stone fix
+// Rediseño gratuito (1 a 5) protegido de bloqueo de créditos + descarga directa de Storage
 // Modelo: gemini-3.1-flash-image (confirmado funcional)
 // ═══════════════════════════════════════════════════════════
 
@@ -49,8 +50,7 @@ function detectarRestriccionesEspecificas(...textos: (string | null | undefined)
   const digitos = textoCompleto.match(/\b\d+\b/g);
   if (digitos) {
     digitos.forEach(num => {
-      // Intentar encontrar el contexto del número (ej. "10 pétalos", "3 hojas")
-      const regexContexto = new RegExp(`\\b${num}\\s+\\w+`, 'gi');
+      const regexContexto = new RegExp(`\\b${num}\\s+\\w+`, "gi");
       const matches = textoCompleto.match(regexContexto);
       if (matches) {
         matches.forEach(m => alertas.push(`Exact count constraint: "${m}" (ensure EXACTLY ${num} of these elements are rendered)`));
@@ -82,10 +82,9 @@ function detectarRestriccionesEspecificas(...textos: (string | null | undefined)
 
   numerosEscritos.forEach(({ palabras, valor }) => {
     palabras.forEach(palabra => {
-      const regex = new RegExp(`\\b${palabra}\\b`, 'i');
+      const regex = new RegExp(`\\b${palabra}\\b`, "i");
       if (regex.test(textoCompleto)) {
-        // Encontrar contexto (palabra siguiente)
-        const regexContexto = new RegExp(`\\b${palabra}\\s+(\\w+)`, 'i');
+        const regexContexto = new RegExp(`\\b${palabra}\\s+(\\w+)`, "i");
         const match = regexContexto.exec(textoCompleto);
         if (match && match[1]) {
           alertas.push(`Exact count constraint: "${palabra} ${match[1]}" (ensure EXACTLY ${valor} of these elements are rendered)`);
@@ -102,7 +101,7 @@ function detectarRestriccionesEspecificas(...textos: (string | null | undefined)
     { terminos: ["pétalo", "petalo", "pétalos", "petalos"], desc: "Flower element: Petals count and shape" },
     { terminos: ["hoja", "hojas"], desc: "Foliage: Leaf shape and count" },
     { terminos: ["redondo", "redonda", "redondeado", "redondeada", "redondear", "redondeo"], desc: "Geometric style: Rounded, soft, circular outline and edges (NOT sharp, NOT square, NOT angular)" },
-    { terminos: ["elíptico", "eliptico", "elíptica", "eliptica", "elipse", "heliptico", "heliptica"], desc: "Geometric style: Elliptical, oval, elongated curved outline and edges (ellipse shape)" },
+    { terminos: ["elíptico", "eliptico", "elíptica", "eliptica", "elipse"], desc: "Geometric style: Elliptical, oval, elongated curved outline and edges (ellipse shape)" },
     { terminos: ["cuadrado", "cuadrada", "cuadrangular"], desc: "Geometric style: Square, rectangular, sharp 90-degree corners, flat straight sides (unmistakably square/rectangular)" },
     { terminos: ["triangular", "triángulo", "triangulo"], desc: "Geometric style: Triangular shape, three clear points and straight edges (unmistakably triangular)" },
     { terminos: ["romboidal", "rombo"], desc: "Geometric style: Rhombus / diamond shape" },
@@ -114,11 +113,30 @@ function detectarRestriccionesEspecificas(...textos: (string | null | undefined)
 
   terminosGeometria.forEach(({ terminos, desc }) => {
     const detectado = terminos.some(t => {
-      const regex = new RegExp(`\\b${t}`, 'i');
+      const regex = new RegExp(`\\b${t}`, "i");
       return regex.test(textoCompleto);
     });
     if (detectado) {
       alertas.push(`Geometric / Stylistic constraint: "${terminos[0]}" -> ${desc}`);
+    }
+  });
+
+  // Detectar cambios en tallas y cortes de gemas / piedras (ej. "piedra redonda", "talla brillante", etc.)
+  const cortesGema = [
+    { regex: /\b(?:piedra|talla|corte|gema|diamante)\s+(?:redonda|redondo|brillante)|\btalla\s+brillante\b|\bbrillante\s+redondo\b/i, desc: "GEMSTONE CUT / SHAPE OVERRIDE: Round brilliant cut stone (talla redonda / brillante). The primary gemstone must be transformed into a perfectly circular, faceted round brilliant cut diamond/gemstone with circular bezel/prongs holding it." },
+    { regex: /\b(?:piedra|talla|corte|gema|diamante)\s+(?:ovalada|ovalado|oval)|\btalla\s+oval\b/i, desc: "GEMSTONE CUT / SHAPE OVERRIDE: Oval cut stone (talla oval). The primary gemstone must be shaped as an elegant oval cut stone." },
+    { regex: /\b(?:piedra|talla|corte|gema|diamante)\s+(?:esmeralda|emerald)|\btalla\s+esmeralda\b/i, desc: "GEMSTONE CUT / SHAPE OVERRIDE: Emerald cut stone (rectangular stepped cut with clipped corners)." },
+    { regex: /\b(?:piedra|talla|corte|gema|diamante)\s+(?:cuadrada|cuadrado|princesa)|\btalla\s+princesa\b/i, desc: "GEMSTONE CUT / SHAPE OVERRIDE: Princess / square cut stone (sharp 90-degree square facet cut)." },
+    { regex: /\b(?:piedra|talla|corte|gema|diamante)\s+(?:pera|lagrima|lágrima)|\btalla\s+pera\b/i, desc: "GEMSTONE CUT / SHAPE OVERRIDE: Pear / teardrop cut stone." },
+    { regex: /\b(?:piedra|talla|corte|gema|diamante)\s+(?:marquesa|marquise)|\btalla\s+marquise\b/i, desc: "GEMSTONE CUT / SHAPE OVERRIDE: Marquise cut stone (pointed oval / navette shape)." },
+    { regex: /\b(?:piedra|talla|corte|gema|diamante)\s+(?:coj[ií]n|cushion)|\btalla\s+coj[ií]n\b/i, desc: "GEMSTONE CUT / SHAPE OVERRIDE: Cushion cut stone (pillow-shaped rounded rectangle/square)." },
+    { regex: /\b(?:piedra|talla|corte|gema|diamante)\s+(?:baguette)|\btalla\s+baguette\b/i, desc: "GEMSTONE CUT / SHAPE OVERRIDE: Baguette cut stone." },
+    { regex: /\b(?:piedra|talla|corte|gema|diamante)\s+(?:coraz[oó]n|heart)|\btalla\s+coraz[oó]n\b/i, desc: "GEMSTONE CUT / SHAPE OVERRIDE: Heart cut stone." },
+  ];
+
+  cortesGema.forEach(({ regex, desc }) => {
+    if (regex.test(textoCompleto)) {
+      alertas.push(desc);
     }
   });
 
@@ -128,6 +146,15 @@ function detectarRestriccionesEspecificas(...textos: (string | null | undefined)
   const alertasUnicas = [...new Set(alertas)];
 
   return `\n\n⚠️ EXTRA PRIORITY GEOMETRIC & NUMERICAL CONSTRAINTS (the client explicitly requested these details - you MUST execute them with absolute precision):\n${alertasUnicas.map(a => "- " + a).join("\n")}`;
+}
+
+function detectarGema(gemaInput?: string, ...textos: (string | null | undefined)[]): string | null {
+  if (gemaInput && gemaInput !== "sin_gema") return gemaInput;
+  const textoCompleto = textos.filter(Boolean).join(" ").toLowerCase();
+  if (/diamante|brillante|esmeralda|rubi|rubí|zafiro|piedra|gema|circonita|gemstone|stone|diamond/i.test(textoCompleto)) {
+    return "diamante / gema fina natural brillante";
+  }
+  return gemaInput || null;
 }
 
 // ═══ MAPS ═══════════════════════════════════════════════════
@@ -208,13 +235,7 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await supabase.auth.getUser(userToken);
     if (authError || !user) throw new Error("Unauthorized");
 
-    const isUnlimited = user.user_metadata?.is_unlimited === true || user.user_metadata?.plan === 'profesionales_plus';
-    const credits = user.user_metadata?.credits ?? 0;
-    if (!isUnlimited && credits <= 0) {
-      return new Response(JSON.stringify({ error: "Sin créditos" }), { status: 402, headers: corsHeaders });
-    }
-
-    // ── Parse body ───────────────────────────────────────────────
+    // ── Parse body FIRST ──────────────────────────────────────────
     const body = await req.json();
     const {
       nombre, telefono, email, categoria_producto, material,
@@ -224,7 +245,23 @@ serve(async (req) => {
       imagen_subida_url2,
       imagen_referencia_url,
       cambios_solicitados,
+      es_redisenio_gratuito,
+      numero_redisenio,
     } = body;
+
+    const esRetoque     = !!imagen_referencia_url;
+    const esImagenSubida = !!imagen_subida_url || !!imagen_subida_url2;
+    const imagenParaGemini = imagen_referencia_url || imagen_subida_url || imagen_subida_url2 || null;
+
+    // Los primeros 5 rediseños son gratuitos y NO deben bloquearse si los créditos están en 0
+    const esRedisenioGratis = esRetoque && es_redisenio_gratuito !== false;
+
+    // ── Credit check (No bloquea si es ilimitado o si es un rediseño gratuito) ──
+    const isUnlimited = user.user_metadata?.is_unlimited === true || user.user_metadata?.plan === "profesionales_plus";
+    const credits = user.user_metadata?.credits ?? 0;
+    if (!isUnlimited && !esRedisenioGratis && credits <= 0) {
+      return new Response(JSON.stringify({ error: "Sin créditos" }), { status: 402, headers: corsHeaders });
+    }
 
     const marca_temporal = new Date().toISOString();
 
@@ -234,14 +271,17 @@ serve(async (req) => {
     const estiloDesc    = STYLE_MAP[estilo]                || estilo             || "classic";
     const perfilDesc    = PROFILE_MAP[perfil_usuario]      || perfil_usuario      || "adult";
     const bodyPartDesc  = BODY_PART_MAP[categoria_producto] || "worn by a person";
-    const tieneGema     = gema_principal && gema_principal !== "sin_gema";
+
+    const gemaEfectiva  = detectarGema(gema_principal, sugerencias, cambios_solicitados);
+    const tieneGema     = !!gemaEfectiva && gemaEfectiva !== "sin_gema";
+
     const glosarioInyectado = detectarTerminos(sugerencias, cambios_solicitados);
     const restriccionesGeometriaYNumeros = detectarRestriccionesEspecificas(sugerencias, cambios_solicitados);
 
     const especificaciones = `JEWELRY SPECIFICATIONS (must always be respected):
 - Type: ${categoriaDesc}
 - Metal: ${materialDesc}
-- Gemstone: ${tieneGema ? gema_principal + " — realistic facets and light refraction" : "no gemstone — clean metal only"}
+- Gemstone: ${tieneGema ? gemaEfectiva + " — realistic facets and light refraction" : "no gemstone — clean metal only"}
 - Style: ${estiloDesc}
 - Target wearer: ${perfilDesc}
 ${sugerencias ? "- Design notes: " + sugerencias : ""}`;
@@ -250,7 +290,7 @@ ${sugerencias ? "- Design notes: " + sugerencias : ""}`;
 - The piece MUST look like a real, commercially available jewelry store product
 - SIMPLE and CLEAN — no excessive decoration, no fantasy elements
 - Realistic, wearable proportions
-- STRICT NUMERICAL AND GEOMETRIC ACCURACY: You must strictly adhere to the number of elements (such as petals, leaves, gemstones, links) specified. If the user asks for 10 petals, you must render exactly 10 petals, not 12. If a specific geometric finish (e.g. square, triangular, elliptical, rounded) is requested, prioritize it and make it highly defined and clearly visible in the shape of the jewelry. Do not approximate shapes or quantities.
+- STRICT NUMERICAL AND GEOMETRIC ACCURACY: You must strictly adhere to the number of elements (such as petals, leaves, gemstones, links) specified. If the user asks for 10 petals, you must render exactly 10 petals, not 12. If a specific geometric finish (e.g. square, triangular, elliptical, rounded) or gemstone cut is requested, prioritize it and make it highly defined and clearly visible in the shape of the jewelry. Do not approximate shapes or quantities.
 - DO NOT add faces, animals, crowns, wings, dragons, snakes, skulls or fantasy motifs unless explicitly requested
 - DO NOT invent decorative elements that were not asked for
 - Understated and elegant, never baroque or churrigueresque`;
@@ -286,10 +326,6 @@ ${sugerencias ? "- Design notes: " + sugerencias : ""}`;
 - Ultra-sharp macro photography quality
 - No watermarks, no text overlays (EXCEPT the four panel labels FRONT/BACK/SIDE/ON MODEL at the bottom)`;
 
-    const esRetoque     = !!imagen_referencia_url;
-    const esImagenSubida = !!imagen_subida_url || !!imagen_subida_url2;
-    const imagenParaGemini = imagen_referencia_url || imagen_subida_url || imagen_subida_url2 || null;
-
     // ── Build prompt (3 modos) ───────────────────────────────────
     let prompt: string;
 
@@ -297,7 +333,12 @@ ${sugerencias ? "- Design notes: " + sugerencias : ""}`;
       // MODO 2/4: Retoque de imagen existente
       prompt = `You are a professional fine jewelry designer performing a PRECISE RETOUCH on an existing design.
 
-The attached image shows the CURRENT design. Modify ONLY what is specified in the requested changes below, keeping EVERYTHING ELSE exactly identical. This is a retouch — NOT a redesign. Do not reinvent the piece, do not change the letter, shape, or any element that the requested change does not explicitly mention.
+The attached image shows the CURRENT design.
+⚠️ OVERRIDE PRIORITY FOR REQUESTED CHANGES:
+If the requested changes modify any specific attribute (such as changing the stone shape/cut, adding or removing a stone, altering the metal color, changing engravings, changing dimensions or details), THAT MODIFICATION OVERRIDES THE ORIGINAL IMAGE FOR THAT SPECIFIC ATTRIBUTE.
+For example, if the original design has an emerald-cut (rectangular) stone and the requested change is "Hacerlo con la piedra redonda" (make it with a round stone), you MUST change the gemstone to a round brilliant cut stone, adapting the setting/prongs to securely hold the round stone, while keeping the rest of the band, metal, and style identical.
+
+Modify ONLY what is specified in the requested changes below, keeping EVERYTHING ELSE exactly identical. This is a retouch — NOT a completely new redesign from scratch. Do not reinvent the piece, do not change elements that the requested change does not explicitly touch.
 
 ${especificaciones}
 
@@ -314,7 +355,7 @@ ${reglasEncuadre}
 
 ${reglasRender}
 
-CRITICAL: The result must be immediately recognizable as the SAME piece from the attached image, with ONLY the requested change applied. Preserve original form, proportions, letters, motifs and all unchanged details.`;
+CRITICAL: The result must be immediately recognizable as the SAME piece from the attached image, with ONLY the requested change applied with absolute precision. Preserve original band form, metal proportions, letters, and all unchanged details.`;
 
     } else if (esImagenSubida) {
       // MODO 3: El cliente sube una foto de referencia
@@ -357,6 +398,23 @@ ${reglasRender}`;
     // ── Load reference images if provided ────────────────────────
     const fetchImagePart = async (url: string) => {
       try {
+        // Direct download from Supabase Storage if it is a storage URL
+        const storageMatch = url.match(/\/storage\/v1\/object\/(?:public\/|authenticated\/)?([^\/]+)\/(.+)$/);
+        if (storageMatch) {
+          const bucket = storageMatch[1];
+          const filePath = decodeURIComponent(storageMatch[2].split("?")[0]);
+          const { data, error } = await supabase.storage.from(bucket).download(filePath);
+          if (!error && data) {
+            const buf = await data.arrayBuffer();
+            const base64 = encode(new Uint8Array(buf));
+            const mimeType = data.type || "image/png";
+            console.log("Reference image downloaded from Storage:", bucket, filePath, "bytes:", buf.byteLength);
+            return { inlineData: { mimeType, data: base64 } };
+          } else {
+            console.warn("Direct storage download failed, falling back to fetch:", error?.message);
+          }
+        }
+
         const imgRes = await fetch(url);
         if (imgRes.ok) {
           const buf = await imgRes.arrayBuffer();
@@ -364,6 +422,8 @@ ${reglasRender}`;
           const mimeType = imgRes.headers.get("content-type")?.split(";")[0] || "image/jpeg";
           console.log("Reference image loaded from URL:", url, "bytes:", buf.byteLength);
           return { inlineData: { mimeType, data: base64 } };
+        } else {
+          console.warn("Fetch image failed with status:", imgRes.status, url);
         }
       } catch (e) {
         console.warn("Could not load reference image from URL:", url, e);
@@ -390,7 +450,7 @@ ${reglasRender}`;
     parts.push({ text: prompt });
 
     const modo = esRetoque ? "retoque" : esImagenSubida ? "imagen_subida" : "desde_cero";
-    console.log(`v62 — mode: ${modo}, model: ${GEMINI_MODEL}, hasRefImage: ${!!imagenBase64}`);
+    console.log(`v78 — mode: ${modo}, model: ${GEMINI_MODEL}, hasRefImage: ${!!imagenParaGemini}`);
 
     const geminiRes = await fetch(GEMINI_URL, {
       method: "POST",
@@ -552,12 +612,12 @@ ${reglasRender}`;
     }
 
     return new Response(
-      JSON.stringify({ success: true, imagenUrl }),
+      JSON.stringify({ success: true, imagenUrl, id: insertedData?.id }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 
   } catch (error: any) {
-    console.error("v62 ERROR:", error.message);
+    console.error("v78 ERROR:", error.message);
     return new Response(
       JSON.stringify({ success: false, error: error.message }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

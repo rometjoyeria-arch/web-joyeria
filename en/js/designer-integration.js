@@ -200,31 +200,29 @@
 		}
 
 		let isPaidRedesign = false;
-		if (imagenContainer) {
-			// Free redesign logic: first 5 redesigns are free
-			let redesignCount = parseInt(sessionStorage.getItem('redesignCount') || '0', 10);
-			if (redesignCount < 5) {
-				showNotification(`Free redesign (${5 - redesignCount} remaining)`, 'info');
-				redesignCount++;
-				sessionStorage.setItem('redesignCount', redesignCount.toString());
-				updateCreditInfo();
-			} else {
-				isPaidRedesign = true;
-				const credits = typeof window.getCredits === 'function' ? await window.getCredits() : null;
-				if (credits !== '∞' && typeof credits === 'number' && credits <= 0) {
-					if (typeof window.showOutOfCreditsModal === 'function') {
-						window.showOutOfCreditsModal();
-					} else {
-						showNotification('You do not have enough credits to redesign. Please purchase more credits.', 'error');
-					}
-					if (redesignBtn) {
-						redesignBtn.disabled = false;
-						redesignBtn.textContent = 'Redesign';
-					}
-					imagenContainer.innerHTML = prevImgHTML;
-					return;
+		const currentRedesignCount = parseInt(sessionStorage.getItem('redesignCount') || '0', 10);
+		const isFreeRedesign = currentRedesignCount < 5;
+
+		if (isFreeRedesign) {
+			showNotification(`Free redesign (${5 - currentRedesignCount} remaining)`, 'info');
+		} else {
+			isPaidRedesign = true;
+			const credits = typeof window.getCredits === 'function' ? await window.getCredits() : null;
+			if (credits !== '∞' && typeof credits === 'number' && credits <= 0) {
+				if (typeof window.showOutOfCreditsModal === 'function') {
+					window.showOutOfCreditsModal();
+				} else {
+					showNotification('You do not have enough credits to redesign. Please purchase more credits.', 'error');
 				}
+				if (redesignBtn) {
+					redesignBtn.disabled = false;
+					redesignBtn.textContent = 'Redesign';
+				}
+				return;
 			}
+		}
+
+		if (imagenContainer) {
 			imagenContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:200px;"><svg class="animate-spin" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></div>';
 		}
 
@@ -242,13 +240,17 @@
 				peso_estimado: state.weight,
 				talla_medida: state.size,
 				sugerencias: state.notes,
-				imagen_subida_url: state._lastImagenUrl,
+				imagen_referencia_url: state._lastImagenUrl,
 				cambios_solicitados: cambios,
-				is_redesign: true
+				es_redisenio_gratuito: isFreeRedesign,
+				numero_redisenio: currentRedesignCount + 1,
 			});
 
 			if (isPaidRedesign && typeof window.consumeCredit === 'function') {
 				await window.consumeCredit();
+			} else if (isFreeRedesign) {
+				const newCount = currentRedesignCount + 1;
+				sessionStorage.setItem('redesignCount', newCount.toString());
 			}
 
 			if (imagenContainer && result?.imagenUrl) {
@@ -260,17 +262,20 @@
 
 			const cambiosPanel = document.getElementById('cambios-panel');
 			if (cambiosPanel) cambiosPanel.style.display = 'none';
+			const textoEl = document.getElementById('cambios-texto');
+			if (textoEl) textoEl.value = '';
 
 		} catch (error) {
 			console.error('Error redesigning:', error);
 			if (imagenContainer) {
-				imagenContainer.innerHTML = '<p style="color:#888;text-align:center;">Error redesigning. Try again.</p>';
+				imagenContainer.innerHTML = prevImgHTML;
 			}
-		}
-
-		if (redesignBtn) {
-			redesignBtn.disabled = false;
-			redesignBtn.textContent = 'Redesign';
+			showNotification('Error redesigning: ' + (error.message || 'Please try again.'), 'error');
+		} finally {
+			if (redesignBtn) {
+				redesignBtn.disabled = false;
+				redesignBtn.textContent = 'Redesign';
+			}
 			updateCreditInfo();
 		}
 	}

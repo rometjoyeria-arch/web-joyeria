@@ -197,34 +197,31 @@
 		}
 
 		let isPaidRedesign = false;
-		if (imagenContainer) {
-			// Free redesign logic: first 5 redesigns are free
-			let redesignCount = parseInt(sessionStorage.getItem('redesignCount') || '0', 10);
-			if (redesignCount < 5) {
-				showNotification(`Rediseño gratuito (${5 - redesignCount} restantes)`, 'info');
-				redesignCount++;
-				sessionStorage.setItem('redesignCount', redesignCount.toString());
-				updateCreditInfo();
-			} else {
-				isPaidRedesign = true;
-				const credits = typeof window.getCredits === 'function' ? await window.getCredits() : null;
-				if (credits !== '∞' && typeof credits === 'number' && credits <= 0) {
-					if (typeof window.showOutOfCreditsModal === 'function') {
-						window.showOutOfCreditsModal();
-					} else {
-						showNotification('No tienes suficientes créditos para rediseñar. Compra más créditos en tu cuenta.', 'error');
-					}
-					if (redesignBtn) {
-						redesignBtn.disabled = false;
-						redesignBtn.textContent = 'Rediseñar';
-					}
-					imagenContainer.innerHTML = prevImgHTML;
-					return;
+		const currentRedesignCount = parseInt(sessionStorage.getItem('redesignCount') || '0', 10);
+		const isFreeRedesign = currentRedesignCount < 5;
+
+		if (isFreeRedesign) {
+			showNotification(`Rediseño gratuito (${5 - currentRedesignCount} restantes)`, 'info');
+		} else {
+			isPaidRedesign = true;
+			const credits = typeof window.getCredits === 'function' ? await window.getCredits() : null;
+			if (credits !== '∞' && typeof credits === 'number' && credits <= 0) {
+				if (typeof window.showOutOfCreditsModal === 'function') {
+					window.showOutOfCreditsModal();
+				} else {
+					showNotification('No tienes suficientes créditos para rediseñar. Compra más créditos en tu cuenta.', 'error');
 				}
+				if (redesignBtn) {
+					redesignBtn.disabled = false;
+					redesignBtn.textContent = 'Rediseñar';
+				}
+				return;
 			}
-			imagenContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:200px;"><svg class="animate-spin" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></div>';
 		}
 
+		if (imagenContainer) {
+			imagenContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:200px;"><svg class="animate-spin" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></div>';
+		}
 
 		try {
 			const result = await callEdgeFunction('Joyas', {
@@ -242,10 +239,15 @@
 				sugerencias: state.notes,
 				imagen_referencia_url: state._lastImagenUrl,
 				cambios_solicitados: cambios,
+				es_redisenio_gratuito: isFreeRedesign,
+				numero_redisenio: currentRedesignCount + 1,
 			});
 
 			if (isPaidRedesign && typeof window.consumeCredit === 'function') {
 				await window.consumeCredit();
+			} else if (isFreeRedesign) {
+				const newCount = currentRedesignCount + 1;
+				sessionStorage.setItem('redesignCount', newCount.toString());
 			}
 
 			if (imagenContainer && result?.imagenUrl) {
@@ -257,23 +259,21 @@
 
 			const cambiosPanel = document.getElementById('cambios-panel');
 			if (cambiosPanel) cambiosPanel.style.display = 'none';
-
-			if (redesignBtn) {
-				redesignBtn.disabled = false;
-				redesignBtn.textContent = 'Rediseñar';
-				updateCreditInfo();
-			}
+			const textoEl = document.getElementById('cambios-texto');
+			if (textoEl) textoEl.value = '';
 
 		} catch (error) {
 			console.error('Error rediseñando:', error);
 			if (imagenContainer) {
-				imagenContainer.innerHTML = '<p style="color:#888;text-align:center;">Error al rediseñar. Inténtalo de nuevo.</p>';
+				imagenContainer.innerHTML = prevImgHTML;
 			}
-		}
-
-		if (redesignBtn) {
-			redesignBtn.disabled = false;
-			redesignBtn.textContent = 'Rediseñar';
+			showNotification('Error al rediseñar: ' + (error.message || 'Inténtalo de nuevo.'), 'error');
+		} finally {
+			if (redesignBtn) {
+				redesignBtn.disabled = false;
+				redesignBtn.textContent = 'Rediseñar';
+			}
+			updateCreditInfo();
 		}
 	}
 
