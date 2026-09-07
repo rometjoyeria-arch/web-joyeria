@@ -331,7 +331,15 @@
 					await consumeCredit();
 				}
 
-				showUploadSuccess({ nombre, email, categoria, material }, result?.imagenUrl || null, result?.id || null);
+				showUploadSuccess({ 
+					nombre, 
+					telefono, 
+					email, 
+					categoria, 
+					material, 
+					instructions: instrucciones,
+					gema_principal: result?.gema || null
+				}, result?.imagenUrl || null, result?.id || null, imagenSubidaUrl);
 
 			} catch (error) {
 				console.error('Error:', error);
@@ -343,9 +351,15 @@
 
 		let _uploadState = {};
 
-		function showUploadSuccess(data, imagenUrl, designId = null) {
+		function showUploadSuccess(data, imagenUrl, designId = null, originalUploadedUrl = null) {
 			sessionStorage.setItem('redesignCount', '0');
-			_uploadState = { data, imagenUrl, designId };
+			_uploadState = { 
+				data, 
+				imagenUrl, 
+				designId,
+				originalUploadedUrl: originalUploadedUrl || null,
+				firstGeneratedUrl: imagenUrl || null,
+			};
 			const main = document.querySelector('main');
 			if (!main) return;
 
@@ -550,8 +564,10 @@
 						email: _uploadState.data.email,
 						categoria_producto: _uploadState.data.categoria,
 						material: _uploadState.data.material,
+						gema_principal: _uploadState.data.gema_principal,
 						sugerencias: _uploadState.data.instructions,
 						imagen_referencia_url: _uploadState.imagenUrl,
+						imagen_original_url: _uploadState.originalUploadedUrl || _uploadState.firstGeneratedUrl,
 						cambios_solicitados: cambios,
 						es_redisenio_gratuito: isFreeRedesign,
 						numero_redisenio: currentRedesignCount + 1,
@@ -568,6 +584,9 @@
 					if (imagenContainer && result?.imagenUrl) {
 						_uploadState.imagenUrl = result.imagenUrl;
 						_uploadState.designId = result.id || null;
+						if (result?.gema) {
+							_uploadState.data.gema_principal = result.gema;
+						}
 						imagenContainer.innerHTML = `<img loading="lazy" src="${result.imagenUrl}" style="width:100%; max-width:900px; border-radius:12px; box-shadow:0 8px 25px rgba(0,0,0,0.08);" alt="Redesigned Design — Front · Back · Side · On Model" />
 						<p style="font-size:0.7rem; color:#aaa; margin-top:8px; font-family:sans-serif; letter-spacing:0.12em; text-transform:uppercase; text-align:center;">Front · Back · Side · On Model</p>`;
 						imagenContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });

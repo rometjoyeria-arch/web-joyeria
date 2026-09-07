@@ -3,9 +3,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 // ═══════════════════════════════════════════════════════════
-// ROMET JOYERÍA — Edge Function v80
+// ROMET JOYERÍA — Edge Function v81
 // Glosario joyería + 3 modos de prompt + emails directos Resend + prompt geometry/numbers/stone fix
-// Rediseño gratuito (1 a 5) protegido de bloqueo de créditos + fetch directo con fallback a Storage y validación MIME
+// Rediseño inteligente: preservación de gemas, restauración de elementos, soporte de imagen original
 // Modelo: gemini-3.1-flash-image (confirmado funcional)
 // ═══════════════════════════════════════════════════════════
 
@@ -38,6 +38,7 @@ function detectImageMimeType(buf: Uint8Array, filePath?: string, headerType?: st
     if (buf[0] === 0xFF && buf[1] === 0xD8 && buf[2] === 0xFF) return "image/jpeg";
     if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4E && buf[3] === 0x47) return "image/png";
     if (buf[0] === 0x52 && buf[1] === 0x49 && buf[2] === 0x46 && buf[3] === 0x46) return "image/webp";
+    if (buf[0] === 0x47 && buf[1] === 0x49 && buf[2] === 0x46 && buf[3] === 0x38) return "image/gif";
   }
   const ext = filePath?.split("?")[0].split(".").pop()?.toLowerCase();
   if (ext === "jpg" || ext === "jpeg") return "image/jpeg";
@@ -121,6 +122,9 @@ function detectarRestriccionesEspecificas(...textos: (string | null | undefined)
     { terminos: ["elíptico", "eliptico", "elíptica", "eliptica", "elipse"], desc: "Geometric style: Elliptical, oval, elongated curved outline and edges (ellipse shape)" },
     { terminos: ["cuadrado", "cuadrada", "cuadrangular"], desc: "Geometric style: Square, rectangular, sharp 90-degree corners, flat straight sides (unmistakably square/rectangular)" },
     { terminos: ["triangular", "triángulo", "triangulo"], desc: "Geometric style: Triangular shape, three clear points and straight edges (unmistakably triangular)" },
+    { terminos: ["pentagonal", "pentágono", "pentagono"], desc: "Geometric style: Pentagonal (5-sided polygon shape). The setting/bezel, head, or stone must feature an unmistakable 5-sided pentagon geometry. RETAIN any center gemstone in the piece, securely set inside this pentagonal setting/bezel." },
+    { terminos: ["hexagonal", "hexágono", "hexagono"], desc: "Geometric style: Hexagonal (6-sided polygon shape). RETAIN any center gemstone within the hexagonal setting." },
+    { terminos: ["octogonal", "octágono", "octagono"], desc: "Geometric style: Octagonal (8-sided polygon shape). RETAIN any center gemstone within the octagonal setting." },
     { terminos: ["romboidal", "rombo"], desc: "Geometric style: Rhombus / diamond shape" },
     { terminos: ["plano", "plana"], desc: "Geometric style: Flat, level surface and profile" },
     { terminos: ["convexo", "convexa"], desc: "Geometric style: Convex, domed profile" },
@@ -144,6 +148,7 @@ function detectarRestriccionesEspecificas(...textos: (string | null | undefined)
     { regex: /\b(?:piedra|talla|corte|gema|diamante)\s+(?:ovalada|ovalado|oval)|\btalla\s+oval\b/i, desc: "GEMSTONE CUT / SHAPE OVERRIDE: Oval cut stone (talla oval). The primary gemstone must be shaped as an elegant oval cut stone." },
     { regex: /\b(?:piedra|talla|corte|gema|diamante)\s+(?:esmeralda|emerald)|\btalla\s+esmeralda\b/i, desc: "GEMSTONE CUT / SHAPE OVERRIDE: Emerald cut stone (rectangular stepped cut with clipped corners)." },
     { regex: /\b(?:piedra|talla|corte|gema|diamante)\s+(?:cuadrada|cuadrado|princesa)|\btalla\s+princesa\b/i, desc: "GEMSTONE CUT / SHAPE OVERRIDE: Princess / square cut stone (sharp 90-degree square facet cut)." },
+    { regex: /\b(?:piedra|talla|corte|gema|diamante)\s+(?:pentagonal)|\b(?:corte|talla|forma)\s+pentagonal\b/i, desc: "GEMSTONE CUT / SETTING OVERRIDE: Pentagonal geometry. Sculpt a 5-sided pentagonal head/bezel holding the gemstone securely in the center." },
     { regex: /\b(?:piedra|talla|corte|gema|diamante)\s+(?:pera|lagrima|lágrima)|\btalla\s+pera\b/i, desc: "GEMSTONE CUT / SHAPE OVERRIDE: Pear / teardrop cut stone." },
     { regex: /\b(?:piedra|talla|corte|gema|diamante)\s+(?:marquesa|marquise)|\btalla\s+marquise\b/i, desc: "GEMSTONE CUT / SHAPE OVERRIDE: Marquise cut stone (pointed oval / navette shape)." },
     { regex: /\b(?:piedra|talla|corte|gema|diamante)\s+(?:coj[ií]n|cushion)|\btalla\s+coj[ií]n\b/i, desc: "GEMSTONE CUT / SHAPE OVERRIDE: Cushion cut stone (pillow-shaped rounded rectangle/square)." },
@@ -157,6 +162,11 @@ function detectarRestriccionesEspecificas(...textos: (string | null | undefined)
     }
   });
 
+  // Detectar solicitudes explícitas de restauración / quejas de elementos eliminados
+  if (/\b(?:has quitado|quitaste|falta|faltan|no tiene|donde est[aá]|vuelve a poner|pon de nuevo|pon la|pon el|restaura|devuelve)\s+(?:la|el|las|los)?\s*(?:esmeralda|rub[ií]|zafiro|diamante|brillante|piedra|gema|joya)\b/i.test(textoCompleto)) {
+    alertas.push("CRITICAL RESTORATION CONSTRAINT: The client explicitly states that a gemstone/jewel was removed or is missing. You MUST RESTORE AND ADD the gemstone into the center setting of the piece, with high brilliance, transparent light refraction, vivid color, and proper prongs/bezel!");
+  }
+
   if (alertas.length === 0) return "";
 
   // Filtrar duplicados
@@ -165,13 +175,66 @@ function detectarRestriccionesEspecificas(...textos: (string | null | undefined)
   return `\n\n⚠️ EXTRA PRIORITY GEOMETRIC & NUMERICAL CONSTRAINTS (the client explicitly requested these details - you MUST execute them with absolute precision):\n${alertasUnicas.map(a => "- " + a).join("\n")}`;
 }
 
-function detectarGema(gemaInput?: string, ...textos: (string | null | undefined)[]): string | null {
-  if (gemaInput && gemaInput !== "sin_gema") return gemaInput;
+interface GemaInfo {
+  tieneGema: boolean;
+  desc: string;
+  nombre: string | null;
+  esRemover: boolean;
+  esRestaurar: boolean;
+}
+
+function detectarGema(gemaInput?: string, ...textos: (string | null | undefined)[]): GemaInfo {
   const textoCompleto = textos.filter(Boolean).join(" ").toLowerCase();
-  if (/diamante|brillante|esmeralda|rubi|rubí|zafiro|piedra|gema|circonita|gemstone|stone|diamond/i.test(textoCompleto)) {
-    return "diamante / gema fina natural brillante";
+
+  // 1. Detección explícita de eliminación de gema
+  const esRemover = /\b(?:sin\s+(?:gema|piedra|diamante|joya)|quitar\s+(?:la\s+)?(?:gema|piedra|esmeralda|diamante|joya)|eliminar\s+(?:la\s+)?(?:gema|piedra|esmeralda|diamante|joya)|no\s+quiero\s+piedra|solo\s+metal|solamente\s+metal)\b/i.test(textoCompleto);
+  if (esRemover) {
+    return { tieneGema: false, desc: "no gemstone — clean polished metal only (the user explicitly requested to remove the stone)", nombre: "sin_gema", esRemover: true, esRestaurar: false };
   }
-  return gemaInput || null;
+
+  // 2. Detección de queja o petición de restauración
+  const esRestaurar = /\b(?:has quitado|quitaste|falta|faltan|no tiene|donde est[aá]|vuelve a poner|pon de nuevo|pon la|pon el|restaura|devuelve)\s+(?:la|el)?\s*(?:esmeralda|rub[ií]|zafiro|diamante|brillante|piedra|gema|joya)\b/i.test(textoCompleto);
+
+  // 3. Detección de tipos específicos de piedras
+  const source = ((gemaInput || "") + " " + textoCompleto).toLowerCase();
+
+  if (/\besmeralda\b|\bemerald\b/i.test(source)) {
+    return { tieneGema: true, desc: "natural emerald (intense vivid green natural emerald gemstone with realistic light refraction, transparency, and brilliant facets)", nombre: "esmeralda", esRemover: false, esRestaurar };
+  }
+  if (/\brub[ií]\b|\bruby\b/i.test(source)) {
+    return { tieneGema: true, desc: "natural ruby (deep vivid red natural ruby gemstone with realistic light refraction, transparency, and brilliant facets)", nombre: "rubi", esRemover: false, esRestaurar };
+  }
+  if (/\bzafiro\b|\bsapphire\b/i.test(source)) {
+    return { tieneGema: true, desc: "natural sapphire (deep royal blue natural sapphire gemstone with realistic light refraction, transparency, and brilliant facets)", nombre: "zafiro", esRemover: false, esRestaurar };
+  }
+  if (/\bdiamante\b|\bbrillante\b|\bdiamond\b/i.test(source)) {
+    return { tieneGema: true, desc: "natural diamond (sparkling transparent white natural brilliant cut diamond with exceptional fire, brilliance, and light caustics)", nombre: "diamante", esRemover: false, esRestaurar };
+  }
+  if (/\bperla\b|\bpearl\b/i.test(source)) {
+    return { tieneGema: true, desc: "natural lustrous pearl (smooth iridescent surface, natural luster)", nombre: "perla", esRemover: false, esRestaurar };
+  }
+  if (/\bamatista\b|\bamethyst\b/i.test(source)) {
+    return { tieneGema: true, desc: "natural amethyst (vivid purple natural faceted gemstone with transparency and light caustics)", nombre: "amatista", esRemover: false, esRestaurar };
+  }
+  if (/\btopacio\b|\btopaz\b/i.test(source)) {
+    return { tieneGema: true, desc: "natural topaz (fine natural faceted gemstone with realistic transparency)", nombre: "topacio", esRemover: false, esRestaurar };
+  }
+  if (/\bcirco(?:nita|nio)\b|\bcircon\b|\bzirconia\b/i.test(source)) {
+    return { tieneGema: true, desc: "cubic zirconia (sparkling transparent faceted synthetic gemstone)", nombre: "circonita", esRemover: false, esRestaurar };
+  }
+  if (/\b(?:piedra|gema|joya|gemstone|stone)\b/i.test(source)) {
+    return { tieneGema: true, desc: "fine natural faceted precious gemstone (preserve the gemstone color, cut and material from the reference image)", nombre: "gema", esRemover: false, esRestaurar };
+  }
+
+  // 4. Fallback a gemaInput
+  if (gemaInput && gemaInput !== "sin_gema") {
+    return { tieneGema: true, desc: `${gemaInput} — realistic facets, transparency and light refraction`, nombre: gemaInput, esRemover: false, esRestaurar: false };
+  }
+  if (gemaInput === "sin_gema") {
+    return { tieneGema: false, desc: "no gemstone — clean polished metal only", nombre: "sin_gema", esRemover: true, esRestaurar: false };
+  }
+
+  return { tieneGema: false, desc: "", nombre: null, esRemover: false, esRestaurar: false };
 }
 
 // ═══ MAPS ═══════════════════════════════════════════════════
@@ -261,6 +324,7 @@ serve(async (req) => {
       imagen_subida_url,
       imagen_subida_url2,
       imagen_referencia_url,
+      imagen_original_url,
       cambios_solicitados,
       es_redisenio_gratuito,
       numero_redisenio,
@@ -289,8 +353,20 @@ serve(async (req) => {
     const perfilDesc    = PROFILE_MAP[perfil_usuario]      || perfil_usuario      || "adult";
     const bodyPartDesc  = BODY_PART_MAP[categoria_producto] || "worn by a person";
 
-    const gemaEfectiva  = detectarGema(gema_principal, sugerencias, cambios_solicitados);
-    const tieneGema     = !!gemaEfectiva && gemaEfectiva !== "sin_gema";
+    const gemaInfo = detectarGema(gema_principal, sugerencias, cambios_solicitados);
+
+    let gemstoneLine: string;
+    if (gemaInfo.esRemover) {
+      gemstoneLine = "- Gemstone: NO GEMSTONE — clean polished metal only (user explicitly requested to remove the stone)";
+    } else if (gemaInfo.tieneGema) {
+      gemstoneLine = `- Gemstone: ${gemaInfo.desc}`;
+    } else if (esRetoque) {
+      gemstoneLine = "- Gemstone: PRESERVE GEMSTONE FROM CURRENT DESIGN — If the attached design features a gemstone (such as an emerald, diamond, ruby, sapphire, or center stone), YOU MUST PRESERVE THAT GEMSTONE, maintaining its color, presence, and brilliance in the setting. Do NOT remove it unless explicitly asked.";
+    } else if (esImagenSubida) {
+      gemstoneLine = "- Gemstone: PRESERVE GEMSTONE FROM UPLOADED REFERENCE — If the uploaded photo/sketch features a gemstone, reproduce that exact gemstone (matching color, cut and setting). If plain metal, render clean polished metal.";
+    } else {
+      gemstoneLine = "- Gemstone: no gemstone — clean polished metal only";
+    }
 
     const glosarioInyectado = detectarTerminos(sugerencias, cambios_solicitados);
     const restriccionesGeometriaYNumeros = detectarRestriccionesEspecificas(sugerencias, cambios_solicitados);
@@ -298,7 +374,7 @@ serve(async (req) => {
     const especificaciones = `JEWELRY SPECIFICATIONS (must always be respected):
 - Type: ${categoriaDesc}
 - Metal: ${materialDesc}
-- Gemstone: ${tieneGema ? gemaEfectiva + " — realistic facets and light refraction" : "no gemstone — clean metal only"}
+${gemstoneLine}
 - Style: ${estiloDesc}
 - Target wearer: ${perfilDesc}
 ${sugerencias ? "- Design notes: " + sugerencias : ""}`;
@@ -307,7 +383,7 @@ ${sugerencias ? "- Design notes: " + sugerencias : ""}`;
 - The piece MUST look like a real, commercially available jewelry store product
 - SIMPLE and CLEAN — no excessive decoration, no fantasy elements
 - Realistic, wearable proportions
-- STRICT NUMERICAL AND GEOMETRIC ACCURACY: You must strictly adhere to the number of elements (such as petals, leaves, gemstones, links) specified. If the user asks for 10 petals, you must render exactly 10 petals, not 12. If a specific geometric finish (e.g. square, triangular, elliptical, rounded) or gemstone cut is requested, prioritize it and make it highly defined and clearly visible in the shape of the jewelry. Do not approximate shapes or quantities.
+- STRICT NUMERICAL AND GEOMETRIC ACCURACY: You must strictly adhere to the number of elements (such as petals, leaves, gemstones, links) specified. If the user asks for 10 petals, you must render exactly 10 petals, not 12. If a specific geometric finish (e.g. square, triangular, elliptical, rounded, pentagonal) or gemstone cut is requested, prioritize it and make it highly defined and clearly visible in the shape of the jewelry. Do not approximate shapes or quantities.
 - DO NOT add faces, animals, crowns, wings, dragons, snakes, skulls or fantasy motifs unless explicitly requested
 - DO NOT invent decorative elements that were not asked for
 - Understated and elegant, never baroque or churrigueresque`;
@@ -335,13 +411,17 @@ ${sugerencias ? "- Design notes: " + sugerencias : ""}`;
   4. Always avoid wide-angle shots that make the jewelry look tiny or hard to see. Keep a shallow depth of field with a soft out-of-focus background.
 - No part, edge, prong, chain link, or detail of the jewelry should ever touch or go beyond the boundaries of any panel.`;
 
+    const tieneGemaParaRender = gemaInfo.tieneGema || (esRetoque && !gemaInfo.esRemover) || (esImagenSubida && !gemaInfo.esRemover);
+
     const reglasRender = `RENDERING QUALITY:
 - Panels 1, 2, and 3: Pure white seamless studio background with professional softbox lighting
 - Panel 4: Natural realistic model portrait background (soft-focus, warm natural lighting, realistic skin textures)
 - Mirror-polished metal with realistic reflections and highlights
-- ${tieneGema ? "Gemstone with realistic transparency and light caustics" : "Clean polished metal surface"}
+- ${tieneGemaParaRender ? "Gemstones with realistic transparency, light caustics, and luxury brilliance. Clean polished metal surfaces." : "Clean polished metal surface"}
 - Ultra-sharp macro photography quality
 - No watermarks, no text overlays (EXCEPT the four panel labels FRONT/BACK/SIDE/ON MODEL at the bottom)`;
+
+    const hasOriginalImage = !!(imagen_original_url && imagen_original_url !== imagen_referencia_url);
 
     // ── Build prompt (3 modos) ───────────────────────────────────
     let prompt: string;
@@ -351,9 +431,18 @@ ${sugerencias ? "- Design notes: " + sugerencias : ""}`;
       prompt = `You are a professional fine jewelry designer performing a PRECISE RETOUCH on an existing design.
 
 The attached image shows the CURRENT design.
+${hasOriginalImage ? "A second attached image shows the ORIGINAL client reference piece for comparison.\n" : ""}
 ⚠️ OVERRIDE PRIORITY FOR REQUESTED CHANGES:
 If the requested changes modify any specific attribute (such as changing the stone shape/cut, adding or removing a stone, altering the metal color, changing engravings, changing dimensions or details), THAT MODIFICATION OVERRIDES THE ORIGINAL IMAGE FOR THAT SPECIFIC ATTRIBUTE.
 For example, if the original design has an emerald-cut (rectangular) stone and the requested change is "Hacerlo con la piedra redonda" (make it with a round stone), you MUST change the gemstone to a round brilliant cut stone, adapting the setting/prongs to securely hold the round stone, while keeping the rest of the band, metal, and style identical.
+
+⚠️ CRITICAL RETOUCH RULES FOR GEMSTONES & SHAPES:
+1. NEVER REMOVE GEMSTONES UNLESS EXPLICITLY COMMANDED: If the reference design features a gemstone (such as an emerald, diamond, ruby, sapphire, etc.), YOU MUST KEEP THAT GEMSTONE in the new design. Never eliminate a stone unless the client explicitly says "quitar la piedra" or "sin piedra".
+2. GEOMETRIC SHAPE MODIFICATIONS (e.g. "hazlo pentagonal", "hazlo cuadrado", "hazlo redondo"): When the client asks for a geometric modification like "hazlo pentagonal la joya", transform the setting/bezel, head, and/or stone to that pentagonal geometry, but the piece MUST RETAIN ITS CENTER GEMSTONE securely set in the new pentagonal setting!
+3. RESTORING MISSING ELEMENTS: If the client mentions that an element was removed or asks to restore it (e.g. "has quitado la esmeralda", "vuelve a poner la joya", "falta la piedra", "pon la joya", "pon la esmeralda"):
+   - YOU MUST IMMEDIATELY RESTORE AND ADD THAT GEMSTONE into the center setting of the piece!
+   - Sculpt a proper fine-jewelry setting (bezel or prongs) into the top/center of the piece and securely mount the requested gemstone (${gemaInfo.desc || "emerald / precious gemstone"}) with vivid color, brilliant faceting, transparency, and light caustics!
+   - DO NOT keep it as plain metal when the client asks for the stone back!
 
 Modify ONLY what is specified in the requested changes below, keeping EVERYTHING ELSE exactly identical. This is a retouch — NOT a completely new redesign from scratch. Do not reinvent the piece, do not change elements that the requested change does not explicitly touch.
 
@@ -381,6 +470,7 @@ CRITICAL: The result must be immediately recognizable as the SAME piece from the
 Study the references carefully and reproduce their key elements faithfully as a professional jewelry piece:
 - EXACT 1-TO-1 PORTRAIT ENGRAVINGS: If any of the references show a person's face or portrait (e.g., a family member, child, or parent), the jewelry piece (especially if it is a medallion pendant, medal, coin, or cameo) MUST feature a masterfully sculpted, high-fidelity 3D bas-relief engraving of that exact person's face on the polished metal surface. Capturing their exact likeness, eye shape, nose shape, mouth structure, jawline, hair details, and facial expression is CRITICAL. The metallic bas-relief must look identical to the person in the photo, as if their exact face was directly printed or sculpted onto the gold/silver surface with perfect fidelity. Do NOT generalize, simplify, or stylize the face. It must be an exact, recognizable portrait of the specific individual shown in the reference photo.
 - SKETCHES & DESIGNS: If any of the references show a sketch or drawing of a jewelry style, shape, or clasp, reproduce those design lines and proportions faithfully as a real, wearable piece of jewelry.
+- GEMSTONES & EMBELLISHMENTS: If the uploaded reference features any gemstones (like an emerald, diamond, sapphire, etc.), reproduce them faithfully with identical colors, cuts, and proper fine jewelry settings.
 - Combining references: If multiple images are attached (for example, a portrait photo of a relative AND a sketch or reference image of a medallion), combine them masterfully. The face from the portrait photo must be engraved onto the jewelry style shown in the other reference image.
 
 ${especificaciones}
@@ -463,7 +553,11 @@ ${reglasRender}`;
       const p = await fetchImagePart(imagen_referencia_url);
       if (p) parts.push(p);
     }
-    if (imagen_subida_url) {
+    if (imagen_original_url && imagen_original_url !== imagen_referencia_url) {
+      const p = await fetchImagePart(imagen_original_url);
+      if (p) parts.push(p);
+    }
+    if (imagen_subida_url && imagen_subida_url !== imagen_referencia_url && imagen_subida_url !== imagen_original_url) {
       const p = await fetchImagePart(imagen_subida_url);
       if (p) parts.push(p);
     }
@@ -475,7 +569,7 @@ ${reglasRender}`;
     parts.push({ text: prompt });
 
     const modo = esRetoque ? "retoque" : esImagenSubida ? "imagen_subida" : "desde_cero";
-    console.log(`v80 — mode: ${modo}, model: ${GEMINI_MODEL}, hasRefImage: ${!!imagenParaGemini}`);
+    console.log(`v81 — mode: ${modo}, model: ${GEMINI_MODEL}, hasRefImage: ${!!imagenParaGemini}`);
 
     const geminiRes = await fetch(GEMINI_URL, {
       method: "POST",
@@ -534,6 +628,9 @@ ${reglasRender}`;
     if (imagen_subida_url) insertPayload.imagen_subida_url = imagen_subida_url;
     if (imagen_subida_url2) insertPayload.imagen_subida_url2 = imagen_subida_url2;
     if (imagen_referencia_url) insertPayload.imagen_subida_url = imagen_referencia_url;
+    if (gemaInfo.nombre && (!insertPayload.gema_principal || insertPayload.gema_principal === "sin_gema")) {
+      insertPayload.gema_principal = gemaInfo.nombre;
+    }
 
     const { data: insertedData, error: dbError } = await supabase
       .from("solicitudes_disenos_romet")
@@ -586,7 +683,7 @@ ${reglasRender}`;
                 <tr><td style="padding:8px;border-bottom:1px solid #eee;"><strong>Email</strong></td><td style="padding:8px;border-bottom:1px solid #eee;">${email || ""}</td></tr>
                 <tr><td style="padding:8px;border-bottom:1px solid #eee;"><strong>Categoría</strong></td><td style="padding:8px;border-bottom:1px solid #eee;">${CATEGORY_LABELS[categoria_producto] || categoria_producto || ""}</td></tr>
                 <tr><td style="padding:8px;border-bottom:1px solid #eee;"><strong>Material</strong></td><td style="padding:8px;border-bottom:1px solid #eee;">${MATERIAL_LABELS[material] || material || ""}</td></tr>
-                <tr><td style="padding:8px;border-bottom:1px solid #eee;"><strong>Gema</strong></td><td style="padding:8px;border-bottom:1px solid #eee;">${gema_principal || ""}</td></tr>
+                <tr><td style="padding:8px;border-bottom:1px solid #eee;"><strong>Gema</strong></td><td style="padding:8px;border-bottom:1px solid #eee;">${insertPayload.gema_principal || gema_principal || ""}</td></tr>
                 <tr><td style="padding:8px;border-bottom:1px solid #eee;"><strong>Estilo</strong></td><td style="padding:8px;border-bottom:1px solid #eee;">${estilo || ""}</td></tr>
                 <tr><td style="padding:8px;border-bottom:1px solid #eee;"><strong>Perfil</strong></td><td style="padding:8px;border-bottom:1px solid #eee;">${perfil_usuario || ""}</td></tr>
                 <tr><td style="padding:8px;border-bottom:1px solid #eee;"><strong>Presupuesto</strong></td><td style="padding:8px;border-bottom:1px solid #eee;">${presupuesto ? presupuesto + "€" : ""}</td></tr>
@@ -626,7 +723,7 @@ ${reglasRender}`;
               <table style="width:100%;border-collapse:collapse;margin-top:24px;">
                 <tr><td style="padding:8px;border-bottom:1px solid #eee;width:120px;"><strong>Categoría</strong></td><td style="padding:8px;border-bottom:1px solid #eee;">${CATEGORY_LABELS[categoria_producto] || categoria_producto || ""}</td></tr>
                 <tr><td style="padding:8px;border-bottom:1px solid #eee;"><strong>Material</strong></td><td style="padding:8px;border-bottom:1px solid #eee;">${MATERIAL_LABELS[material] || material || ""}</td></tr>
-                <tr><td style="padding:8px;border-bottom:1px solid #eee;"><strong>Gema</strong></td><td style="padding:8px;border-bottom:1px solid #eee;">${gema_principal || ""}</td></tr>
+                <tr><td style="padding:8px;border-bottom:1px solid #eee;"><strong>Gema</strong></td><td style="padding:8px;border-bottom:1px solid #eee;">${insertPayload.gema_principal || gema_principal || ""}</td></tr>
                 ${esRetoque ? `<tr><td style="padding:8px;border-bottom:1px solid #eee;color:#e53e3e;"><strong>Cambios solicitados</strong></td><td style="padding:8px;border-bottom:1px solid #eee;color:#e53e3e;"><strong>${cambios_solicitados || sugerencias || ""}</strong></td></tr>` : ""}
               </table>
               <p style="margin-top:24px;color:#888;">Con cariño, el equipo de Romet Joyería</p>
@@ -638,12 +735,12 @@ ${reglasRender}`;
     }
 
     return new Response(
-      JSON.stringify({ success: true, imagenUrl, id: insertedData?.id }),
+      JSON.stringify({ success: true, imagenUrl, id: insertedData?.id, gema: gemaInfo.nombre }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 
   } catch (error: any) {
-    console.error("v80 ERROR:", error.message);
+    console.error("v81 ERROR:", error.message);
     return new Response(
       JSON.stringify({ success: false, error: error.message }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

@@ -174,6 +174,11 @@
 			}
 
 			window._currentDesignId = result?.id || null;
+			state._lastImagenUrl = result?.imagenUrl || null;
+			state._firstGeneratedUrl = result?.imagenUrl || null;
+			if (result?.gema) {
+				state.gemstone = result.gema;
+			}
 			showSuccessScreen(state, result?.imagenUrl || null);
 			clearState();
 
@@ -238,6 +243,7 @@
 				talla_medida: state.size,
 				sugerencias: state.notes,
 				imagen_referencia_url: state._lastImagenUrl,
+				imagen_original_url: state._firstGeneratedUrl || state._lastImagenUrl,
 				cambios_solicitados: cambios,
 				es_redisenio_gratuito: isFreeRedesign,
 				numero_redisenio: currentRedesignCount + 1,
@@ -253,6 +259,9 @@
 			if (imagenContainer && result?.imagenUrl) {
 				window._currentDesignId = result?.id || null;
 				state._lastImagenUrl = result.imagenUrl;
+				if (result?.gema) {
+					state.gemstone = result.gema;
+				}
 				imagenContainer.innerHTML = `<img src="${result.imagenUrl}" style="width:100%; max-width:900px; border-radius:12px; box-shadow:0 8px 25px rgba(0,0,0,0.08);" alt="Diseño rediseñado — Frontal · Trasera · Lateral · En Persona" />`;
 				imagenContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
 			}
