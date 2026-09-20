@@ -136,3 +136,66 @@
 > Los siguientes términos del taller joyero son **procesos químicos o mecánicos de fabricación** y **NO deben ser generados como objetos visuales en la joya terminada**:
 > - *Recocido, decapado, fundición a la cera perdida, microfusión, desbaste, limado, serrado, embutido, trefilado, soldadura fuerte/blanda, fresa de asiento, buril, perlador.*
 > Si el usuario los menciona en una descripción de diseño, el sistema debe ignorarlos o convertirlos en su resultado de alta calidad (ej. "fresa de asiento" -> asiento tallado limpio y pulido; "cera perdida" -> pieza fundida sin porosidades con pulido de alta joyería).
+
+---
+
+## 5. Cadenas, Eslabones y Tipologías de Pulsera (Chains & Bracelets)
+
+| Término (ES) | Sinónimos / Variantes | Término (EN) | Descriptor Geométrico / Visual para Prompt (IA) | Qué evitar (Falsos amigos) |
+| :--- | :--- | :--- | :--- | :--- |
+| **Tubogas** | Tubogas, gas pipe | Tubogas band | `Tubogas: flexible, continuous tubular metallic band formed by interlocking, coiled gold strips with smooth rounded outer ribs, wrapping seamlessly without solder or clasps (iconic Bvlgari Tubogas heritage style).` | No dibujar tubos rígidos de fontanería. |
+| **Cadena Singapur** | Singapur, eslabón retorcido | Singapore chain | `Singapore chain: diamond-cut curb links twisted into a fluid, delicate continuous helical spiral, catching light with dynamic undulating shimmer.` | No confundir con la ciudad-estado. |
+| **Espina de pez** | Herringbone, cinta de pez | Herringbone chain | `Herringbone chain: flat, ultra-smooth flexible ribbon formed by miniature parallel V-shaped gold plates aligned in a woven chevron pattern with mirror-like liquid reflection. Strictly lays flat against the skin.` | No dibujar espinas de pescado orgánicas. |
+| **Cola de ratón** | Mouse tail, cordón tubular | Mouse tail / round snake | `Mouse tail / tubular snake chain: ultra-fine, smooth seamless cylindrical tube chain with a round cross-section and silky uninterrupted fluid drape.` | No dibujar colas de animales. |
+| **Cola de zorro** | Foxtail | Foxtail chain | `Foxtail chain: dense, architectural 3D four-sided square braided weave of interlocking Chevron loops, forming a substantial, flexible woven precious metal cord.` | No dibujar pelo de zorro. |
+| **Cadena Bizantina** | Bizantina, cadena rey | Byzantine / King chain | `Byzantine / King chain: complex interlocking woven rope of double circular rings folding backward and forward into intricate decorative geometric links with substantial mass and regal medieval texture.` | Evitar cadenas sueltas o abiertas. |
+| **Cadena Paperclip** | Paperclip, clip, eslabón alargado | Paperclip chain | `Paperclip chain: contemporary openwork links featuring clean, elongated rectangular/oval wire loops with rounded corners and minimal modern airy spacing.` | No dibujar clips de plástico para oficina. |
+| **Malla Milanesa** | Milanesa, tejido de malla | Milanese mesh | `Milanese mesh: fine, dense fabric-like metallic textile woven from micro-gauge precious gold wire spirals, giving silky fluid flexibility and high-end satin drape.` | No confundir con escalopes ni alimentos. |
+| **Cadena Marinera** | Marinera, Gucci, puff mariner | Anchor / Mariner chain | `Anchor / Mariner / Puff Mariner chain: repeating oval links bisected by a crisp horizontal dividing crossbar through the center, inspired by nautical anchor chains. If puff mariner, features pillowy rounded domed links.` | No dibujar anclas sueltas si no se piden. |
+| **Pulsera Tenis** | Pulsera tenis, riviére lineal | Diamond tennis bracelet | `Diamond tennis bracelet: symmetrical, continuous flexible single-line row of individually articulated four-prong collets, each holding a matched brilliant-cut diamond, secured by an integrated box clasp with safety latch.` | No dibujar raquetas ni pistas de tenis. |
+| **Pulsera Rivière** | Rivière, gargantilla rivière | Rivière bracelet / necklace | `Rivière bracelet: seamless high-jewelry stream ('river') of uniform or gently graduated faceted gemstones mounted in individual openwork low-profile gallery collets with virtually invisible joints.` | No dibujar ríos fluviales. |
+| **Brazalete Rígido** | Bangle, aro rígido | Bangle bracelet | `Rigid bangle bracelet: solid, circular or oval rigid hoop of structured precious metal with no flex, retaining its bold sculptural form.` | No hacer cadenas flexibles. |
+| **Brazalete Abierto** | Cuff, brazalete de abertura | Cuff bracelet | `Open cuff bracelet: wide, sculptural semi-rigid metal bracelet featuring an open gap on the underside or side, with terminal caps.` | No cerrar el círculo completo. |
+| **Esclava** | Pulsera esclava, ID bracelet | ID plate bracelet | `ID bracelet: robust curb or Cuban link chain featuring a central flat, polished rectangular curved metal identification bar plate.` | No dibujar elementos de esclavitud. |
+| **Pulsera Bolo** | Pulsera ajustable, bolo slider | Bolo slider bracelet | `Bolo slider bracelet: chain bracelet whose two ends feed through a polished spherical bead slider with silicone friction grip, finishing in decorative metal droplets.` | No confundir con corbatas ni bolos de juego. |
+
+---
+
+## 6. Tallas Clásicas de Diamantes y Gemas (Siluetas y Proporciones)
+
+| Talla | Nombre Internacional | Descriptor Geométrico / Visual para Prompt (IA) | Qué evitar |
+| :--- | :--- | :--- | :--- |
+| **Talla Princesa** | Princess cut | `Princess cut: brilliant square faceted cut with sharp, crisp 90-degree pointed corners and an inverted pyramid pavilion delivering intense fire and kaleidoscopic sparkle.` | No redondear las esquinas. |
+| **Talla Esmeralda** | Emerald cut | `Emerald cut: rectangular step-cut gemstone featuring beveled diagonal corners and clean parallel rectilinear facets producing an elegant 'hall of mirrors' reflection.` | No aplicar facetado brillante triangular. |
+| **Talla Marquesa** | Marquise / Navette cut | `Marquise cut: elongated football-shaped or boat-shaped brilliant cut with curved convex flanks tapering to two sharp pointed tips protected by V-prong caps.` | Evitar puntas achatadas. |
+| **Talla Cojín** | Cushion cut | `Cushion cut: squarish or rectangular gemstone with softly rounded pillow-like corners, deep pavilion, and expansive brilliant facets radiating antique romantic luster.` | No hacer un óvalo perfecto. |
+| **Talla Pera** | Pear / Teardrop cut | `Pear / teardrop cut: teardrop brilliant silhouette combining a rounded semicircular base tapering smoothly into a delicate single pointed tip.` | No hacer formas asimétricas amorfas. |
+| **Talla Asscher** | Asscher cut | `Asscher cut: square vintage step cut with deeply clipped octagonal corners, a high crown, and layered square step facets creating an iconic windmill pattern in the center.` | No confundir con corte esmeralda alargado. |
+| **Talla Baguette** | Baguette cut | `Baguette cut: slim, elongated rectangular step-cut diamond with clean 90-degree corners, perfectly parallel facets, and geometric transparency.` | No dibujar pan francés (baguette). |
+| **Talla Trillón** | Trillion / Trilliant cut | `Trillion cut: equilateral triangular brilliant cut with sharp or softly curved equilateral sides and a lively starburst facet arrangement.` | Evitar triángulos deformes. |
+| **Talla Radiante** | Radiant cut | `Radiant cut: rectangular or square cut with cropped corners matching an emerald cut silhouette, but engineered with a brilliant 70-facet pavilion providing vibrant fire.` | No hacer facetado escalonado plano. |
+
+---
+
+## 7. Gemas Raras y Fenómenos Ópticos (Optical Effects)
+
+| Gema / Fenómeno | Efecto Óptico Principal | Descriptor Geométrico / Visual para Prompt (IA) |
+| :--- | :--- | :--- |
+| **Piedra Lunar** | Adularescencia | `Moonstone with adularescence: translucent, milky bluish-white feldspar gem displaying adularescence — a floating, billowy ethereal electric-blue shimmer billowing beneath the polished cabochon dome surface as light moves.` |
+| **Ópalo Noble** | Juego de color (Play-of-color) | `Precious opal with play-of-color: translucent to luminous milk/black matrix exploding with vivid holographic rainbow diffraction pinfire flashes (fiery red, neon green, cyan, and gold) shifting dynamically with viewpoint.` |
+| **Labradorita** | Labradorescencia | `Labradorite with labradorescence: smoky dark gray mineral bursting into vivid peacock-blue, electric cyan, and iridescent bronze-gold metallic spectral flashes when reflecting light.` |
+| **Ojo de Tigre** | Chatoyancia (Ojo de gato) | `Tiger's eye with chatoyancy: rich golden-brown and caramel silky quartz exhibiting strong chatoyancy — a sharp, luminous sliding cat's-eye light slit gliding smoothly across the curved surface.` |
+| **Tanzanita** | Pleocroísmo tricróico | `Tanzanite: intensely saturated royal velvet blue to deep midnight violet gemstone exhibiting pronounced pleochroism, with flashes of rich indigo, amethyst purple, and subtle burgundy under warm light.` |
+| **Alejandrita** | Cambio de color (Color change) | `Alexandrite color change: rare chrysoberyl displaying dramatic optical color change — lush moss-to-emerald green in cool daylight, transforming into rich raspberry red or purple-ruby under warm incandescent candle lighting.` |
+| **Turmalina Paraíba** | Luminiscencia incandescente | `Paraíba tourmaline: world-renowned hyper-saturated electric neon turquoise-cyan to mint green gemstone with intense glowing internal luminescence driven by copper traces.` |
+| **Morganita** | Tono pastel cristalino | `Morganite: transparent beryl of refined soft blush pink, rose-petal, or warm peachy pastel hues, exceptionally clear with romantic diamond-like brilliance.` |
+
+---
+
+## 8. Fornituras y Elementos Mecánicos Adicionales
+
+| Elemento | Término (EN) | Descriptor Visual para Prompt (IA) | Qué evitar |
+| :--- | :--- | :--- | :--- |
+| **Asa de suspensión (Reasa de dije)** | Pendant bail | `Pendant bail: elegant tapered loop attached to the top of a pendant or cross, engineered with a smooth internal aperture allowing the chain to slide freely without snagging.` | No dibujar asas de cubos ni elementos toscos. |
+| **Asa de pellizco** | Pinch bail | `Pinch bail: flexible precious metal clip whose two opposing tapered pegs seat securely into the side-drilled holes of a briolette or gemstone drop.` | Evitar ganchos flojos. |
+| **Casquillo con espigo** | Cup and peg | `Cup & peg mounting: hemispherical or fluted concave metal cup fitted with a rigid vertical pin post that inserts cleanly into a half-drilled spherical pearl or bead for secure, seamless mounting.` | No aplicar garras sobre perlas esféricas si se especifica casquillo. |
