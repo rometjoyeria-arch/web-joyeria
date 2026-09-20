@@ -20,6 +20,74 @@
 			initHeaderAuth();
 		});
 	</script>
+	<style>
+		.modal-overlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(0, 0, 0, 0.6);
+			backdrop-filter: blur(6px);
+			z-index: 1000;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			opacity: 0;
+			pointer-events: none;
+			transition: opacity 0.3s ease;
+		}
+		.modal-overlay.active {
+			opacity: 1;
+			pointer-events: auto;
+		}
+		.modal-card {
+			background: hsl(0 0% 98%);
+			border: 1px solid hsl(0 0% 85%);
+			width: 90%;
+			max-width: 480px;
+			padding: 2.25rem 2rem;
+			border-radius: 1rem;
+			box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+			position: relative;
+			transform: translateY(20px) scale(0.97);
+			transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+		}
+		.modal-overlay.active .modal-card {
+			transform: translateY(0) scale(1);
+		}
+		.modal-close {
+			position: absolute;
+			top: 1rem;
+			right: 1.25rem;
+			background: none;
+			border: none;
+			cursor: pointer;
+			color: hsl(0 0% 40%);
+			font-size: 1.75rem;
+			line-height: 1;
+			transition: color 0.2s;
+		}
+		.modal-close:hover {
+			color: hsl(0 0% 10%);
+		}
+		.modal-title {
+			font-size: 1.5rem;
+			letter-spacing: 0.15em;
+			text-transform: uppercase;
+			text-align: center;
+			margin-bottom: 0.35rem;
+			color: hsl(var(--foreground));
+		}
+		.modal-desc {
+			font-family: ui-sans-serif, system-ui, sans-serif;
+			font-size: 0.85rem;
+			color: hsl(0 0% 45%);
+			text-align: center;
+			margin-bottom: 1.5rem;
+			line-height: 1.4;
+		}
+	</style>
 </head>
 <body>
 	<div id="root">
@@ -57,79 +125,95 @@
 
 				<div class="flex-1 relative">
 					<div class="w-full" style="opacity: 1; transform: none;">
-						<div class="grid grid-cols-2 md:grid-cols-5 gap-6 max-w-6xl mx-auto">
+						<div class="flex flex-wrap justify-center gap-4 sm:gap-6 max-w-5xl mx-auto">
 
-							<div class="cursor-pointer flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5" onclick="selectOption(this, 'gemstone', 'diamante')">
-								<div class="w-[100px] h-[100px] mb-4 relative rounded-full overflow-hidden shadow-sm bg-white border border-border">
-									<img loading="lazy" src="./designer-paso4_files/diamante.png" alt="Diamante" loading="lazy" class="w-full h-full object-cover">
+							<!-- HILERA 1: GEMAS PRINCIPALES (6) -->
+							<div class="cursor-pointer flex flex-col items-center justify-center p-4 sm:p-5 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5 w-[calc(50%-10px)] sm:w-[calc(33.333%-16px)] md:w-[150px] lg:w-[155px]" onclick="selectOption(this, 'gemstone', 'diamante')">
+								<div class="w-[90px] h-[90px] sm:w-[100px] sm:h-[100px] mb-3 relative rounded-full overflow-hidden shadow-sm bg-white border border-border">
+									<img loading="lazy" src="./designer-paso4_files/diamante.png" alt="Diamante" class="w-full h-full object-cover">
 								</div>
-								<span class="text-foreground text-sm tracking-widest uppercase font-medium text-center">Diamante</span>
+								<span class="text-foreground text-xs sm:text-sm tracking-widest uppercase font-medium text-center">Diamante</span>
 							</div>
 
-							<div class="cursor-pointer flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5" onclick="selectOption(this, 'gemstone', 'esmeralda')">
-								<div class="w-[100px] h-[100px] mb-4 relative rounded-full overflow-hidden shadow-sm bg-white border border-border">
-									<img loading="lazy" src="./designer-paso4_files/esmeralda.png" alt="Esmeralda" loading="lazy" class="w-full h-full object-cover">
+							<div class="cursor-pointer flex flex-col items-center justify-center p-4 sm:p-5 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5 w-[calc(50%-10px)] sm:w-[calc(33.333%-16px)] md:w-[150px] lg:w-[155px]" onclick="selectOption(this, 'gemstone', 'esmeralda')">
+								<div class="w-[90px] h-[90px] sm:w-[100px] sm:h-[100px] mb-3 relative rounded-full overflow-hidden shadow-sm bg-white border border-border">
+									<img loading="lazy" src="./designer-paso4_files/esmeralda.png" alt="Esmeralda" class="w-full h-full object-cover">
 								</div>
-								<span class="text-foreground text-sm tracking-widest uppercase font-medium text-center">Esmeralda</span>
+								<span class="text-foreground text-xs sm:text-sm tracking-widest uppercase font-medium text-center">Esmeralda</span>
 							</div>
 
-							<div class="cursor-pointer flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5" onclick="selectOption(this, 'gemstone', 'perla')">
-								<div class="w-[100px] h-[100px] mb-4 relative rounded-full overflow-hidden shadow-sm bg-white border border-border">
-									<img loading="lazy" src="./designer-paso4_files/perla.png" alt="Perla" loading="lazy" class="w-full h-full object-cover">
+							<div class="cursor-pointer flex flex-col items-center justify-center p-4 sm:p-5 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5 w-[calc(50%-10px)] sm:w-[calc(33.333%-16px)] md:w-[150px] lg:w-[155px]" onclick="selectOption(this, 'gemstone', 'rubi')">
+								<div class="w-[90px] h-[90px] sm:w-[100px] sm:h-[100px] mb-3 relative rounded-full overflow-hidden shadow-sm bg-white border border-border">
+									<img loading="lazy" src="./designer-paso4_files/rubi.png" alt="Rubí" class="w-full h-full object-cover">
 								</div>
-								<span class="text-foreground text-sm tracking-widest uppercase font-medium text-center">Perla</span>
+								<span class="text-foreground text-xs sm:text-sm tracking-widest uppercase font-medium text-center">Rubí</span>
 							</div>
 
-							<div class="cursor-pointer flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5" onclick="selectOption(this, 'gemstone', 'zafiro')">
-								<div class="w-[100px] h-[100px] mb-4 relative rounded-full overflow-hidden shadow-sm bg-white border border-border">
-									<img loading="lazy" src="./designer-paso4_files/zafiro.png" alt="Zafiro" loading="lazy" class="w-full h-full object-cover">
+							<div class="cursor-pointer flex flex-col items-center justify-center p-4 sm:p-5 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5 w-[calc(50%-10px)] sm:w-[calc(33.333%-16px)] md:w-[150px] lg:w-[155px]" onclick="selectOption(this, 'gemstone', 'zafiro')">
+								<div class="w-[90px] h-[90px] sm:w-[100px] sm:h-[100px] mb-3 relative rounded-full overflow-hidden shadow-sm bg-white border border-border">
+									<img loading="lazy" src="./designer-paso4_files/zafiro.png" alt="Zafiro" class="w-full h-full object-cover">
 								</div>
-								<span class="text-foreground text-sm tracking-widest uppercase font-medium text-center">Zafiro</span>
+								<span class="text-foreground text-xs sm:text-sm tracking-widest uppercase font-medium text-center">Zafiro</span>
 							</div>
 
-							<div class="cursor-pointer flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5" onclick="selectOption(this, 'gemstone', 'coral')">
-								<div class="w-[100px] h-[100px] mb-4 relative rounded-full overflow-hidden shadow-sm bg-white border border-border">
-									<img loading="lazy" src="./designer-paso4_files/coral.png" alt="Coral" loading="lazy" class="w-full h-full object-cover">
+							<div class="cursor-pointer flex flex-col items-center justify-center p-4 sm:p-5 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5 w-[calc(50%-10px)] sm:w-[calc(33.333%-16px)] md:w-[150px] lg:w-[155px]" onclick="selectOption(this, 'gemstone', 'perla')">
+								<div class="w-[90px] h-[90px] sm:w-[100px] sm:h-[100px] mb-3 relative rounded-full overflow-hidden shadow-sm bg-white border border-border">
+									<img loading="lazy" src="./designer-paso4_files/perla.png" alt="Perla" class="w-full h-full object-cover">
 								</div>
-								<span class="text-foreground text-sm tracking-widest uppercase font-medium text-center">Coral</span>
+								<span class="text-foreground text-xs sm:text-sm tracking-widest uppercase font-medium text-center">Perla</span>
 							</div>
 
-							<div class="cursor-pointer flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5" onclick="selectOption(this, 'gemstone', 'rubi')">
-								<div class="w-[100px] h-[100px] mb-4 relative rounded-full overflow-hidden shadow-sm bg-white border border-border">
-									<img loading="lazy" src="./designer-paso4_files/rubi.png" alt="Rubí" loading="lazy" class="w-full h-full object-cover">
+							<div class="cursor-pointer flex flex-col items-center justify-center p-4 sm:p-5 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5 w-[calc(50%-10px)] sm:w-[calc(33.333%-16px)] md:w-[150px] lg:w-[155px]" onclick="selectOption(this, 'gemstone', 'aguamarina')">
+								<div class="w-[90px] h-[90px] sm:w-[100px] sm:h-[100px] mb-3 relative rounded-full overflow-hidden shadow-sm bg-white border border-border">
+									<img loading="lazy" src="./designer-paso4_files/aguamarina.png" alt="Aguamarina" class="w-full h-full object-cover">
 								</div>
-								<span class="text-foreground text-sm tracking-widest uppercase font-medium text-center">Rubí</span>
+								<span class="text-foreground text-xs sm:text-sm tracking-widest uppercase font-medium text-center">Aguamarina</span>
 							</div>
 
-							<div class="cursor-pointer flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5" onclick="selectOption(this, 'gemstone', 'turquesa')">
-								<div class="w-[100px] h-[100px] mb-4 relative rounded-full overflow-hidden shadow-sm bg-white border border-border">
-									<img loading="lazy" src="./designer-paso4_files/turquesa.png" alt="Turquesa" loading="lazy" class="w-full h-full object-cover">
+							<!-- HILERA 2: GEMAS ESPECIALES & OPCIONES (5 CENTRADAS) -->
+							<div class="cursor-pointer flex flex-col items-center justify-center p-4 sm:p-5 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5 w-[calc(50%-10px)] sm:w-[calc(33.333%-16px)] md:w-[150px] lg:w-[155px]" onclick="selectOption(this, 'gemstone', 'topacio')">
+								<div class="w-[90px] h-[90px] sm:w-[100px] sm:h-[100px] mb-3 relative rounded-full overflow-hidden shadow-sm bg-white border border-border">
+									<img loading="lazy" src="./designer-paso4_files/topacio.png" alt="Topacio" class="w-full h-full object-cover">
 								</div>
-								<span class="text-foreground text-sm tracking-widest uppercase font-medium text-center">Turquesa</span>
+								<span class="text-foreground text-xs sm:text-sm tracking-widest uppercase font-medium text-center">Topacio</span>
 							</div>
 
-							<div class="cursor-pointer flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5" onclick="selectOption(this, 'gemstone', 'aguamarina')">
-								<div class="w-[100px] h-[100px] mb-4 relative rounded-full overflow-hidden shadow-sm bg-white border border-border">
-									<img loading="lazy" src="./designer-paso4_files/aguamarina.png" alt="Aguamarina" loading="lazy" class="w-full h-full object-cover">
+							<div class="cursor-pointer flex flex-col items-center justify-center p-4 sm:p-5 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5 w-[calc(50%-10px)] sm:w-[calc(33.333%-16px)] md:w-[150px] lg:w-[155px]" onclick="selectOption(this, 'gemstone', 'turquesa')">
+								<div class="w-[90px] h-[90px] sm:w-[100px] sm:h-[100px] mb-3 relative rounded-full overflow-hidden shadow-sm bg-white border border-border">
+									<img loading="lazy" src="./designer-paso4_files/turquesa.png" alt="Turquesa" class="w-full h-full object-cover">
 								</div>
-								<span class="text-foreground text-sm tracking-widest uppercase font-medium text-center">Aguamarina</span>
+								<span class="text-foreground text-xs sm:text-sm tracking-widest uppercase font-medium text-center">Turquesa</span>
 							</div>
 
-							<div class="cursor-pointer flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5" onclick="selectOption(this, 'gemstone', 'topacio')">
-								<div class="w-[100px] h-[100px] mb-4 relative rounded-full overflow-hidden shadow-sm bg-white border border-border">
-									<img loading="lazy" src="./designer-paso4_files/topacio.png" alt="Topacio" loading="lazy" class="w-full h-full object-cover">
+							<div class="cursor-pointer flex flex-col items-center justify-center p-4 sm:p-5 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5 w-[calc(50%-10px)] sm:w-[calc(33.333%-16px)] md:w-[150px] lg:w-[155px]" onclick="selectOption(this, 'gemstone', 'coral')">
+								<div class="w-[90px] h-[90px] sm:w-[100px] sm:h-[100px] mb-3 relative rounded-full overflow-hidden shadow-sm bg-white border border-border">
+									<img loading="lazy" src="./designer-paso4_files/coral.png" alt="Coral" class="w-full h-full object-cover">
 								</div>
-								<span class="text-foreground text-sm tracking-widest uppercase font-medium text-center">Topacio</span>
+								<span class="text-foreground text-xs sm:text-sm tracking-widest uppercase font-medium text-center">Coral</span>
 							</div>
 
-							<div class="cursor-pointer flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5" onclick="selectOption(this, 'gemstone', 'sin_gema')">
-								<div class="w-[100px] h-[100px] mb-4 relative rounded-full overflow-hidden shadow-sm bg-white border border-border flex items-center justify-center">
+							<!-- OTRAS GEMAS (CON POP-UP) -->
+							<div id="card-otras-gemas" class="cursor-pointer flex flex-col items-center justify-center p-4 sm:p-5 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5 w-[calc(50%-10px)] sm:w-[calc(33.333%-16px)] md:w-[150px] lg:w-[155px] group" onclick="openOtherGemsModal()">
+								<div class="w-[90px] h-[90px] sm:w-[100px] sm:h-[100px] mb-3 relative rounded-full overflow-hidden shadow-sm bg-white border border-border flex items-center justify-center group-hover:border-primary/50 transition-colors">
+									<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="text-primary transition-transform duration-300 group-hover:scale-110">
+										<path d="M6 3h12l4 6-10 12L2 9z"/>
+										<path d="M11 3 8 9l4 12 4-12-3-6"/>
+										<path d="M2 9h20"/>
+									</svg>
+								</div>
+								<span id="label-otras-gemas" class="text-foreground text-xs sm:text-sm tracking-widest uppercase font-medium text-center">Otras Gemas</span>
+								<span id="sublabel-otras-gemas" class="text-[11px] text-primary font-semibold tracking-wider uppercase font-sans mt-0.5 hidden truncate max-w-full px-1"></span>
+							</div>
+
+							<!-- SIN GEMA -->
+							<div class="cursor-pointer flex flex-col items-center justify-center p-4 sm:p-5 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5 w-[calc(50%-10px)] sm:w-[calc(33.333%-16px)] md:w-[150px] lg:w-[155px]" onclick="selectOption(this, 'gemstone', 'sin_gema')">
+								<div class="w-[90px] h-[90px] sm:w-[100px] sm:h-[100px] mb-3 relative rounded-full overflow-hidden shadow-sm bg-white border border-border flex items-center justify-center">
 									<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="hsl(0 0% 70%)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
 										<line x1="4" y1="4" x2="20" y2="20"/>
 										<circle cx="12" cy="12" r="8"/>
 									</svg>
 								</div>
-								<span class="text-foreground text-sm tracking-widest uppercase font-medium text-center">Sin Gema</span>
+								<span class="text-foreground text-xs sm:text-sm tracking-widest uppercase font-medium text-center">Sin Gema</span>
 							</div>
 
 						</div>
@@ -159,24 +243,151 @@
 		</div>
 	</div>
 
+	<!-- MODAL OTRAS GEMAS -->
+	<div id="other-gems-modal" class="modal-overlay" onclick="closeOtherGemsModalOnOverlay(event)">
+		<div class="modal-card">
+			<button type="button" class="modal-close" onclick="closeOtherGemsModal()">&times;</button>
+			<div class="w-12 h-12 rounded-full bg-primary/10 mx-auto mb-3 flex items-center justify-center text-primary">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M6 3h12l4 6-10 12L2 9z"/>
+					<path d="M11 3 8 9l4 12 4-12-3-6"/>
+					<path d="M2 9h20"/>
+				</svg>
+			</div>
+			<h2 class="modal-title font-serif">Otras Gemas</h2>
+			<p class="modal-desc">Indica la gema o piedra preciosa personalizada que deseas para tu joya:</p>
+			
+			<div class="space-y-4">
+				<div class="space-y-2">
+					<input type="text" id="customGemInput" placeholder="Ej: Amatista, Ópalo, Tanzanita, Circón..."
+					       class="w-full border-b-2 border-border py-3 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all duration-300 text-lg font-serif text-center"
+					       onkeydown="if(event.key === 'Enter'){ event.preventDefault(); saveCustomGem(); }">
+				</div>
+
+				<!-- Sugerencias habituales -->
+				<div class="pt-2 pb-1">
+					<span class="text-[11px] uppercase tracking-widest text-muted-foreground font-sans block mb-2 text-center">Sugerencias</span>
+					<div class="flex flex-wrap gap-1.5 justify-center">
+						<button type="button" onclick="setCustomGemSuggestion('Amatista')" class="text-xs font-sans px-3 py-1 rounded-full border border-border/80 hover:border-primary hover:text-primary transition-colors bg-white/60">Amatista</button>
+						<button type="button" onclick="setCustomGemSuggestion('Ópalo')" class="text-xs font-sans px-3 py-1 rounded-full border border-border/80 hover:border-primary hover:text-primary transition-colors bg-white/60">Ópalo</button>
+						<button type="button" onclick="setCustomGemSuggestion('Tanzanita')" class="text-xs font-sans px-3 py-1 rounded-full border border-border/80 hover:border-primary hover:text-primary transition-colors bg-white/60">Tanzanita</button>
+						<button type="button" onclick="setCustomGemSuggestion('Turmalina')" class="text-xs font-sans px-3 py-1 rounded-full border border-border/80 hover:border-primary hover:text-primary transition-colors bg-white/60">Turmalina</button>
+						<button type="button" onclick="setCustomGemSuggestion('Circonita')" class="text-xs font-sans px-3 py-1 rounded-full border border-border/80 hover:border-primary hover:text-primary transition-colors bg-white/60">Circonita</button>
+						<button type="button" onclick="setCustomGemSuggestion('Lapislázuli')" class="text-xs font-sans px-3 py-1 rounded-full border border-border/80 hover:border-primary hover:text-primary transition-colors bg-white/60">Lapislázuli</button>
+					</div>
+				</div>
+
+				<div id="removeCustomGemRow" class="text-center pt-1 hidden">
+					<button type="button" onclick="removeCustomGem()" class="text-xs text-red-500 hover:text-red-700 underline font-sans transition-colors">Deseleccionar esta gema</button>
+				</div>
+
+				<div class="flex gap-3 pt-3">
+					<button type="button" onclick="closeOtherGemsModal()"
+					        class="flex-1 py-3 px-4 border border-border text-foreground text-xs md:text-sm tracking-widest uppercase font-sans font-medium hover:bg-muted transition-colors rounded-lg">
+						Cancelar
+					</button>
+					<button type="button" onclick="saveCustomGem()"
+					        class="flex-1 py-3 px-4 bg-primary text-primary-foreground text-xs md:text-sm tracking-widest uppercase font-sans font-medium hover:bg-foreground transition-colors rounded-lg shadow-sm">
+						Confirmar
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
 	<script>
 		let selectedGemstones = [];
+		let customGemstoneName = '';
+
+		const STANDARD_GEMS = ['diamante', 'esmeralda', 'rubi', 'zafiro', 'perla', 'aguamarina', 'topacio', 'turquesa', 'coral', 'sin_gema'];
 
 		document.addEventListener('DOMContentLoaded', () => {
 			const state = window.RometDesigner?.loadState() || {};
 			const gemstoneVal = state.gemstone;
 			if (gemstoneVal) {
 				selectedGemstones = gemstoneVal.split(',').map(s => s.trim()).filter(Boolean);
+				// Detectar si hay una gema personalizada entre las seleccionadas
+				const custom = selectedGemstones.find(g => !STANDARD_GEMS.includes(g.toLowerCase()));
+				if (custom) {
+					customGemstoneName = custom;
+				}
 			}
 			if (selectedGemstones.length > 0) {
 				document.getElementById('nextBtn').disabled = false;
 			}
 			updateUI();
+
+			// Cerrar modal con tecla Escape
+			document.addEventListener('keydown', (e) => {
+				if (e.key === 'Escape') closeOtherGemsModal();
+			});
 		});
+
+		function openOtherGemsModal() {
+			const input = document.getElementById('customGemInput');
+			input.value = customGemstoneName || '';
+			const removeRow = document.getElementById('removeCustomGemRow');
+			if (removeRow) {
+				if (customGemstoneName && selectedGemstones.includes(customGemstoneName)) {
+					removeRow.classList.remove('hidden');
+				} else {
+					removeRow.classList.add('hidden');
+				}
+			}
+			const modal = document.getElementById('other-gems-modal');
+			modal.classList.add('active');
+			setTimeout(() => input.focus(), 150);
+		}
+
+		function closeOtherGemsModal() {
+			const modal = document.getElementById('other-gems-modal');
+			modal.classList.remove('active');
+		}
+
+		function closeOtherGemsModalOnOverlay(e) {
+			if (e.target.id === 'other-gems-modal') {
+				closeOtherGemsModal();
+			}
+		}
+
+		function setCustomGemSuggestion(name) {
+			const input = document.getElementById('customGemInput');
+			input.value = name;
+			input.focus();
+		}
+
+		function saveCustomGem() {
+			const input = document.getElementById('customGemInput');
+			const val = input.value.trim();
+			if (!val) {
+				input.focus();
+				return;
+			}
+
+			// Eliminar sin_gema y la gema personalizada anterior si existía
+			selectedGemstones = selectedGemstones.filter(g => g !== 'sin_gema' && STANDARD_GEMS.includes(g.toLowerCase()));
+			customGemstoneName = val;
+			if (!selectedGemstones.includes(customGemstoneName)) {
+				selectedGemstones.push(customGemstoneName);
+			}
+
+			saveAndRefresh();
+			closeOtherGemsModal();
+		}
+
+		function removeCustomGem() {
+			if (customGemstoneName) {
+				selectedGemstones = selectedGemstones.filter(g => g !== customGemstoneName);
+				customGemstoneName = '';
+				saveAndRefresh();
+			}
+			closeOtherGemsModal();
+		}
 
 		function selectOption(el, key, value) {
 			if (value === 'sin_gema') {
 				selectedGemstones = ['sin_gema'];
+				customGemstoneName = '';
 			} else {
 				selectedGemstones = selectedGemstones.filter(g => g !== 'sin_gema');
 				if (selectedGemstones.includes(value)) {
@@ -185,13 +396,16 @@
 					selectedGemstones.push(value);
 				}
 			}
-			
+			saveAndRefresh();
+		}
+
+		function saveAndRefresh() {
 			const state = window.RometDesigner?.loadState() || {};
 			if (selectedGemstones.length > 0) {
-				state[key] = selectedGemstones.join(', ');
+				state['gemstone'] = selectedGemstones.join(', ');
 				document.getElementById('nextBtn').disabled = false;
 			} else {
-				state[key] = null;
+				state['gemstone'] = null;
 				document.getElementById('nextBtn').disabled = true;
 			}
 			window.RometDesigner?.saveState(state);
@@ -200,12 +414,37 @@
 
 		function updateUI() {
 			const cards = document.querySelectorAll('.cursor-pointer');
+			const hasCustom = customGemstoneName && selectedGemstones.includes(customGemstoneName);
+
 			cards.forEach(card => {
 				const onclickStr = card.getAttribute('onclick') || '';
+
+				if (card.id === 'card-otras-gemas') {
+					const label = document.getElementById('label-otras-gemas');
+					const sublabel = document.getElementById('sublabel-otras-gemas');
+					if (hasCustom) {
+						card.style.opacity = '1';
+						card.classList.remove('border-transparent');
+						card.classList.add('border-primary', 'bg-primary/5', 'shadow-md', 'scale-105');
+						if (sublabel) {
+							sublabel.textContent = customGemstoneName;
+							sublabel.classList.remove('hidden');
+						}
+					} else {
+						card.style.opacity = selectedGemstones.length > 0 ? '0.5' : '1';
+						card.classList.remove('border-primary', 'bg-primary/5', 'shadow-md', 'scale-105');
+						card.classList.add('border-transparent');
+						if (sublabel) {
+							sublabel.classList.add('hidden');
+						}
+					}
+					return;
+				}
+
 				const match = onclickStr.match(/'gemstone',\s*'([^']+)'/);
 				const val = match ? match[1] : '';
 				
-				if (selectedGemstones.includes(val)) {
+				if (val && selectedGemstones.includes(val)) {
 					card.style.opacity = '1';
 					card.classList.remove('border-transparent');
 					card.classList.add('border-primary', 'bg-primary/5', 'shadow-md', 'scale-105');
