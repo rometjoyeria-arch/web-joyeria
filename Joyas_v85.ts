@@ -1015,8 +1015,8 @@ serve(async (req) => {
       gemstoneLine = "- Gemstone: no gemstone — clean polished metal only";
     }
 
-    const glosarioInyectado = detectarTerminos(sugerencias, cambios_solicitados);
-    const restriccionesGeometriaYNumeros = detectarRestriccionesEspecificas(sugerencias, cambios_solicitados);
+    const glosarioInyectado = detectarTerminos(sugerencias, cambios_solicitados, gema_principal, categoria_producto, estilo, material, (body as any).prompt);
+    const restriccionesGeometriaYNumeros = detectarRestriccionesEspecificas(sugerencias, cambios_solicitados, gema_principal, categoria_producto, estilo, material, (body as any).prompt);
 
     const specLines: string[] = [];
     if (tieneCategoria) {
