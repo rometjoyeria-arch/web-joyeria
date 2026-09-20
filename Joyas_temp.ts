@@ -14,21 +14,423 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// ═══ GLOSARIO DE JOYERÍA ═══════════════════════════════════
-const GLOSARIO: Record<string, string> = {
-  "submarino": "SUBMARINO (cufflink closure): a chain-and-bar fitting consisting of a flat T-shaped bar connected by a small chain (5 links) to the decorative face. The bar passes through the buttonhole and lies flat.",
-  "media caña": "MEDIA CAÑA (half-round edge): a rounded convex profile along the edge or border, like half a tube. Smooth, polished, domed rim — NOT flat, NOT sharp.",
-  "monograma": "MONOGRAMA (monogram): two or more letters elegantly intertwined in an ornate Victorian style, overlapping to form a single decorative emblem. The letters weave through each other.",
-  "entorchado": "ENTORCHADO (twisted wire): metal wire twisted in a rope-like spiral pattern, like a cord. Used for bands and borders.",
-  "horquilla": "HORQUILLA (rigid cufflink fitting): a rigid hinged fitting with a spring mechanism attached to the back of the cufflink face. No chain.",
-  "torzal": "TORZAL / NUDO (knot): a metal element formed into a woven knot shape, like a Turk's-head knot.",
-  "cuajo": "CUAJO: a round, richly engraved decorative element with detailed relief work, typical of traditional Spanish goldsmithing.",
-  "chapa": "CHAPA (plate): a flat thin sheet of metal forming the base or face of the piece.",
-  "cordón": "CORDÓN (cord chain): a rope-style chain, twisted to look like a cord.",
-  "filo": "FILO (edge/border): the outer rim or edge of the piece.",
-  "eslabón": "ESLABÓN (link): individual loop of a chain. '5 eslabones' = a chain of 5 links.",
-  "eslabones": "ESLABONES (links): individual loops of a chain.",
-};
+// ═══ GLOSARIO MAESTRO DE JOYERÍA (AMPLIADO TÉCNICO & VISUAL) ════════════
+function normalizarTextoParaGlosario(txt: string): string {
+  return (txt || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, ""); // elimina diacríticos/tildes
+}
+
+interface GlosarioItem {
+  id: string;
+  termino: string;
+  patrones: RegExp[];
+  definicion: string;
+}
+
+const GLOSARIO_TERMINOS: GlosarioItem[] = [
+  // ── ANATOMÍA Y PERFILES DE ARO ───────────────────────────
+  {
+    id: "media_cana",
+    termino: "media caña",
+    patrones: [/\b(?:aro\s+|brazo\s+|perfil\s+)?media[\s-]ca[nñ]a\b/i, /\bmediaca[nñ]a\b/i, /\bd[\s-]shape\b/i],
+    definicion: "MEDIA CAÑA (half-round / D-shape shank): a rounded convex exterior profile along the band with a flat interior resting against the finger. Smooth, polished, domed rim — NOT flat, NOT sharp, NOT a drinking glass or fishing rod."
+  },
+  {
+    id: "brazo_plano",
+    termino: "brazo plano",
+    patrones: [/\b(?:brazo|aro|perfil|anillo)s?\s+plan[oas]{1,2}\b/i, /\bflat\s+band\b/i, /\bflat\s+shank\b/i],
+    definicion: "BRAZO PLANO (flat rectangular shank): perfectly flat outer and inner surfaces with crisp, defined 90-degree outer edges. Modern minimalist geometric profile."
+  },
+  {
+    id: "brazo_cuchillo",
+    termino: "brazo cuchillo",
+    patrones: [/\b(?:brazo\s+|aro\s+|perfil\s+|filo\s+de\s+)?cuchillo[s]?\b/i, /\bknife[\s-]edge\b/i],
+    definicion: "BRAZO CUCHILLO (knife-edge shank): triangular cross-section band featuring two sloping facets converging at a sharp, crisp central perimeter ridge. Crisp reflective center line — NOT a kitchen knife, strictly a jewelry band profile."
+  },
+  {
+    id: "aro_confort",
+    termino: "aro confort",
+    patrones: [/\b(?:aros?|cortes?|ajustes?|perfiles?)\s+confort\b/i, /\bcomfort[\s-]fit\b/i, /\binterior\s+curvo\b/i],
+    definicion: "ARO CONFORT (comfort-fit shank): domed, slightly convex curvature on the interior surface in contact with the finger for maximum ergonomic wear."
+  },
+  {
+    id: "aro_cuadrado",
+    termino: "aro cuadrado",
+    patrones: [/\b(?:aros?|perfiles?)\s+cuadrad[oas]{1,2}\b/i, /\bperfil\s+frances\b/i, /\beuro[\s-]shank\b/i],
+    definicion: "ARO CUADRADO / PERFIL FRANCÉS (Euro-shank): circular interior opening for the finger, but an outer square profile with subtle flat base corners preventing rotation."
+  },
+  {
+    id: "salomonico",
+    termino: "salomónico / entorchado",
+    patrones: [/\bsalomonico[as]?\b/i, /\bentorchad[oas]{1,2}\b/i, /\b(?:brazo|aro|hilo)s?\s+retorcid[oas]{1,2}\b/i, /\bcable\s+twist\b/i, /\btorzales?\b/i],
+    definicion: "SALOMÓNICO / ENTORCHADO (twisted rope wire): dynamic helical braided metal wire pattern spiraling around the band, creating rhythmic spiral highlights and shadows."
+  },
+  {
+    id: "split_shank",
+    termino: "doble aro / split shank",
+    patrones: [/\bdobles?\s+aros?\b/i, /\b(?:aros?|brazos?)\s+hendid[oas]{1,2}\b/i, /\bbrazos?\s+dividid[oas]{1,2}\b/i, /\bsplit[\s-]shank\b/i],
+    definicion: "DOBLE ARO / SPLIT SHANK (split shank): the metal band bifurcates into two distinct, graceful branches as it approaches the head/shoulders, creating an open airy gap."
+  },
+  {
+    id: "bypass_tu_y_yo",
+    termino: "anillo bypass / tú y yo",
+    patrones: [/\btu\s+y\s+yo\b/i, /\bbypass\b/i, /\btoi\s+et\s+moi\b/i, /\baros?\s+abiert[oas]{1,2}\b/i],
+    definicion: "ANILLO BYPASS / TÚ Y YO (Toi et Moi bypass ring): open spiral band whose two ends bypass each other diagonally at the head without touching, each holding a distinct complementary focal gemstone. NOT two people hugging."
+  },
+  {
+    id: "brazo_ahusado",
+    termino: "brazo ahusado",
+    patrones: [/\b(?:brazos?|aros?)\s+ahusad[oas]{1,2}\b/i, /\bcono\s+invertido\b/i, /\bbrazos?\s+afinad[oas]{1,2}\b/i, /\btapered\s+shank\b/i],
+    definicion: "BRAZO AHUSADO (tapered shank): the metal band progressively narrows in width as it approaches the center gemstone, accentuating the central stone."
+  },
+  {
+    id: "brazo_inverso",
+    termino: "brazo inverso",
+    patrones: [/\b(?:brazos?|aros?)\s+(?:invers[oas]{1,2}|ahusad[oas]{1,2}\s+invers[oas]{1,2})\b/i, /\breverse\s+tapered\b/i],
+    definicion: "BRAZO INVERSO (reverse tapered shank): the band gradually widens and thickens as it reaches the shoulders, giving a bold, architectural transition."
+  },
+  {
+    id: "galeria_calada",
+    termino: "galería / calado",
+    patrones: [/\bgalerias?\b/i, /\bcalados?\s+de\s+galeria\b/i, /\bcanastillas?\b/i, /\bopenwork\s+gallery\b/i],
+    definicion: "GALERÍA / CALADO (openwork gallery): decorative openwork filigree windows beneath the stone seat, allowing ambient light to enter the pavilion from underneath. NOT an art gallery."
+  },
+  {
+    id: "forro_interior",
+    termino: "forro interior / revestimiento",
+    patrones: [/\bforros?\s+interiores?\b/i, /\brevestimientos?\b/i, /\bbajo\s+galerias?\b/i, /\bundergallery\b/i],
+    definicion: "FORRO INTERIOR / REVESTIMIENTO (undergallery / backplate): finely pierced, high-polished decorative metal grill covering the interior cavity beneath the head."
+  },
+  {
+    id: "virola",
+    termino: "virola",
+    patrones: [/\bvirolas?\b/i, /\bchasis\s+de\s+asiento\b/i],
+    definicion: "VIROLA (bezel collar / under-bezel): slim reinforcing metal rim supporting the base of the setting basket."
+  },
+
+  // ── SISTEMAS DE ENGASTE Y MONTURAS ──────────────────────
+  {
+    id: "chaton",
+    termino: "chatón / canasta",
+    patrones: [/\bchaton(?:es)?\b/i, /\bcollet\b/i, /\bcanastas?\b/i],
+    definicion: "CHATÓN (chaton / collet basket setting): elevated conical or cylindrical metal basket with integral prongs securely holding the gemstone, allowing maximum light entry. NOT a kitten."
+  },
+  {
+    id: "garras",
+    termino: "garras / uñetas",
+    patrones: [/\b(?:4|cuatro|6|seis)?\s*garras?\b/i, /\bu[nñ]etas?\b/i, /\bprongs?\b/i, /\bclaws?\b/i],
+    definicion: "GARRAS / UÑETAS (prongs / claws): delicate, precisely bent metal claws gripping the gemstone girdle with rounded or eagle-claw tips. NOT animal claws."
+  },
+  {
+    id: "bisel",
+    termino: "bisel / bocel",
+    patrones: [/\bbisel(?:es)?\b/i, /\bbocel(?:es)?\b/i, /\bengaste\s+(?:a\s+|en\s+)?bisel\b/i, /\bengaste\s+ciego\b/i, /\bbezel\b/i],
+    definicion: "BISEL / BOCEL (bezel setting): complete continuous collar of polished metal closely wrapping and securing the entire girdle of the gemstone with a sleek, protective rim."
+  },
+  {
+    id: "bisel_dentado",
+    termino: "bisel dentado",
+    patrones: [/\bbisel(?:es)?\s+dentad[oas]{1,2}\b/i, /\bbocel(?:es)?\s+dentad[oas]{1,2}\b/i, /\bserrated\s+bezel\b/i],
+    definicion: "BISEL DENTADO (serrated bezel): thin metal bezel wall with fine decorative scalloped or saw-tooth notched border crimped over the stone's contour."
+  },
+  {
+    id: "carril",
+    termino: "carril / canal",
+    patrones: [/\b(?:engaste\s+en\s+)?carril(?:es)?\b/i, /\bcanales?\s+de\s+engaste\b/i, /\bchannel\s+setting\b/i],
+    definicion: "CARRIL / CANAL (channel setting): gemstones mounted flush side-by-side between two smooth, parallel metal walls without any intermediate prongs. NOT train tracks."
+  },
+  {
+    id: "pave_granos",
+    termino: "pavé / granos",
+    patrones: [/\bpave\b/i, /\bengaste\s+(?:en\s+|de\s+)?granos?\b/i, /\bgranos?\b/i, /\bmicrogranos?\b/i, /\bbead[\s-]set\b/i],
+    definicion: "PAVÉ / GRANOS (micro-pavé bead setting): gemstones closely clustered with minimal visible metal, secured by tiny polished spherical metal beads raised with a graver. NOT cereal grains or acne."
+  },
+  {
+    id: "tension",
+    termino: "engaste en tensión",
+    patrones: [/\bengaste\s+(?:en\s+|por\s+)?tension\b/i, /\btension\s+setting\b/i],
+    definicion: "ENGASTE EN TENSIÓN (tension setting): gemstone suspended seemingly in mid-air, held purely by the physical compression force of the two opposing thick ends of the metal shank."
+  },
+  {
+    id: "invisible",
+    termino: "engaste invisible",
+    patrones: [/\bengaste\s+invisible\b/i, /\bmalla\s+invisible\b/i, /\binvisible\s+setting\b/i],
+    definicion: "ENGASTE INVISIBLE (invisible setting): square or princess-cut stones grooved underneath and snapped onto a hidden grid, forming a continuous faceted surface with zero metal visible."
+  },
+  {
+    id: "cazoleta_pernero",
+    termino: "cazoleta y pernero",
+    patrones: [/\bcazoletas?\b/i, /\bperneros?\b/i, /\bespigos?\b/i, /\bengaste\s+de\s+perlas?\b/i],
+    definicion: "CAZOLETA Y PERNERO (cup and peg setting): concave hemispherical metal cup with a central post/peg securely seating a pearl or cabochon."
+  },
+  {
+    id: "roseton",
+    termino: "rosetón",
+    patrones: [/\broseton(?:es)?\b/i, /\bracimos?\b/i, /\bcluster\s+head\b/i],
+    definicion: "ROSETÓN (cluster head): dominant central gemstone encircled by a concentric ring of smaller accent stones, forming an ornamental flower or starburst motif."
+  },
+  {
+    id: "orla_halo",
+    termino: "orla / halo",
+    patrones: [/\borlas?\b/i, /\bhalos?\b/i, /\bcercos?\s+de\s+brillantes\b/i],
+    definicion: "ORLA / HALO (halo setting): perimeter frame of micropavé diamonds tightly encircling the center gem, following its exact geometric contour. NOT a floating angelic halo."
+  },
+  {
+    id: "solitario",
+    termino: "solitario",
+    patrones: [/\banillos?\s+solitarios?\b/i, /\bsolitarios?\b/i],
+    definicion: "SOLITARIO (solitaire ring): classic ring featuring a single magnificent center gemstone mounted on a pristine band with no competing side stones."
+  },
+  {
+    id: "media_alianza",
+    termino: "media alianza",
+    patrones: [/\bmedia\s+alianza\b/i, /\beternity\s+parcial\b/i, /\bhalf\s+eternity\b/i],
+    definicion: "MEDIA ALIANZA (half-eternity band): continuous row of uniform faceted gemstones covering only the top 50% of the shank, with the bottom half remaining smooth polished metal."
+  },
+  {
+    id: "alianza_completa",
+    termino: "alianza completa",
+    patrones: [/\balianza\s+completa\b/i, /\bfull\s+eternity\b/i, /\beternity\s+ring\b/i],
+    definicion: "ALIANZA COMPLETA (full-eternity ring): 360-degree unbroken, continuous circle of identical faceted gemstones wrapping around the entire circumference of the ring."
+  },
+
+  // ── CIERRES Y FORNITURAS VISIBLES ────────────────────────
+  {
+    id: "submarino",
+    termino: "submarino",
+    patrones: [/\b(?:cierre\s+)?submarinos?\b/i],
+    definicion: "SUBMARINO (cufflink closure): a chain-and-bar fitting consisting of a flat T-shaped bar connected by a small chain (5 links) to the decorative face. The bar passes through the buttonhole and lies flat. ABSOLUTELY NOT an aquatic vessel."
+  },
+  {
+    id: "horquilla",
+    termino: "horquilla de gemelo",
+    patrones: [/\bhorquillas?\b/i, /\bcierre\s+torpedo\b/i, /\bswivel\s+bar\b/i],
+    definicion: "HORQUILLA (rigid cufflink fitting): a rigid hinged post with a spring mechanism and swivel torpedo bar attached to the back of the cufflink face. No chain."
+  },
+  {
+    id: "mosqueton",
+    termino: "cierre de mosquetón",
+    patrones: [/\b(?:cierres?\s+(?:de\s+)?)?mosqueton(?:es)?\b/i, /\blobster\s+clasp\b/i],
+    definicion: "CIERRE DE MOSQUETÓN (lobster claw clasp): spring-loaded mechanical clasp with a curved shell-like profile and a small side trigger lever securing an opposing jump ring. NOT a lobster crustacean."
+  },
+  {
+    id: "mosqueton_perico",
+    termino: "mosquetón perico",
+    patrones: [/\bmosqueton(?:es)?\s+perico\b/i, /\bparrot\s+clasp\b/i],
+    definicion: "MOSQUETÓN PERICO (parrot clasp): elongated clasp with an arched profile resembling a parrot's beak, offering a wide secure opening."
+  },
+  {
+    id: "reasa",
+    termino: "cierre de reasa",
+    patrones: [/\b(?:cierres?\s+(?:de\s+)?)?reasas?\b/i, /\bspring\s+ring\b/i],
+    definicion: "CIERRE DE REASA (spring ring clasp): circular hollow metal ring with an internal spring mechanism operated by a tiny protruding sliding lever."
+  },
+  {
+    id: "palanca_toggle",
+    termino: "cierre de palanca / timón",
+    patrones: [/\b(?:cierres?\s+(?:de\s+)?)?(?:palanca|timon|marinero)\b/i, /\btoggle\s+clasp\b/i],
+    definicion: "CIERRE DE PALANCA / TIMÓN (toggle clasp): decorative T-shaped metal bar slipping through a matching circular or shaped metal ring, held securely by tension."
+  },
+  {
+    id: "cierre_caja",
+    termino: "cierre de caja",
+    patrones: [/\bcierres?\s+de\s+caja\b/i, /\bbox\s+clasp\b/i],
+    definicion: "CIERRE DE CAJA (box clasp): rectangular tongue-and-groove clasp where a spring metal tongue snaps into a hollow rectangular box receiver."
+  },
+  {
+    id: "seguro_ocho",
+    termino: "seguro de figura en ocho",
+    patrones: [/\bseguros?\s+(?:de\s+|en\s+)?(?:figura\s+)?ocho\b/i, /\bfigura\s+ocho\b/i, /\bfigura[\s-]eight\b/i],
+    definicion: "SEGURO DE FIGURA EN OCHO (figure-eight safety catch): small hinged metal wire loop shaped like an 8, pivoting to snap tightly over a ball stud on the side of the box clasp for double security. NOT a floating giant number 8."
+  },
+  {
+    id: "cierre_bayoneta",
+    termino: "cierre de bayoneta",
+    patrones: [/\bcierres?\s+(?:de\s+)?bayoneta\b/i, /\bbayonet\s+clasp\b/i],
+    definicion: "CIERRE DE BAYONETA (bayonet clasp): sleek tubular inline clasp connecting two ends with a push-and-twist interlocking locking pin mechanism."
+  },
+  {
+    id: "cierre_catalan",
+    termino: "cierre catalán / ballestilla",
+    patrones: [/\b(?:cierres?|ganchos?)\s+catalan(?:es)?\b/i, /\bball?estillas?\b/i, /\blatch[\s-]back\b/i],
+    definicion: "CIERRE CATALÁN / BALLESTILLA (latch-back / Catalan ear wire): curved hinged post that snaps firmly into an articulated rear spring-loaded fork or notch behind the earlobe."
+  },
+  {
+    id: "gancho_frances",
+    termino: "gancho francés",
+    patrones: [/\bganchos?\s+frances(?:es)?\b/i, /\bganchos?\s+hippie\b/i, /\bfrench\s+hook\b/i, /\bfishhook\b/i],
+    definicion: "GANCHO FRANCÉS (French hook / ear wire): graceful curved metal wire arching through the pierced earlobe, extending behind the ear with an open hanging loop."
+  },
+  {
+    id: "tuerca_mariposa",
+    termino: "perno y tuerca mariposa",
+    patrones: [/\btuercas?\s+mariposa\b/i, /\bpresion\s+mariposa\b/i, /\bpalillos?\s+y\s+tuerca\b/i, /\bbutterfly\s+clutch\b/i],
+    definicion: "PERNO Y TUERCA MARIPOSA (earring post and butterfly clutch): straight cylindrical post with a friction-fit winged butterfly back clutch securing it flat against the earlobe."
+  },
+  {
+    id: "cierre_omega",
+    termino: "cierre omega",
+    patrones: [/\bcierres?\s+omega\b/i, /\bclips?\s+omega\b/i, /\bpatillas?\s+omega\b/i],
+    definicion: "CIERRE OMEGA (Omega earring back): hinged wire loop shaped like the Greek letter Omega (Ω) that flips upward to press the earlobe gently against the decorative earring face."
+  },
+  {
+    id: "criollas",
+    termino: "criollas / aros",
+    patrones: [/\bcriollas?\b/i, /\baros?\s+de\s+pendiente\b/i, /\bhoop\s+earrings?\b/i],
+    definicion: "CRIOLLAS / AROS (hoop earrings): circular or semi-circular metal hoops with an integrated hidden hinge or click-in top bar closure."
+  },
+  {
+    id: "portacolgante_bail",
+    termino: "portacolgante / bail",
+    patrones: [/\bportacolgantes?\b/i, /\bbails?\b/i, /\basas?\s+de\s+colgante\b/i],
+    definicion: "PORTACOLGANTE / BAIL (pendant bail): tapered conical loop or hinged pinch bail connecting the top of the pendant to the chain, through which the chain slides smoothly."
+  },
+
+  // ── TEJIDOS DE CADENAS ───────────────────────────────────
+  {
+    id: "cadena_cable",
+    termino: "cadena forzada / cable",
+    patrones: [/\bcadenas?\s+forzada\b/i, /\beslabon(?:es)?\s+cable\b/i, /\bcable\s+chain\b/i],
+    definicion: "CADENA FORZADA / CABLE (cable chain): classic chain composed of uniform, interlocking oval metal links alternated at precise 90-degree angles."
+  },
+  {
+    id: "cadena_rolo",
+    termino: "cadena rolo",
+    patrones: [/\bcadenas?\s+rolo\b/i, /\beslabon(?:es)?\s+rolo\b/i, /\bbelcher\b/i],
+    definicion: "CADENA ROLO (rolo / belcher chain): robust chain made of uniform symmetrical round or half-round circular links linked together."
+  },
+  {
+    id: "cadena_barbada_cubana",
+    termino: "cadena barbada / cubana",
+    patrones: [/\bcadenas?\s+barbada\b/i, /\bcadenas?\s+cubana\b/i, /\bcuban\s+link\b/i, /\bgourmette\b/i],
+    definicion: "CADENA BARBADA / CUBANA (curb / Cuban link chain): interlocking oval links that have been twisted, flattened and diamond-cut on the surfaces so they lay completely flat against the skin."
+  },
+  {
+    id: "cadena_figaro",
+    termino: "cadena Figaro",
+    patrones: [/\bcadenas?\s+figaro\b/i, /\beslabon(?:es)?\s+figaro\b/i],
+    definicion: "CADENA FIGARO (Figaro chain): rhythmic sequence alternating 3 small circular links followed by 1 elongated oval link, all diamond-cut and laying flat."
+  },
+  {
+    id: "cadena_veneciana",
+    termino: "cadena veneciana",
+    patrones: [/\bcadenas?\s+veneciana\b/i, /\beslabon(?:es)?\s+veneciano\b/i, /\bbox\s+chain\b/i],
+    definicion: "CADENA VENECIANA (Venetian box chain): geometric chain formed of tightly interlocking square box-like links, creating a clean four-sided geometric column."
+  },
+  {
+    id: "cadena_serpiente",
+    termino: "cadena serpiente",
+    patrones: [/\bcadenas?\s+serpiente\b/i, /\bcola\s+de\s+raton\b/i, /\bsnake\s+chain\b/i],
+    definicion: "CADENA SERPIENTE (snake chain): smooth, flexible, solid-looking metal cord made of tightly compressed micro-rings or curved bands with an unbroken, sleek surface. NOT a biological snake."
+  },
+  {
+    id: "cadena_espiga",
+    termino: "cadena de espiga",
+    patrones: [/\bcadenas?\s+(?:de\s+)?espiga\b/i, /\bspiga\s+chain\b/i, /\bwheat\s+chain\b/i],
+    definicion: "CADENA DE ESPIGA (wheat / spiga chain): braided chain composed of teardrop-shaped links intertwined in a four-strand symmetrical V-shaped wheat stalk pattern."
+  },
+  {
+    id: "cadena_bolas",
+    termino: "cadena de bolas",
+    patrones: [/\bcadenas?\s+(?:de\s+)?bolas\b/i, /\bball\s+chain\b/i],
+    definicion: "CADENA DE BOLAS (ball chain): series of seamless spherical metal beads joined by short internal connector wire segments."
+  },
+
+  // ── TEXTURAS Y ACABADOS DE SUPERFICIE ───────────────────
+  {
+    id: "pulido_espejo",
+    termino: "pulido espejo",
+    patrones: [/\bpulido\s+espejo\b/i, /\balto\s+brillo\b/i, /\bmirror\s+polish\b/i, /\bhigh\s+polish\b/i],
+    definicion: "PULIDO ESPEJO (high mirror polish): ultra-smooth, distortion-free reflective surface with intense specular highlights and crisp studio reflections."
+  },
+  {
+    id: "satinado",
+    termino: "satinado / cepillado",
+    patrones: [/\bsatinad[oas]{1,2}\b/i, /\bcepillad[oas]{1,2}\b/i, /\bacabados?\s+satinad[oas]{1,2}\b/i, /\bbrushed\s+finish\b/i],
+    definicion: "SATINADO / CEPILLADO (brushed satin finish): fine, uniform microscopic linear brush strokes along the metal surface, creating a soft, diffuse luster with low glare."
+  },
+  {
+    id: "mateado",
+    termino: "mateado",
+    patrones: [/\bmatead[oas]{1,2}\b/i, /\bacabados?\s+mate\b/i, /\bmetales?\s+mate\b/i, /\bmatte\s+finish\b/i],
+    definicion: "MATEADO (velvety matte finish): uniform non-reflective textured surface with a soft, warm, diffused metal tone completely free of glossy glare."
+  },
+  {
+    id: "martele",
+    termino: "martelé / martilleado",
+    patrones: [/\bmartele[s]?\b/i, /\bmartillead[oas]{1,2}\b/i, /\bfacetad[oas]{1,2}\s+a\s+martillo\b/i, /\bhammered\b/i],
+    definicion: "MARTELÉ (hand-hammered finish): organic pattern of shallow, overlapping circular indentations faceted into the metal, catching light from multiple angles."
+  },
+  {
+    id: "granallado",
+    termino: "granallado / arenado",
+    patrones: [/\bgranallad[oas]{1,2}\b/i, /\barenad[oas]{1,2}\b/i, /\bchorro\s+de\s+arena\b/i, /\bsandblasted\b/i, /\bbead[\s-]blasted\b/i],
+    definicion: "GRANALLADO / ARENADO (sandblasted / bead-blasted): microscopic stippled, frosted texture giving an even, crystalline sparkle across the metal plane."
+  },
+  {
+    id: "florentino",
+    termino: "acabado florentino",
+    patrones: [/\bflorentin[oas]{1,2}\b/i, /\bgrabados?\s+florentin[oas]{1,2}\b/i, /\bflorentine\s+finish\b/i],
+    definicion: "ACABADO FLORENTINO (Florentine finish): exquisite fine cross-hatched grid of hand-engraved parallel microscopic grooves creating a shimmering silk-fabric texture."
+  },
+  {
+    id: "filigrana",
+    termino: "filigrana",
+    patrones: [/\bfiligranas?\b/i, /\bcalados?\s+filigranad[oas]{1,2}\b/i, /\bfiligree\b/i],
+    definicion: "FILIGRANA (openwork filigree): delicate, lace-like arabesques and curled wires soldered into intricate openwork patterns, light and airy."
+  },
+  {
+    id: "envejecido",
+    termino: "acabado envejecido / oxidado",
+    patrones: [/\benvejecid[oas]{1,2}\b/i, /\boxidad[oas]{1,2}\b/i, /\bpatinas?\b/i, /\bantiqued\b/i],
+    definicion: "ACABADO ENVEJECIDO (antiqued / oxidized finish): dark chemical patina settled deep into recessed engravings and textures, contrasting with polished raised highlights."
+  },
+  {
+    id: "rodinado",
+    termino: "rodinado",
+    patrones: [/\brodinad[oas]{1,2}\b/i, /\bba[nñ]os?\s+de\s+rodio\b/i, /\brhodium\s+plated\b/i],
+    definicion: "RODINADO (rhodium plated): electric white, cold metallic luster of pure rhodium enhancing the brilliance and crisp reflections of white gold or silver."
+  },
+
+  // ── MOTIVOS TRADICIONALES ADICIONALES ────────────────────
+  {
+    id: "monograma",
+    termino: "monograma",
+    patrones: [/\bmonogramas?\b/i, /\bletras\s+entrelazadas\b/i, /\bmonogram\b/i],
+    definicion: "MONOGRAMA (monogram): two or more letters elegantly intertwined in an ornate Victorian style, overlapping to form a single decorative emblem. The letters weave through each other."
+  },
+  {
+    id: "cuajo",
+    termino: "cuajo",
+    patrones: [/\bcuajos?\b/i],
+    definicion: "CUAJO: a round, richly engraved decorative element with detailed relief work, typical of traditional Spanish goldsmithing."
+  },
+  {
+    id: "chapa",
+    termino: "chapa",
+    patrones: [/\bchapas?\b/i, /\bplacas?\s+lisas?\b/i],
+    definicion: "CHAPA (metal plate): a flat thin sheet of metal forming the base or face of the piece."
+  },
+  {
+    id: "cordon",
+    termino: "cordón",
+    patrones: [/\bcordon(?:es)?\b/i],
+    definicion: "CORDÓN (cord chain): a rope-style chain, twisted to look like a cord."
+  },
+  {
+    id: "eslabon",
+    termino: "eslabón",
+    patrones: [/\beslabon(?:es)?\b/i],
+    definicion: "ESLABÓN (chain link): individual loop of a chain."
+  }
+];
+
+// Mapeo plano para compatibilidad
+const GLOSARIO: Record<string, string> = Object.fromEntries(
+  GLOSARIO_TERMINOS.map(item => [item.termino, item.definicion])
+);
 
 function detectImageMimeType(buf: Uint8Array, filePath?: string, headerType?: string | null): string {
   if (headerType && headerType.startsWith("image/") && !headerType.includes("octet-stream")) {
@@ -49,15 +451,23 @@ function detectImageMimeType(buf: Uint8Array, filePath?: string, headerType?: st
 }
 
 function detectarTerminos(...textos: (string | null | undefined)[]): string {
-  const textoCompleto = textos.filter(Boolean).join(" ").toLowerCase();
+  const textoCompleto = normalizarTextoParaGlosario(textos.filter(Boolean).join(" "));
   const definiciones: string[] = [];
-  for (const [termino, definicion] of Object.entries(GLOSARIO)) {
-    if (textoCompleto.includes(termino)) {
-      definiciones.push(definicion);
+  const idsVistos = new Set<string>();
+
+  for (const item of GLOSARIO_TERMINOS) {
+    if (idsVistos.has(item.id)) continue;
+    for (const patron of item.patrones) {
+      if (patron.test(textoCompleto)) {
+        definiciones.push(item.definicion);
+        idsVistos.add(item.id);
+        break;
+      }
     }
   }
+
   if (definiciones.length === 0) return "";
-  return `\n\nJEWELRY TERMINOLOGY (the client used these professional terms — follow these definitions exactly):\n${definiciones.map(d => "- " + d).join("\n")}`;
+  return `\n\nJEWELRY TERMINOLOGY & STRUCTURAL SPECIFICATIONS (the client used professional jewelry workshop terms — follow these definitions strictly with zero deviations):\n${definiciones.map(d => "- " + d).join("\n")}`;
 }
 
 function detectarRestriccionesEspecificas(...textos: (string | null | undefined)[]): string {
