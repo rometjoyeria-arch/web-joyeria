@@ -3,9 +3,10 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 // ═══════════════════════════════════════════════════════════
-// ROMET JOYERÍA — Edge Function v81
-// Glosario joyería + 3 modos de prompt + emails directos Resend + prompt geometry/numbers/stone fix
-// Rediseño inteligente: preservación de gemas, restauración de elementos, soporte de imagen original
+// ROMET JOYERÍA — Edge Function v83
+// Glosario maestro ampliado de joyería (+45 términos técnicos y visuales)
+// Detección tolerante a tildes, plurales y sinónimos de taller
+// 3 modos de prompt + emails directos Resend + restricciones geométricas
 // Modelo: gemini-3.1-flash-image (confirmado funcional)
 // ═══════════════════════════════════════════════════════════
 
