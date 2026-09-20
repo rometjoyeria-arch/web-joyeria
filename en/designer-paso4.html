@@ -87,27 +87,17 @@
 			margin-bottom: 1.5rem;
 			line-height: 1.4;
 		}
-		.gem-grid {
-			display: flex;
-			flex-wrap: wrap;
-			justify-content: center;
-			gap: 1.5rem;
-			max-width: 1180px;
-			margin: 0 auto;
-		}
-		.gem-card {
-			width: calc(50% - 0.75rem);
-			max-width: 155px;
-			box-sizing: border-box;
-		}
-		@media (min-width: 640px) {
-			.gem-card {
-				width: 155px;
+		@media (min-width: 768px) {
+			.card-sin-gema {
+				grid-column: 3 !important;
 			}
 		}
-		@media (min-width: 1024px) {
-			.gem-card {
-				width: 155px;
+		@media (max-width: 767px) {
+			.card-sin-gema {
+				grid-column: 1 / span 2 !important;
+				max-width: 150px;
+				margin: 0 auto;
+				width: 100%;
 			}
 		}
 	</style>
@@ -148,76 +138,76 @@
 
 				<div class="flex-1 relative">
 					<div class="w-full" style="opacity: 1; transform: none;">
-						<div class="gem-grid">
+						<div class="grid grid-cols-2 md:grid-cols-5 gap-6 max-w-6xl mx-auto">
 
-							<!-- ROW 1: MAIN GEMSTONES (6) -->
-							<div class="gem-card cursor-pointer flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5" onclick="selectOption(this, 'gemstone', 'diamante')">
-								<div class="w-[100px] h-[100px] mb-4 relative rounded-full overflow-hidden shadow-sm bg-white border border-border flex items-center justify-center shrink-0">
-									<img loading="lazy" src="../designer-paso4_files/diamante.png" alt="Diamond" class="w-full h-full object-cover">
+							<!-- ROW 1: MAIN GEMSTONES (5) -->
+							<div class="cursor-pointer flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5" onclick="selectOption(this, 'gemstone', 'diamante')">
+								<div class="w-[100px] h-[100px] mb-4 relative rounded-full overflow-hidden shadow-sm bg-white border border-border flex items-center justify-center shrink-0" style="width: 100px; height: 100px; min-width: 100px; min-height: 100px;">
+									<img loading="lazy" src="../designer-paso4_files/diamante.png" alt="Diamond" class="w-full h-full object-cover" style="width: 100%; height: 100%; object-fit: cover;">
 								</div>
 								<span class="text-foreground text-sm tracking-widest uppercase font-medium text-center">Diamond</span>
 							</div>
 
-							<div class="gem-card cursor-pointer flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5" onclick="selectOption(this, 'gemstone', 'esmeralda')">
-								<div class="w-[100px] h-[100px] mb-4 relative rounded-full overflow-hidden shadow-sm bg-white border border-border flex items-center justify-center shrink-0">
-									<img loading="lazy" src="../designer-paso4_files/esmeralda.png" alt="Emerald" class="w-full h-full object-cover">
+							<div class="cursor-pointer flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5" onclick="selectOption(this, 'gemstone', 'esmeralda')">
+								<div class="w-[100px] h-[100px] mb-4 relative rounded-full overflow-hidden shadow-sm bg-white border border-border flex items-center justify-center shrink-0" style="width: 100px; height: 100px; min-width: 100px; min-height: 100px;">
+									<img loading="lazy" src="../designer-paso4_files/esmeralda.png" alt="Emerald" class="w-full h-full object-cover" style="width: 100%; height: 100%; object-fit: cover;">
 								</div>
 								<span class="text-foreground text-sm tracking-widest uppercase font-medium text-center">Emerald</span>
 							</div>
 
-							<div class="gem-card cursor-pointer flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5" onclick="selectOption(this, 'gemstone', 'rubi')">
-								<div class="w-[100px] h-[100px] mb-4 relative rounded-full overflow-hidden shadow-sm bg-white border border-border flex items-center justify-center shrink-0">
-									<img loading="lazy" src="../designer-paso4_files/rubi.png" alt="Ruby" class="w-full h-full object-cover">
+							<div class="cursor-pointer flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5" onclick="selectOption(this, 'gemstone', 'rubi')">
+								<div class="w-[100px] h-[100px] mb-4 relative rounded-full overflow-hidden shadow-sm bg-white border border-border flex items-center justify-center shrink-0" style="width: 100px; height: 100px; min-width: 100px; min-height: 100px;">
+									<img loading="lazy" src="../designer-paso4_files/rubi.png" alt="Ruby" class="w-full h-full object-cover" style="width: 100%; height: 100%; object-fit: cover;">
 								</div>
 								<span class="text-foreground text-sm tracking-widest uppercase font-medium text-center">Ruby</span>
 							</div>
 
-							<div class="gem-card cursor-pointer flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5" onclick="selectOption(this, 'gemstone', 'zafiro')">
-								<div class="w-[100px] h-[100px] mb-4 relative rounded-full overflow-hidden shadow-sm bg-white border border-border flex items-center justify-center shrink-0">
-									<img loading="lazy" src="../designer-paso4_files/zafiro.png" alt="Sapphire" class="w-full h-full object-cover">
+							<div class="cursor-pointer flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5" onclick="selectOption(this, 'gemstone', 'zafiro')">
+								<div class="w-[100px] h-[100px] mb-4 relative rounded-full overflow-hidden shadow-sm bg-white border border-border flex items-center justify-center shrink-0" style="width: 100px; height: 100px; min-width: 100px; min-height: 100px;">
+									<img loading="lazy" src="../designer-paso4_files/zafiro.png" alt="Sapphire" class="w-full h-full object-cover" style="width: 100%; height: 100%; object-fit: cover;">
 								</div>
 								<span class="text-foreground text-sm tracking-widest uppercase font-medium text-center">Sapphire</span>
 							</div>
 
-							<div class="gem-card cursor-pointer flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5" onclick="selectOption(this, 'gemstone', 'perla')">
-								<div class="w-[100px] h-[100px] mb-4 relative rounded-full overflow-hidden shadow-sm bg-white border border-border flex items-center justify-center shrink-0">
-									<img loading="lazy" src="../designer-paso4_files/perla.png" alt="Pearl" class="w-full h-full object-cover">
+							<div class="cursor-pointer flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5" onclick="selectOption(this, 'gemstone', 'perla')">
+								<div class="w-[100px] h-[100px] mb-4 relative rounded-full overflow-hidden shadow-sm bg-white border border-border flex items-center justify-center shrink-0" style="width: 100px; height: 100px; min-width: 100px; min-height: 100px;">
+									<img loading="lazy" src="../designer-paso4_files/perla.png" alt="Pearl" class="w-full h-full object-cover" style="width: 100%; height: 100%; object-fit: cover;">
 								</div>
 								<span class="text-foreground text-sm tracking-widest uppercase font-medium text-center">Pearl</span>
 							</div>
 
-							<div class="gem-card cursor-pointer flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5" onclick="selectOption(this, 'gemstone', 'aguamarina')">
-								<div class="w-[100px] h-[100px] mb-4 relative rounded-full overflow-hidden shadow-sm bg-white border border-border flex items-center justify-center shrink-0">
-									<img loading="lazy" src="../designer-paso4_files/aguamarina.png" alt="Aquamarine" class="w-full h-full object-cover">
+							<!-- ROW 2: SPECIAL GEMS & OTHER GEMSTONES (5) -->
+							<div class="cursor-pointer flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5" onclick="selectOption(this, 'gemstone', 'aguamarina')">
+								<div class="w-[100px] h-[100px] mb-4 relative rounded-full overflow-hidden shadow-sm bg-white border border-border flex items-center justify-center shrink-0" style="width: 100px; height: 100px; min-width: 100px; min-height: 100px;">
+									<img loading="lazy" src="../designer-paso4_files/aguamarina.png" alt="Aquamarine" class="w-full h-full object-cover" style="width: 100%; height: 100%; object-fit: cover;">
 								</div>
 								<span class="text-foreground text-sm tracking-widest uppercase font-medium text-center">Aquamarine</span>
 							</div>
 
-							<!-- ROW 2: SPECIAL GEMS & OPTIONS (5 CENTERED) -->
-							<div class="gem-card cursor-pointer flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5" onclick="selectOption(this, 'gemstone', 'topacio')">
-								<div class="w-[100px] h-[100px] mb-4 relative rounded-full overflow-hidden shadow-sm bg-white border border-border flex items-center justify-center shrink-0">
-									<img loading="lazy" src="../designer-paso4_files/topacio.png" alt="Topaz" class="w-full h-full object-cover">
+							<div class="cursor-pointer flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5" onclick="selectOption(this, 'gemstone', 'topacio')">
+								<div class="w-[100px] h-[100px] mb-4 relative rounded-full overflow-hidden shadow-sm bg-white border border-border flex items-center justify-center shrink-0" style="width: 100px; height: 100px; min-width: 100px; min-height: 100px;">
+									<img loading="lazy" src="../designer-paso4_files/topacio.png" alt="Topaz" class="w-full h-full object-cover" style="width: 100%; height: 100%; object-fit: cover;">
 								</div>
 								<span class="text-foreground text-sm tracking-widest uppercase font-medium text-center">Topaz</span>
 							</div>
 
-							<div class="gem-card cursor-pointer flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5" onclick="selectOption(this, 'gemstone', 'turquesa')">
-								<div class="w-[100px] h-[100px] mb-4 relative rounded-full overflow-hidden shadow-sm bg-white border border-border flex items-center justify-center shrink-0">
-									<img loading="lazy" src="../designer-paso4_files/turquesa.png" alt="Turquoise" class="w-full h-full object-cover">
+							<div class="cursor-pointer flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5" onclick="selectOption(this, 'gemstone', 'turquesa')">
+								<div class="w-[100px] h-[100px] mb-4 relative rounded-full overflow-hidden shadow-sm bg-white border border-border flex items-center justify-center shrink-0" style="width: 100px; height: 100px; min-width: 100px; min-height: 100px;">
+									<img loading="lazy" src="../designer-paso4_files/turquesa.png" alt="Turquoise" class="w-full h-full object-cover" style="width: 100%; height: 100%; object-fit: cover;">
 								</div>
 								<span class="text-foreground text-sm tracking-widest uppercase font-medium text-center">Turquoise</span>
 							</div>
 
-							<div class="gem-card cursor-pointer flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5" onclick="selectOption(this, 'gemstone', 'coral')">
-								<div class="w-[100px] h-[100px] mb-4 relative rounded-full overflow-hidden shadow-sm bg-white border border-border flex items-center justify-center shrink-0">
-									<img loading="lazy" src="../designer-paso4_files/coral.png" alt="Coral" class="w-full h-full object-cover">
+							<div class="cursor-pointer flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5" onclick="selectOption(this, 'gemstone', 'coral')">
+								<div class="w-[100px] h-[100px] mb-4 relative rounded-full overflow-hidden shadow-sm bg-white border border-border flex items-center justify-center shrink-0" style="width: 100px; height: 100px; min-width: 100px; min-height: 100px;">
+									<img loading="lazy" src="../designer-paso4_files/coral.png" alt="Coral" class="w-full h-full object-cover" style="width: 100%; height: 100%; object-fit: cover;">
 								</div>
 								<span class="text-foreground text-sm tracking-widest uppercase font-medium text-center">Coral</span>
 							</div>
 
-							<!-- OTHER GEMSTONES (MODAL POPUP) -->
-							<div id="card-otras-gemas" class="gem-card cursor-pointer flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5 group" onclick="openOtherGemsModal()">
-								<div class="w-[100px] h-[100px] mb-4 relative rounded-full overflow-hidden shadow-sm bg-white border border-border flex items-center justify-center shrink-0 group-hover:border-primary/50 transition-colors">
+							<!-- OTHER GEMSTONES (WITH POP-UP) -->
+							<div id="card-otras-gemas" class="cursor-pointer flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5 group" onclick="openOtherGemsModal()">
+								<div class="w-[100px] h-[100px] mb-4 relative rounded-full overflow-hidden shadow-sm bg-white border border-border flex items-center justify-center shrink-0 group-hover:border-primary/50 transition-colors" style="width: 100px; height: 100px; min-width: 100px; min-height: 100px;">
 									<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="text-primary transition-transform duration-300 group-hover:scale-110">
 										<path d="M6 3h12l4 6-10 12L2 9z"/>
 										<path d="M11 3 8 9l4 12 4-12-3-6"/>
@@ -228,9 +218,9 @@
 								<span id="sublabel-otras-gemas" class="text-[11px] text-primary font-semibold tracking-wider uppercase font-sans mt-0.5 hidden truncate max-w-full px-1"></span>
 							</div>
 
-							<!-- NO GEMSTONE -->
-							<div class="gem-card cursor-pointer flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5" onclick="selectOption(this, 'gemstone', 'sin_gema')">
-								<div class="w-[100px] h-[100px] mb-4 relative rounded-full overflow-hidden shadow-sm bg-white border border-border flex items-center justify-center shrink-0">
+							<!-- ROW 3: NO GEMSTONE (CENTERED) -->
+							<div class="card-sin-gema cursor-pointer flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/30 hover:bg-primary/5" onclick="selectOption(this, 'gemstone', 'sin_gema')">
+								<div class="w-[100px] h-[100px] mb-4 relative rounded-full overflow-hidden shadow-sm bg-white border border-border flex items-center justify-center shrink-0" style="width: 100px; height: 100px; min-width: 100px; min-height: 100px;">
 									<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="hsl(0 0% 70%)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
 										<line x1="4" y1="4" x2="20" y2="20"/>
 										<circle cx="12" cy="12" r="8"/>
