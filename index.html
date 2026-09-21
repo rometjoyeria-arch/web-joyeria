@@ -17,11 +17,31 @@
 			initHeaderAuth();
 		}));
 	</script>
+	<style>
+		.meneses-top-logo {
+			width: clamp(160px, 42vw, 250px);
+			height: auto;
+			filter: drop-shadow(0 2px 8px rgba(0,0,0,0.03));
+		}
+		.meneses-bottom-logo {
+			width: clamp(105px, 21vw, 135px);
+			height: auto;
+			opacity: 0.92;
+		}
+		@media (min-width: 1024px) {
+			.meneses-top-logo {
+				width: clamp(190px, 15vw, 230px);
+			}
+			.meneses-bottom-logo {
+				width: clamp(120px, 9vw, 140px);
+			}
+		}
+	</style>
 </head>
 <body>
 	<div id="root">
 		<div class="min-h-screen flex flex-col relative bg-background overflow-hidden">
-			<header class="bg-background border-b border-border px-4 md:px-8 py-4 md:py-6 flex flex-col sm:flex-row justify-between items-center gap-4 sticky top-0 z-50 shadow-sm">
+			<header class="hidden md:flex bg-background/80 backdrop-blur-sm border-b border-border/40 px-4 md:px-8 py-3 md:py-4 justify-between items-center sticky top-0 z-50">
 				<a style="display:flex; align-items:center; gap:16px; text-decoration:none;" href="https://rometjoyeria.com/">
 					<img src="./logo-romet.png" alt="Romet Joyería Logo" style="height: 45px; width: auto; mix-blend-mode: multiply; transform: scale(1.7); transform-origin: left center; margin-right: 18px;">
 					<span class="hidden md:block text-2xl tracking-[0.2em] uppercase font-bold whitespace-nowrap text-foreground" style="font-family: 'Cormorant Garamond', serif; letter-spacing: 0.15em;">Romet Joyería</span>
@@ -45,13 +65,20 @@
 				</nav>
 			</header>
 			<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-white rounded-full blur-[120px] opacity-50 pointer-events-none"></div>
-			<main class="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-6">
+			<main class="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-6 py-6 md:py-12">
 				<div class="max-w-5xl mx-auto flex flex-col items-center w-full" style="opacity: 1; transform: none;">
-					<h1 class="text-5xl md:text-7xl lg:text-8xl text-foreground mb-6 leading-tight" style="font-family: 'Cormorant Garamond', serif; font-weight: 400; text-transform: none !important; letter-spacing: 0.03em;">
-						Diseñador de Joyer<span style="font-weight: 700;">IA</span>
+					<!-- Meneses Joyas Top Spiral Isotype -->
+					<div class="mb-4 sm:mb-6 md:mb-8 flex justify-center">
+						<img src="./meneses-spiral-white.png" 
+						     alt="Meneses Joyas" 
+						     class="meneses-top-logo">
+					</div>
+
+					<h1 class="text-4xl sm:text-5xl md:text-7xl lg:text-8xl text-foreground mb-4 md:mb-6 leading-tight" style="font-family: 'Cormorant Garamond', serif; font-weight: 400; text-transform: none !important; letter-spacing: 0.03em;">
+						Diseñador<br class="block sm:hidden"> Joyer<span style="font-weight: 700;">IA</span>
 					</h1>
-					<p class="text-xl md:text-2xl text-muted-foreground mb-16 font-light tracking-[0.2em] max-w-2xl uppercase">
-						Alta joyería en tus manos
+					<p class="text-lg sm:text-xl md:text-2xl text-muted-foreground mb-8 md:mb-12 font-light tracking-[0.2em] max-w-2xl uppercase">
+						Alta joyería a tu medida
 					</p>
 					<div class="flex flex-col sm:flex-row gap-4 md:gap-6 items-stretch justify-center w-full max-w-4xl mx-auto">
 						<a href="https://rometjoyeria.com/designer-paso1.html"
@@ -64,6 +91,13 @@
 						   style="text-decoration:none;">
 							¿Tienes un diseño? Te lo hacemos
 						</a>
+					</div>
+
+					<!-- Meneses Joyas Bottom Brand Block -->
+					<div class="mt-8 md:mt-12 flex flex-col items-center justify-center">
+						<img src="./meneses-by-logo-black.png" 
+						     alt="By Meneses Joyas" 
+						     class="meneses-bottom-logo">
 					</div>
 				</div>
 			</main>
