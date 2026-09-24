@@ -8,7 +8,7 @@
 	<meta name="description" content="Purchase credits to design your custom jewelry with artificial intelligence at Romet Jewelry.">
 	<link rel="stylesheet" crossorigin="" href="../index_files/index-xtSdOPat.css?v=2">
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-	<script src="./js/supabase-config.js?v=44"></script>
+	<script src="./js/supabase-config.js?v=46"></script>
 
 	<style>
 		@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap');
@@ -679,7 +679,7 @@
 					<p class="section-subtext">Start for free or purchase a dedicated design pack with unlimited time to use whenever you wish.</p>
 				</div>
 
-				<div class="pricing-grid-2">
+				<div class="pricing-grid-3">
 					<!-- Free Trial Token -->
 					<div class="pricing-card">
 						<h3 class="card-title">Free Trial Token</h3>
@@ -699,6 +699,16 @@
 						<p class="card-description">The perfect choice to craft a unique piece or a meaningful gift. Get 3 high-resolution AI generations that never expire.</p>
 						<button id="btn-particular" class="card-btn" onclick="redirectToStripeCheckout('particular', this)">Buy</button>
 					</div>
+
+					<!-- Custom Design -->
+					<div class="pricing-card">
+						<h3 class="card-title">Custom Design</h3>
+						<div class="card-credits">1 Bespoke 3D Jewelry</div>
+						<div class="card-price">149,90 €</div>
+						<div class="card-period-badge unlimited">STL / 3DM Modeling</div>
+						<p class="card-description">Professional 3D modeling of your exclusive jewelry piece, ready for 3D printing and fine metal casting. Dedicated personal consultation.</p>
+						<button id="btn-custom-design" class="card-btn" onclick="redirectToStripeCheckout('custom_design', this)">Buy</button>
+					</div>
 				</div>
 
 				<!-- Section 2: Professional Subscriptions -->
@@ -713,7 +723,7 @@
 					<div class="pricing-card">
 						<h3 class="card-title">Professional 15</h3>
 						<div class="card-credits">15 Designs / mo</div>
-						<div class="card-price">24,90 € <span>/ mo</span></div>
+						<div class="card-price">24,99 € <span>/ mo</span></div>
 						<div class="card-period-badge recurring">Monthly Recurring</div>
 						<p class="card-description">Continuous monthly access with 15 generations to develop seasonal collections and handle custom client commissions.</p>
 						<button id="btn-prof15" class="card-btn" onclick="redirectToStripeCheckout('profesional15', this)">Subscribe</button>
@@ -723,7 +733,7 @@
 					<div class="pricing-card">
 						<h3 class="card-title">Professional 30</h3>
 						<div class="card-credits">30 Designs / mo</div>
-						<div class="card-price">44,90 € <span>/ mo</span></div>
+						<div class="card-price">44,99 € <span>/ mo</span></div>
 						<div class="card-period-badge recurring">Monthly Recurring</div>
 						<p class="card-description">Complete creative agility for busy brands and workshops. Enjoy 30 monthly generations to iterate styles, gemstones, and fine details.</p>
 						<button id="btn-prof30" class="card-btn" onclick="redirectToStripeCheckout('profesional30', this)">Subscribe</button>
@@ -808,24 +818,33 @@
 		// Stripe Checkout Integration
 		// ═══════════════════════════════════════════════
 
+		const STRIPE_CHECKOUT_LINKS = {
+			'particular': 'https://buy.stripe.com/28E14o0HJbu33vzcis4F200',
+			'profesional15': 'https://buy.stripe.com/3cIeVe76741B7LPfuE4F202',
+			'profesional30': 'https://buy.stripe.com/3cIeVe76741B7LPfuE4F202',
+			'profesionales_plus': 'https://buy.stripe.com/7sY00kduv7dN1nr3LW4F201',
+			'custom_design': 'https://buy.stripe.com/8x2fZi3TV9lVaY12HS4F204',
+			'149_99': 'https://buy.stripe.com/8x2fZi3TV9lVaY12HS4F204',
+			'149_90': 'https://buy.stripe.com/8x2fZi3TV9lVaY12HS4F204'
+		};
+
 		async function redirectToStripeCheckout(plan, btnElement) {
 			const originalText = btnElement.textContent;
 			btnElement.disabled = true;
 			btnElement.innerHTML = '<span class="spinner"></span>';
 
 			try {
-				const result = await callEdgeFunction('create-checkout', {
-					plan: plan,
-					lang: 'en'
-				});
+				const targetUrl = STRIPE_CHECKOUT_LINKS[plan] || 'https://buy.stripe.com/8x2fZi3TV9lVaY12HS4F204';
+				let redirectUrl = new URL(targetUrl);
 
-				if (result.url) {
-					window.location.href = result.url;
-				} else {
-					throw new Error(result.error || 'Could not create payment session');
+				if (currentUser) {
+					if (currentUser.id) redirectUrl.searchParams.set('client_reference_id', currentUser.id);
+					if (currentUser.email) redirectUrl.searchParams.set('prefilled_email', currentUser.email);
 				}
+
+				window.location.href = redirectUrl.toString();
 			} catch(e) {
-				console.error('Error creating Stripe session:', e);
+				console.error('Error redirecting to Stripe:', e);
 				showNotification('Error connecting to payment gateway: ' + e.message, 'error');
 				btnElement.disabled = false;
 				btnElement.textContent = originalText;

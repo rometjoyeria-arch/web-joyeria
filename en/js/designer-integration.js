@@ -439,7 +439,7 @@
 							
 							<div style="display:flex; flex-direction:column; gap:12px; font-family:sans-serif;">
 								<button onclick="window.redirectToStripeCheckout('custom_design', this, 'en', window._currentDesignId)" style="background:#000; color:#fff; border:none; padding:16px; border-radius:8px; cursor:pointer; font-size:1rem; font-weight:500; transition:all 0.2s;">
-									3D file for 3D printing and casting
+									3D file for 3D printing and casting — 149.90 €
 								</button>
 								<button onclick="window.requestQuote('B', 'en', this)" style="background:#f5f5f5; color:#000; border:1px solid #ddd; padding:16px; border-radius:8px; cursor:pointer; font-size:1rem; font-weight:500; transition:all 0.2s;">
 									Prototyped model in castable resin

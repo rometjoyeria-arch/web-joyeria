@@ -461,6 +461,17 @@ window.showOutOfCreditsModal = function() {
 	document.body.appendChild(overlay);
 };
 
+// Enlaces directos a Stripe Checkout
+const STRIPE_CHECKOUT_LINKS = {
+	'particular': 'https://buy.stripe.com/28E14o0HJbu33vzcis4F200',
+	'profesional15': 'https://buy.stripe.com/3cIeVe76741B7LPfuE4F202',
+	'profesional30': 'https://buy.stripe.com/3cIeVe76741B7LPfuE4F202',
+	'profesionales_plus': 'https://buy.stripe.com/7sY00kduv7dN1nr3LW4F201',
+	'custom_design': 'https://buy.stripe.com/8x2fZi3TV9lVaY12HS4F204',
+	'149_99': 'https://buy.stripe.com/8x2fZi3TV9lVaY12HS4F204',
+	'149_90': 'https://buy.stripe.com/8x2fZi3TV9lVaY12HS4F204'
+};
+
 // Redirigir al usuario a Stripe Checkout de forma global
 window.redirectToStripeCheckout = async function(plan, element, lang = 'es', designId = null) {
 	let originalContent = '';
@@ -479,22 +490,27 @@ window.redirectToStripeCheckout = async function(plan, element, lang = 'es', des
 	}
 
 	try {
-		const payload = {
-			plan: plan,
-			lang: lang
-		};
-		if (designId) {
-			payload.design_id = designId;
-		}
-		const result = await callEdgeFunction('create-checkout', payload);
+		const targetUrl = STRIPE_CHECKOUT_LINKS[plan] || 'https://buy.stripe.com/8x2fZi3TV9lVaY12HS4F204';
+		let redirectUrl = new URL(targetUrl);
 
-		if (result.url) {
-			window.location.href = result.url;
-		} else {
-			throw new Error(result.error || (lang === 'en' ? 'Could not create payment session' : 'No se pudo crear la sesión de pago'));
+		try {
+			const session = await getSession();
+			if (session && session.user) {
+				if (session.user.id) {
+					const refId = designId ? `${session.user.id}:${designId}` : session.user.id;
+					redirectUrl.searchParams.set('client_reference_id', refId);
+				}
+				if (session.user.email) {
+					redirectUrl.searchParams.set('prefilled_email', session.user.email);
+				}
+			}
+		} catch (errAuth) {
+			console.warn('Could not attach user metadata to checkout URL:', errAuth);
 		}
+
+		window.location.href = redirectUrl.toString();
 	} catch(e) {
-		console.error('Error al crear sesión de Stripe:', e);
+		console.error('Error al redirigir a Stripe:', e);
 		const msg = lang === 'en' 
 			? 'Error connecting to payment gateway: ' + e.message 
 			: 'Error al conectar con la pasarela de pago: ' + e.message;

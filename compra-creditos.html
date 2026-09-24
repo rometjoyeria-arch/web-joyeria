@@ -8,7 +8,7 @@
 	<meta name="description" content="Adquiere créditos para diseñar tus joyas personalizadas con inteligencia artificial en Romet Joyería.">
 	<link rel="stylesheet" crossorigin="" href="./index_files/index-xtSdOPat.css?v=2">
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-	<script src="./js/supabase-config.js?v=44"></script>
+	<script src="./js/supabase-config.js?v=46"></script>
 
 	<style>
 		@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap');
@@ -679,7 +679,7 @@
 					<p class="section-subtext">Comienza gratis o adquiere un paquete puntual de diseños con tiempo ilimitado para utilizarlos cuando tú decidas.</p>
 				</div>
 
-				<div class="pricing-grid-2">
+				<div class="pricing-grid-3">
 					<!-- Token Prueba Gratis -->
 					<div class="pricing-card">
 						<h3 class="card-title">Token Prueba Gratis</h3>
@@ -699,6 +699,16 @@
 						<p class="card-description">La opción perfecta para crear una pieza única o un regalo exclusivo. Dispones de 3 generaciones en alta definición que nunca caducan.</p>
 						<button id="btn-particular" class="card-btn" onclick="redirectToStripeCheckout('particular', this)">Comprar</button>
 					</div>
+
+					<!-- Joya Personalizada -->
+					<div class="pricing-card">
+						<h3 class="card-title">Diseño Personalizado</h3>
+						<div class="card-credits">1 Joya a Medida 3D</div>
+						<div class="card-price">149,90 €</div>
+						<div class="card-period-badge unlimited">Modelado STL / 3DM</div>
+						<p class="card-description">Modelado 3D profesional de tu joya exclusiva listo para impresión y fundición. Contacto directo y asesoramiento para crear tu pieza tal como imaginas.</p>
+						<button id="btn-custom-design" class="card-btn" onclick="redirectToStripeCheckout('custom_design', this)">Comprar</button>
+					</div>
 				</div>
 
 				<!-- Sección 2: Suscripciones Profesionales Renovables -->
@@ -713,7 +723,7 @@
 					<div class="pricing-card">
 						<h3 class="card-title">Profesional 15</h3>
 						<div class="card-credits">15 Diseños / mes</div>
-						<div class="card-price">24,90 € <span>/ mes</span></div>
+						<div class="card-price">24,99 € <span>/ mes</span></div>
 						<div class="card-period-badge recurring">Mensual Renovable</div>
 						<p class="card-description">Acceso mensual continuo con 15 generaciones para desarrollar colecciones periódicas y atender encargos personalizados de tus clientes.</p>
 						<button id="btn-prof15" class="card-btn" onclick="redirectToStripeCheckout('profesional15', this)">Suscribirse</button>
@@ -723,7 +733,7 @@
 					<div class="pricing-card">
 						<h3 class="card-title">Profesional 30</h3>
 						<div class="card-credits">30 Diseños / mes</div>
-						<div class="card-price">44,90 € <span>/ mes</span></div>
+						<div class="card-price">44,99 € <span>/ mes</span></div>
 						<div class="card-period-badge recurring">Mensual Renovable</div>
 						<p class="card-description">La solución integral para firmas y joyeros activos. Disfruta de 30 generaciones mensuales para iterar estilos, gemas y variaciones en detalle.</p>
 						<button id="btn-prof30" class="card-btn" onclick="redirectToStripeCheckout('profesional30', this)">Suscribirse</button>
@@ -808,6 +818,16 @@
 		// Stripe Checkout Integration
 		// ═══════════════════════════════════════════════
 
+		const STRIPE_CHECKOUT_LINKS = {
+			'particular': 'https://buy.stripe.com/28E14o0HJbu33vzcis4F200',
+			'profesional15': 'https://buy.stripe.com/3cIeVe76741B7LPfuE4F202',
+			'profesional30': 'https://buy.stripe.com/3cIeVe76741B7LPfuE4F202',
+			'profesionales_plus': 'https://buy.stripe.com/7sY00kduv7dN1nr3LW4F201',
+			'custom_design': 'https://buy.stripe.com/8x2fZi3TV9lVaY12HS4F204',
+			'149_99': 'https://buy.stripe.com/8x2fZi3TV9lVaY12HS4F204',
+			'149_90': 'https://buy.stripe.com/8x2fZi3TV9lVaY12HS4F204'
+		};
+
 		// Redirigir al usuario a Stripe Checkout
 		async function redirectToStripeCheckout(plan, btnElement) {
 			const originalText = btnElement.textContent;
@@ -815,20 +835,17 @@
 			btnElement.innerHTML = '<span class="spinner"></span>';
 
 			try {
-				// Llamar a la Edge Function create-checkout
-				const result = await callEdgeFunction('create-checkout', {
-					plan: plan,
-					lang: 'es'
-				});
+				const targetUrl = STRIPE_CHECKOUT_LINKS[plan] || 'https://buy.stripe.com/8x2fZi3TV9lVaY12HS4F204';
+				let redirectUrl = new URL(targetUrl);
 
-				if (result.url) {
-					// Redirigir a la pasarela segura de Stripe
-					window.location.href = result.url;
-				} else {
-					throw new Error(result.error || 'No se pudo crear la sesión de pago');
+				if (currentUser) {
+					if (currentUser.id) redirectUrl.searchParams.set('client_reference_id', currentUser.id);
+					if (currentUser.email) redirectUrl.searchParams.set('prefilled_email', currentUser.email);
 				}
+
+				window.location.href = redirectUrl.toString();
 			} catch(e) {
-				console.error('Error al crear sesión de Stripe:', e);
+				console.error('Error al redirigir a Stripe:', e);
 				showNotification('Error al conectar con la pasarela de pago: ' + e.message, 'error');
 				btnElement.disabled = false;
 				btnElement.textContent = originalText;

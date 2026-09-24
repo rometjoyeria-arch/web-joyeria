@@ -429,7 +429,7 @@ function showSuccessScreen(state, imagenUrl) {
 							
 							<div style="display:flex; flex-direction:column; gap:12px; font-family:sans-serif;">
 								<button onclick="window.redirectToStripeCheckout('custom_design', this, 'es', window._currentDesignId)" style="background:#000; color:#fff; border:none; padding:16px; border-radius:8px; cursor:pointer; font-size:1rem; font-weight:500; transition:all 0.2s;">
-									Archivo 3D para imprimir y fundir
+									Archivo 3D para imprimir y fundir — 149,90 €
 								</button>
 								<button onclick="window.requestQuote('B', 'es', this)" style="background:#f5f5f5; color:#000; border:1px solid #ddd; padding:16px; border-radius:8px; cursor:pointer; font-size:1rem; font-weight:500; transition:all 0.2s;">
 									Modelo prototipado en resina fundible
