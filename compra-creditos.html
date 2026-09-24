@@ -8,7 +8,7 @@
 	<meta name="description" content="Adquiere créditos para diseñar tus joyas personalizadas con inteligencia artificial en Romet Joyería.">
 	<link rel="stylesheet" crossorigin="" href="./index_files/index-xtSdOPat.css?v=2">
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-	<script src="./js/supabase-config.js?v=46"></script>
+	<script src="./js/supabase-config.js?v=47"></script>
 
 	<style>
 		@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap');
@@ -820,9 +820,21 @@
 
 		// Redirigir al usuario a Stripe Checkout
 		async function redirectToStripeCheckout(plan, btnElement) {
-			const originalText = btnElement.textContent;
+			if (!btnElement.dataset.originalText) {
+				btnElement.dataset.originalText = btnElement.textContent;
+			}
+			const originalText = btnElement.dataset.originalText;
 			btnElement.disabled = true;
 			btnElement.innerHTML = '<span class="spinner"></span>';
+
+			// Auto-restaurar por si el usuario vuelve atrás o la navegación no se completa
+			setTimeout(() => {
+				if (btnElement && btnElement.disabled) {
+					btnElement.disabled = false;
+					btnElement.textContent = originalText;
+					if (typeof updatePackageStatus === 'function') updatePackageStatus();
+				}
+			}, 2500);
 
 			try {
 				const targetUrl = STRIPE_CHECKOUT_LINKS[plan] || 'https://buy.stripe.com/8x2fZi3TV9lVaY12HS4F204';
@@ -841,6 +853,19 @@
 				btnElement.textContent = originalText;
 			}
 		}
+
+		// Restaurar botones si el usuario vuelve atrás desde Stripe en el navegador (BFCache)
+		window.addEventListener('pageshow', function() {
+			document.querySelectorAll('.card-btn').forEach(btn => {
+				if (btn.dataset.originalText) {
+					btn.textContent = btn.dataset.originalText;
+					btn.disabled = false;
+				}
+			});
+			if (typeof updatePackageStatus === 'function') {
+				updatePackageStatus();
+			}
+		});
 
 		// Detectar resultado del pago desde los parámetros de la URL
 		function handlePaymentResult() {

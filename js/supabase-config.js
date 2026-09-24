@@ -479,7 +479,10 @@ window.redirectToStripeCheckout = async function(plan, element, lang = 'es', des
 	
 	if (element) {
 		isButton = element.tagName === 'BUTTON';
-		originalContent = element.innerHTML;
+		if (!element.dataset.originalContent) {
+			element.dataset.originalContent = element.innerHTML;
+		}
+		originalContent = element.dataset.originalContent;
 		element.style.pointerEvents = 'none';
 		if (isButton) {
 			element.disabled = true;
@@ -487,6 +490,16 @@ window.redirectToStripeCheckout = async function(plan, element, lang = 'es', des
 		} else {
 			element.style.opacity = '0.5';
 		}
+
+		// Auto-restaurar por si el usuario vuelve atrás o la navegación no se completa
+		setTimeout(() => {
+			if (element) {
+				element.style.pointerEvents = 'auto';
+				if (isButton) element.disabled = false;
+				else element.style.opacity = '1';
+				element.innerHTML = originalContent;
+			}
+		}, 2500);
 	}
 
 	try {
@@ -530,6 +543,22 @@ window.redirectToStripeCheckout = async function(plan, element, lang = 'es', des
 		}
 	}
 };
+
+// Restaurar botones si el usuario vuelve atrás en el navegador (BFCache)
+window.addEventListener('pageshow', function() {
+	document.querySelectorAll('button[data-original-content]').forEach(btn => {
+		btn.innerHTML = btn.dataset.originalContent;
+		btn.disabled = false;
+		btn.style.pointerEvents = 'auto';
+	});
+	document.querySelectorAll('.card-btn').forEach(btn => {
+		if (btn.dataset.originalText) {
+			btn.textContent = btn.dataset.originalText;
+			btn.disabled = false;
+			btn.style.pointerEvents = 'auto';
+		}
+	});
+});
 
 // ═══════════════════════════════════════
 // Botón Flotante de WhatsApp

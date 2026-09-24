@@ -463,7 +463,10 @@ window.redirectToStripeCheckout = async function(plan, element, lang = 'en', des
 	
 	if (element) {
 		isButton = element.tagName === 'BUTTON';
-		originalContent = element.innerHTML;
+		if (!element.dataset.originalContent) {
+			element.dataset.originalContent = element.innerHTML;
+		}
+		originalContent = element.dataset.originalContent;
 		element.style.pointerEvents = 'none';
 		if (isButton) {
 			element.disabled = true;
@@ -471,6 +474,16 @@ window.redirectToStripeCheckout = async function(plan, element, lang = 'en', des
 		} else {
 			element.style.opacity = '0.5';
 		}
+
+		// Auto-restore if user navigates back or navigation does not complete
+		setTimeout(() => {
+			if (element) {
+				element.style.pointerEvents = 'auto';
+				if (isButton) element.disabled = false;
+				else element.style.opacity = '1';
+				element.innerHTML = originalContent;
+			}
+		}, 2500);
 	}
 
 	try {
@@ -514,6 +527,22 @@ window.redirectToStripeCheckout = async function(plan, element, lang = 'en', des
 		}
 	}
 };
+
+// Restore buttons if user navigates back in browser (BFCache)
+window.addEventListener('pageshow', function() {
+	document.querySelectorAll('button[data-original-content]').forEach(btn => {
+		btn.innerHTML = btn.dataset.originalContent;
+		btn.disabled = false;
+		btn.style.pointerEvents = 'auto';
+	});
+	document.querySelectorAll('.card-btn').forEach(btn => {
+		if (btn.dataset.originalText) {
+			btn.textContent = btn.dataset.originalText;
+			btn.disabled = false;
+			btn.style.pointerEvents = 'auto';
+		}
+	});
+});
 
 // ═══════════════════════════════════════
 // WhatsApp Floating Button
