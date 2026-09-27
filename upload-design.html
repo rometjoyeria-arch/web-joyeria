@@ -18,6 +18,15 @@
 				}
 			});
 			initHeaderAuth();
+
+			// Detectar retorno de pago exitoso desde Stripe
+			const params = new URLSearchParams(window.location.search);
+			if (params.get('payment') === 'success') {
+				window.history.replaceState({}, document.title, window.location.pathname);
+				setTimeout(() => {
+					alert('¡Pago completado con éxito! Hemos recibido tu pedido para el archivo 3D. Te contactaremos por email en breve.');
+				}, 600);
+			}
 		});
 	</script>
 </head>

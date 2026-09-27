@@ -17,6 +17,15 @@
 				}
 			});
 			initHeaderAuth();
+
+			// Detect successful payment return from Stripe
+			const params = new URLSearchParams(window.location.search);
+			if (params.get('payment') === 'success') {
+				window.history.replaceState({}, document.title, window.location.pathname);
+				setTimeout(() => {
+					alert('Payment completed successfully! We have received your order for the 3D file. We will contact you via email shortly.');
+				}, 600);
+			}
 		});
 	</script>
 </head>
