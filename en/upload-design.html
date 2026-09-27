@@ -7,25 +7,27 @@
 	<title>Upload Your Design - Romet Jewelry AI</title>
 	<link rel="stylesheet" crossorigin="" href="../upload-design_files/index-xtSdOPat.css?v=3">
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-	<script src="./js/supabase-config.js?v=46"></script>
+	<script src="./js/supabase-config.js?v=48"></script>
 	<script>
-		initWhenReady(() => {
-			getSession().then((session) => {
+		window.addEventListener('load', () => {
+			initWhenReady(async () => {
+				const session = await getSession();
 				if (!session) {
 					sessionStorage.setItem('redirectAfterLogin', window.location.href);
 					window.location.href = './login.html';
+					return;
+				}
+				initHeaderAuth();
+
+				// Detect successful payment return from Stripe
+				const params = new URLSearchParams(window.location.search);
+				if (params.get('payment') === 'success') {
+					window.history.replaceState({}, document.title, window.location.pathname);
+					setTimeout(() => {
+						alert('Payment completed successfully! We have received your order for the 3D file. We will contact you via email shortly.');
+					}, 600);
 				}
 			});
-			initHeaderAuth();
-
-			// Detect successful payment return from Stripe
-			const params = new URLSearchParams(window.location.search);
-			if (params.get('payment') === 'success') {
-				window.history.replaceState({}, document.title, window.location.pathname);
-				setTimeout(() => {
-					alert('Payment completed successfully! We have received your order for the 3D file. We will contact you via email shortly.');
-				}, 600);
-			}
 		});
 	</script>
 </head>

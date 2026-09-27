@@ -7,17 +7,19 @@
 	<title>Designer - Romet Jewelry AI</title>
 	<link rel="stylesheet" crossorigin="" href="../designer-paso5_files/index-xtSdOPat.css?v=2">
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-	<script src="./js/supabase-config.js?v=44"></script>
+	<script src="./js/supabase-config.js?v=48"></script>
 	<script src="./js/designer-integration.js"></script>
 	<script>
-		initWhenReady(() => {
-			getSession().then((session) => {
+		window.addEventListener('load', () => {
+			initWhenReady(async () => {
+				const session = await getSession();
 				if (!session) {
 					sessionStorage.setItem('redirectAfterLogin', window.location.href);
 					window.location.href = './login.html';
+					return;
 				}
+				initHeaderAuth();
 			});
-			initHeaderAuth();
 		});
 	</script>
 </head>

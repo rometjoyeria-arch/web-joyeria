@@ -59,7 +59,13 @@ async function ensureSupabaseReady() {
 async function getSession() {
 	await ensureSupabaseReady();
 	const sb = getSupabase();
-	const { data: { session } } = await sb.auth.getSession();
+	let { data: { session } } = await sb.auth.getSession();
+	if (!session) {
+		// Brief retry to allow local storage hydration
+		await new Promise(r => setTimeout(r, 120));
+		const retry = await sb.auth.getSession();
+		session = retry.data?.session || null;
+	}
 	return session;
 }
 
@@ -124,6 +130,10 @@ async function consumeCredit() {
 }
 
 async function initHeaderAuth() {
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', () => initHeaderAuth());
+		return;
+	}
 	try {
 		// Inject premium responsive styles for Romet header
 		if (!document.getElementById('romet-header-responsive-styles')) {
@@ -205,7 +215,14 @@ async function initHeaderAuth() {
 
 		const session = await getSession();
 		const authLink = document.getElementById('header-auth-link');
-		if (!authLink) return;
+		if (!authLink) {
+			// Retry once if DOM is still painting
+			setTimeout(async () => {
+				const retryLink = document.getElementById('header-auth-link');
+				if (retryLink && session) initHeaderAuth();
+			}, 250);
+			return;
+		}
 
 		if (session) {
 			const name = session.user.user_metadata?.first_name
@@ -653,7 +670,9 @@ async function registrarVisitaFlyer() {
 }
 
 window.addEventListener('load', () => {
-	initWhenReady(null);
+	initWhenReady(() => {
+		initHeaderAuth();
+	});
 	injectWhatsAppButton('en');
 	registrarVisitaFlyer();
 });

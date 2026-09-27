@@ -854,8 +854,8 @@
 
 		let isRecoveryActive = localStorage.getItem('isPasswordRecoveryFlow') === 'true';
 
-		// Si no hay parámetros de recuperación ni código en la URL, limpiar el flag de estado
-		if (!window.location.hash.includes('recovery') && !window.location.search.includes('recovery') && !window.location.search.includes('code')) {
+		// Si no hay parámetros de recuperación en la URL, limpiar el flag de estado
+		if (!window.location.hash.includes('recovery') && !window.location.search.includes('recovery')) {
 			localStorage.removeItem('isPasswordRecoveryFlow');
 			isRecoveryActive = false;
 		}
@@ -888,9 +888,9 @@
 
 			client.auth.getSession().then(({ data: { session } }) => {
 				if (session) {
-					const isRecovery = isRecoverySession(session) || isRecoveryActive || window.location.hash.includes('recovery') || window.location.search.includes('recovery') || window.location.search.includes('code');
+					const isRecovery = isRecoverySession(session) || isRecoveryActive || window.location.hash.includes('recovery') || window.location.search.includes('recovery');
 					if (isRecovery) {
-						return; // Dejar que el flujo de recuperación o intercambio de código maneje la vista
+						return; // Dejar que el flujo de recuperación maneje la vista
 					}
 					const redirect = sessionStorage.getItem('redirectAfterLogin') || './index.html';
 					sessionStorage.removeItem('redirectAfterLogin');

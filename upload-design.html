@@ -7,26 +7,28 @@
 	<title>Sube tu Diseño - Romet Joyería</title>
 	<link rel="stylesheet" crossorigin="" href="./upload-design_files/index-xtSdOPat.css?v=3">
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-	<script src="./js/supabase-config.js?v=46"></script>
+	<script src="./js/supabase-config.js?v=48"></script>
 	<script src="./js/upload-integration.js"></script>
 	<script>
-		initWhenReady(() => {
-			getSession().then((session) => {
+		window.addEventListener('load', () => {
+			initWhenReady(async () => {
+				const session = await getSession();
 				if (!session) {
 					sessionStorage.setItem('redirectAfterLogin', window.location.href);
 					window.location.href = './login.html';
+					return;
+				}
+				initHeaderAuth();
+
+				// Detectar retorno de pago exitoso desde Stripe
+				const params = new URLSearchParams(window.location.search);
+				if (params.get('payment') === 'success') {
+					window.history.replaceState({}, document.title, window.location.pathname);
+					setTimeout(() => {
+						alert('¡Pago completado con éxito! Hemos recibido tu pedido para el archivo 3D. Te contactaremos por email en breve.');
+					}, 600);
 				}
 			});
-			initHeaderAuth();
-
-			// Detectar retorno de pago exitoso desde Stripe
-			const params = new URLSearchParams(window.location.search);
-			if (params.get('payment') === 'success') {
-				window.history.replaceState({}, document.title, window.location.pathname);
-				setTimeout(() => {
-					alert('¡Pago completado con éxito! Hemos recibido tu pedido para el archivo 3D. Te contactaremos por email en breve.');
-				}, 600);
-			}
 		});
 	</script>
 </head>

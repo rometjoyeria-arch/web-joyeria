@@ -84,9 +84,7 @@ async function initWhenReady(callback) {
 	try {
 		await ensureSupabaseReady();
 		
-		// Security Guard: Bloqueo de acceso global
 		const session = await getSession();
-		const authorizedEmail = 'flozros@gmail.com';
 		const isLoginPage = window.location.pathname.includes('login.html');
 		
 		// Si detectamos que la sesión activa es de recuperación de contraseña y no estamos en la página de login,
@@ -98,24 +96,25 @@ async function initWhenReady(callback) {
 			window.location.href = loginPath + '#type=recovery';
 			return; // Detener ejecución
 		}
-		
-		if (!isLoginPage && !session) {
-			console.log('Acceso restringido. Redirigiendo a pantalla de login...');
-			window.location.href = './login.html';
-			return; // Detener ejecución
-		}
 
 		if (callback) callback();
 		injectWhatsAppButton('es');
 	} catch (e) {
 		console.error('Error inicializando Supabase:', e);
+		if (callback) callback();
 	}
 }
 
 async function getSession() {
 	await ensureSupabaseReady();
 	const sb = getSupabase();
-	const { data: { session } } = await sb.auth.getSession();
+	let { data: { session } } = await sb.auth.getSession();
+	if (!session) {
+		// Breve reintento para dar margen a la hidratación del almacenamiento local
+		await new Promise(r => setTimeout(r, 120));
+		const retry = await sb.auth.getSession();
+		session = retry.data?.session || null;
+	}
 	return session;
 }
 
@@ -180,6 +179,10 @@ async function consumeCredit() {
 }
 
 async function initHeaderAuth() {
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', () => initHeaderAuth());
+		return;
+	}
 	try {
 		// Inyectar estilos responsivos premium para el header de Romet
 		if (!document.getElementById('romet-header-responsive-styles')) {
@@ -261,7 +264,14 @@ async function initHeaderAuth() {
 
 		const session = await getSession();
 		const authLink = document.getElementById('header-auth-link');
-		if (!authLink) return;
+		if (!authLink) {
+			// Si el DOM aún se está pintando, reintentar una vez
+			setTimeout(async () => {
+				const retryLink = document.getElementById('header-auth-link');
+				if (retryLink && session) initHeaderAuth();
+			}, 250);
+			return;
+		}
 
 		if (session) {
 			const name = session.user.user_metadata?.first_name
@@ -421,18 +431,7 @@ async function uploadImage(file, bucket = 'disenos') {
 	return urlData.publicUrl;
 }
 
-// ═══════════════════════════════════════
-// Inicialización con reintento automático
-// ═══════════════════════════════════════
-async function initWhenReady(callback) {
-	try {
-		await ensureSupabaseReady();
-		if (callback) callback();
-	} catch (e) {
-		console.error('Error inicializando Supabase:', e);
-		if (callback) callback();
-	}
-}
+
 
 window.showOutOfCreditsModal = function() {
 	const overlay = document.createElement('div');
@@ -669,7 +668,9 @@ async function registrarVisitaFlyer() {
 }
 
 window.addEventListener('load', () => {
-	initWhenReady(null);
+	initWhenReady(() => {
+		initHeaderAuth();
+	});
 	injectWhatsAppButton('es');
 	registrarVisitaFlyer();
 });

@@ -9,23 +9,25 @@
 
 	<!-- Supabase + integración -->
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-	<script src="./js/supabase-config.js?v=44"></script>
+	<script src="./js/supabase-config.js?v=48"></script>
 	<script src="./js/designer-integration.js"></script>
 <script>
-	initWhenReady(() => {
-		getSupabase().auth.getSession().then(({ data: { session } }) => {
+	window.addEventListener('load', () => {
+		initWhenReady(async () => {
+			const session = await getSession();
 			if (!session) {
 				sessionStorage.setItem('redirectAfterLogin', window.location.href);
 				window.location.href = './login.html';
+				return;
 			}
-		});
-		initHeaderAuth();
+			initHeaderAuth();
 
-		const state = window.RometDesigner?.loadState() || {};
-		const inputs = document.querySelectorAll('input');
-		if (inputs[0] && state.budget) inputs[0].value = state.budget;
-		if (inputs[1] && state.weight) inputs[1].value = state.weight;
-		if (inputs[2] && state.size) inputs[2].value = state.size;
+			const state = window.RometDesigner?.loadState() || {};
+			const inputs = document.querySelectorAll('input');
+			if (inputs[0] && state.budget) inputs[0].value = state.budget;
+			if (inputs[1] && state.weight) inputs[1].value = state.weight;
+			if (inputs[2] && state.size) inputs[2].value = state.size;
+		});
 	});
 </script>
 </head>
