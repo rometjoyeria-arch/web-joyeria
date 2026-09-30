@@ -8,7 +8,7 @@
 	<meta name="description" content="Adquiere créditos para diseñar tus joyas personalizadas con inteligencia artificial en Romet Joyería.">
 	<link rel="stylesheet" crossorigin="" href="./index_files/index-xtSdOPat.css?v=2">
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-	<script src="./js/supabase-config.js?v=52"></script>
+	<script src="./js/supabase-config.js?v=53"></script>
 
 	<style>
 		@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap');
@@ -1076,55 +1076,58 @@
 					return;
 				}
 
-				const { data: { user } } = await sb.auth.getUser();
-				const targetUser = user || session.user;
-				currentUser = targetUser;
+				// Ejecutar función RPC atómica y segura en el servidor de Supabase
+				const { data, error } = await sb.rpc('claim_free_token');
 
-				const metadata = targetUser.user_metadata || {};
-				if (metadata.claimed_free === true) {
-					showNotification("Ya has activado tu Token de Prueba Gratis de bienvenida en esta cuenta.", "info");
+				if (error) {
+					throw error;
+				}
+
+				if (data && data.already_claimed) {
+					showNotification(data.message || "Ya has activado tu Token de Prueba Gratis en esta cuenta.", "info");
 					if (btn) {
 						btn.disabled = false;
 						btn.textContent = "Token Reclamado";
+					}
+					if (currentUser) {
+						currentUser.user_metadata = {
+							...(currentUser.user_metadata || {}),
+							claimed_free: true
+						};
 					}
 					updatePackageStatus();
 					return;
 				}
 
-				const credits = await getCredits();
-				const currentNum = typeof credits === 'number' ? credits : 0;
-				const newCredits = currentNum + 3;
-				
-				const { data: updateRes, error } = await sb.auth.updateUser({
-					data: {
-						credits: newCredits,
-						claimed_free: true
+				if (data && data.success) {
+					const newCredits = data.new_credits;
+					
+					// Actualizar metadatos locales
+					if (currentUser) {
+						currentUser.user_metadata = {
+							...(currentUser.user_metadata || {}),
+							credits: newCredits,
+							claimed_free: true
+						};
 					}
-				});
 
-				if (error) throw error;
-				
-				showNotification("¡Enhorabuena! Has activado tu Token Gratis. Se han añadido 3 diseños a tu cuenta.", "success");
-				alert("¡Enhorabuena! Has activado tu Token Gratis. Se han añadido 3 diseños a tu cuenta.");
-				
-				if (updateRes?.user) {
-					currentUser = updateRes.user;
+					const displays = document.querySelectorAll('#credit-count-display, #credit-count-header');
+					displays.forEach(d => d.textContent = newCredits);
+
+					showNotification("¡Enhorabuena! Has activado tu Token Gratis. Se han añadido 3 diseños a tu cuenta.", "success");
+					
+					if (btn) {
+						btn.disabled = false;
+						btn.textContent = "Token Reclamado";
+					}
+					updatePackageStatus();
 				} else {
-					currentUser.user_metadata = {
-						...currentUser.user_metadata,
-						credits: newCredits,
-						claimed_free: true
-					};
+					throw new Error(data?.error || 'No se pudo activar el token');
 				}
-				
-				const displays = document.querySelectorAll('#credit-count-display, #credit-count-header');
-				displays.forEach(d => d.textContent = newCredits);
-				updatePackageStatus();
-				
+
 			} catch(e) {
 				console.error("Error al reclamar token gratis:", e);
 				showNotification("Ha ocurrido un error al procesar tu solicitud: " + e.message, "error");
-				alert("Error al activar token: " + (e.message || e));
 				if (btn) {
 					btn.disabled = false;
 					btn.textContent = originalText;

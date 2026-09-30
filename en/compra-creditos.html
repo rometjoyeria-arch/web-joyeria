@@ -8,7 +8,7 @@
 	<meta name="description" content="Purchase credits to design your custom jewelry with artificial intelligence at Romet Jewelry.">
 	<link rel="stylesheet" crossorigin="" href="../index_files/index-xtSdOPat.css?v=2">
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-	<script src="./js/supabase-config.js?v=52"></script>
+	<script src="./js/supabase-config.js?v=53"></script>
 
 	<style>
 		@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap');
@@ -1069,55 +1069,57 @@
 					return;
 				}
 
-				const { data: { user } } = await sb.auth.getUser();
-				const targetUser = user || session.user;
-				currentUser = targetUser;
+				// Execute native atomic RPC function on Supabase server
+				const { data, error } = await sb.rpc('claim_free_token');
 
-				const metadata = targetUser.user_metadata || {};
-				if (metadata.claimed_free === true) {
-					showNotification("You have already claimed your Free Trial Token on this account.", "info");
+				if (error) {
+					throw error;
+				}
+
+				if (data && data.already_claimed) {
+					showNotification(data.message || "You have already claimed your Free Trial Token on this account.", "info");
 					if (btn) {
 						btn.disabled = false;
 						btn.textContent = "Claimed";
+					}
+					if (currentUser) {
+						currentUser.user_metadata = {
+							...(currentUser.user_metadata || {}),
+							claimed_free: true
+						};
 					}
 					updatePackageStatus();
 					return;
 				}
 
-				const credits = await getCredits();
-				const currentNum = typeof credits === 'number' ? credits : 0;
-				const newCredits = currentNum + 3;
-				
-				const { data: updateRes, error } = await sb.auth.updateUser({
-					data: {
-						credits: newCredits,
-						claimed_free: true
+				if (data && data.success) {
+					const newCredits = data.new_credits;
+					
+					if (currentUser) {
+						currentUser.user_metadata = {
+							...(currentUser.user_metadata || {}),
+							credits: newCredits,
+							claimed_free: true
+						};
 					}
-				});
 
-				if (error) throw error;
-				
-				showNotification("Success! Free Token activated. 3 designs added to your account.", "success");
-				alert("Success! Free Token activated. 3 designs added to your account.");
-				
-				if (updateRes?.user) {
-					currentUser = updateRes.user;
+					const displays = document.querySelectorAll('#credit-count-display, #credit-count-header');
+					displays.forEach(d => d.textContent = newCredits);
+
+					showNotification("Success! Free Token activated. 3 designs added to your account.", "success");
+					
+					if (btn) {
+						btn.disabled = false;
+						btn.textContent = "Claimed";
+					}
+					updatePackageStatus();
 				} else {
-					currentUser.user_metadata = {
-						...currentUser.user_metadata,
-						credits: newCredits,
-						claimed_free: true
-					};
+					throw new Error(data?.error || 'Could not activate token');
 				}
-				
-				const displays = document.querySelectorAll('#credit-count-display, #credit-count-header');
-				displays.forEach(d => d.textContent = newCredits);
-				updatePackageStatus();
-				
+
 			} catch(e) {
 				console.error("Error claiming free token:", e);
 				showNotification("Error processing request: " + e.message, "error");
-				alert("Error activating free token: " + (e.message || e));
 				if (btn) {
 					btn.disabled = false;
 					btn.textContent = originalText;
