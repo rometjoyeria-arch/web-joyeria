@@ -8,7 +8,7 @@
 	<meta name="description" content="Adquiere créditos para diseñar tus joyas personalizadas con inteligencia artificial en Romet Joyería.">
 	<link rel="stylesheet" crossorigin="" href="./index_files/index-xtSdOPat.css?v=2">
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-	<script src="./js/supabase-config.js?v=54"></script>
+	<script src="./js/supabase-config.js?v=55"></script>
 
 	<style>
 		@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap');
@@ -939,7 +939,27 @@
 			if (!currentUser) return;
 			const metadata = currentUser.user_metadata || {};
 
-			if (metadata.claimed_free === true) {
+			let isClaimed = metadata.claimed_free === true;
+
+			// Si no figura en metadatos locales, comprobar contra la tabla persistente de la base de datos
+			if (!isClaimed && currentUser.id) {
+				try {
+					const sb = getSupabase();
+					const { data: claimRow } = await sb
+						.from('free_token_claims')
+						.select('user_id')
+						.eq('user_id', currentUser.id)
+						.maybeSingle();
+					if (claimRow && claimRow.user_id) {
+						isClaimed = true;
+						if (currentUser.user_metadata) currentUser.user_metadata.claimed_free = true;
+					}
+				} catch (err) {
+					console.warn("Aviso al verificar estado de token gratis en BD:", err);
+				}
+			}
+
+			if (isClaimed) {
 				const btnFree = document.getElementById('btn-free');
 				if (btnFree) {
 					btnFree.textContent = "Token Reclamado";
@@ -1076,7 +1096,7 @@
 					return;
 				}
 
-				// Comprobar si ya fue reclamado en metadatos locales
+				// 1. Verificación rápida local: si ya consta reclamado, alertar de inmediato
 				const currentMeta = session.user.user_metadata || {};
 				if (currentMeta.claimed_free === true) {
 					alert("Ya has activado tu Token de Prueba Gratis de bienvenida en esta cuenta.");
@@ -1087,81 +1107,76 @@
 						btn.style.color = "hsl(0 0% 40%)";
 						btn.style.borderColor = "hsl(0 0% 75%)";
 						btn.style.cursor = "not-allowed";
+						btn.onclick = () => alert("Ya has activado tu Token de Prueba Gratis de bienvenida en esta cuenta.");
 					}
 					return;
 				}
 
-				let newCredits = null;
-				let claimSuccess = false;
-
-				// Paso 1: Intentar mediante función RPC atómica en Supabase
-				try {
-					const { data, error } = await sb.rpc('claim_free_token');
-					if (!error && data) {
-						const res = typeof data === 'string' ? JSON.parse(data) : data;
-						if (res.already_claimed) {
-							alert(res.message || "Ya has activado tu Token de Prueba Gratis en esta cuenta.");
-							if (btn) {
-								btn.disabled = true;
-								btn.textContent = "Token Reclamado";
-								btn.style.background = "hsl(0 0% 75%)";
-								btn.style.color = "hsl(0 0% 40%)";
-								btn.style.borderColor = "hsl(0 0% 75%)";
-								btn.style.cursor = "not-allowed";
-							}
-							return;
-						}
-						if (res.success) {
-							claimSuccess = true;
-							newCredits = res.new_credits;
-						}
-					} else if (error) {
-						console.warn("RPC claim_free_token avisó de error, aplicando fallback:", error);
-					}
-				} catch (rpcErr) {
-					console.warn("Excepción al llamar RPC claim_free_token, aplicando fallback:", rpcErr);
+				// 2. Ejecutar la función RPC atómica en el servidor PostgreSQL
+				const { data: rpcData, error: rpcErr } = await sb.rpc('claim_free_token');
+				if (rpcErr) {
+					throw new Error(rpcErr.message || 'Error al conectar con el servidor');
 				}
 
-				// Paso 2: Respaldo directo en Auth si el RPC no completó la operación
-				if (!claimSuccess) {
-					const currentNum = typeof currentMeta.credits === 'number' ? currentMeta.credits : 0;
-					newCredits = currentNum + 3;
-					const { data: updateRes, error: updateErr } = await sb.auth.updateUser({
+				const res = typeof rpcData === 'string' ? JSON.parse(rpcData) : rpcData;
+
+				if (res.already_claimed) {
+					alert(res.message || "Ya has activado tu Token de Prueba Gratis de bienvenida en esta cuenta.");
+					if (btn) {
+						btn.disabled = true;
+						btn.textContent = "Token Reclamado";
+						btn.style.background = "hsl(0 0% 75%)";
+						btn.style.color = "hsl(0 0% 40%)";
+						btn.style.borderColor = "hsl(0 0% 75%)";
+						btn.style.cursor = "not-allowed";
+						btn.onclick = () => alert("Ya has activado tu Token de Prueba Gratis de bienvenida en esta cuenta.");
+					}
+					if (currentUser) {
+						currentUser.user_metadata = {
+							...(currentUser.user_metadata || {}),
+							claimed_free: true
+						};
+					}
+					updatePackageStatus();
+					return;
+				}
+
+				if (!res.success) {
+					throw new Error(res.error || res.message || 'No se pudo reclamar el token');
+				}
+
+				const targetCredits = Number(res.new_credits) || 3;
+
+				// 3. Sincronizar GoTrue SDK y localStorage mediante updateUser
+				// Esto garantiza que el JWT en el cliente y localStorage se actualicen de inmediato con 3 créditos
+				try {
+					const { data: updateRes } = await sb.auth.updateUser({
 						data: {
-							credits: newCredits,
+							credits: targetCredits,
 							claimed_free: true
 						}
 					});
-					if (updateErr) throw updateErr;
 					if (updateRes && updateRes.user) {
 						currentUser = updateRes.user;
 					}
-					claimSuccess = true;
+				} catch(syncErr) {
+					console.warn("Aviso al sincronizar GoTrue metadata:", syncErr);
 				}
 
-				// Paso 3: Sincronizar sesión y refrescar JWT para todo el sitio
-				try {
-					await sb.auth.refreshSession();
-				} catch(refErr) {
-					console.warn("Error al refrescar sesión:", refErr);
-				}
-
-				const { data: { user: refreshedUser } } = await sb.auth.getUser();
-				if (refreshedUser) {
-					currentUser = refreshedUser;
-					newCredits = refreshedUser.user_metadata?.credits ?? newCredits;
-				} else if (currentUser) {
+				// 4. Asegurar estado de usuario local
+				if (currentUser) {
 					currentUser.user_metadata = {
 						...(currentUser.user_metadata || {}),
-						credits: newCredits,
+						credits: targetCredits,
 						claimed_free: true
 					};
 				}
 
-				// Paso 4: Actualizar contadores visuales en pantalla y en cabecera
+				// 5. Actualizar contadores visuales en pantalla y cabecera
 				const displays = document.querySelectorAll('#credit-count-display, #credit-count-header');
-				displays.forEach(d => d.textContent = newCredits);
+				displays.forEach(d => d.textContent = targetCredits);
 
+				// 6. Actualizar botón a estado reclamado y bloqueado
 				if (btn) {
 					btn.disabled = true;
 					btn.textContent = "Token Reclamado";
