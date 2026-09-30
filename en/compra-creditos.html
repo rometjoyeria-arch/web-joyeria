@@ -1053,23 +1053,37 @@
 
 		async function claimFreeToken() {
 			const btn = document.getElementById('btn-free');
-			if (!currentUser) {
-				showNotification("Please log in to claim your free trial token.", "error");
-				return;
+			const originalText = btn ? btn.textContent : 'Claim Free';
+			if (btn) {
+				btn.disabled = true;
+				btn.innerHTML = '<span class="spinner"></span>';
 			}
-
-			const metadata = currentUser.user_metadata || {};
-			if (metadata.claimed_free === true) {
-				showNotification("You have already claimed your Free Trial Token on this account.", "info");
-				return;
-			}
-
-			const originalText = btn.textContent;
-			btn.disabled = true;
-			btn.innerHTML = '<span class="spinner"></span>';
 
 			try {
+				await ensureSupabaseReady();
 				const sb = getSupabase();
+				const session = await getSession();
+				if (!session || !session.user) {
+					sessionStorage.setItem('redirectAfterLogin', window.location.href);
+					window.location.href = './login.html';
+					return;
+				}
+
+				const { data: { user } } = await sb.auth.getUser();
+				const targetUser = user || session.user;
+				currentUser = targetUser;
+
+				const metadata = targetUser.user_metadata || {};
+				if (metadata.claimed_free === true) {
+					showNotification("You have already claimed your Free Trial Token on this account.", "info");
+					if (btn) {
+						btn.disabled = false;
+						btn.textContent = "Claimed";
+					}
+					updatePackageStatus();
+					return;
+				}
+
 				const credits = await getCredits();
 				const currentNum = typeof credits === 'number' ? credits : 0;
 				const newCredits = currentNum + 3;
@@ -1088,8 +1102,11 @@
 				if (updateRes?.user) {
 					currentUser = updateRes.user;
 				} else {
-					const { data: { user } } = await sb.auth.getUser();
-					if (user) currentUser = user;
+					currentUser.user_metadata = {
+						...currentUser.user_metadata,
+						credits: newCredits,
+						claimed_free: true
+					};
 				}
 				
 				const displays = document.querySelectorAll('#credit-count-display, #credit-count-header');
@@ -1099,8 +1116,10 @@
 			} catch(e) {
 				console.error("Error claiming free token:", e);
 				showNotification("Error processing request: " + e.message, "error");
-				btn.disabled = false;
-				btn.textContent = originalText;
+				if (btn) {
+					btn.disabled = false;
+					btn.textContent = originalText;
+				}
 			}
 		}
 		window.claimFreeToken = claimFreeToken;
@@ -1196,11 +1215,17 @@
 			}, 5000);
 		}
 
-		window.addEventListener('load', () => {
+		function startSetup() {
 			initWhenReady(() => {
 				checkAuthAndSetup();
 			});
-		});
+		}
+
+		if (document.readyState === 'complete' || document.readyState === 'interactive') {
+			startSetup();
+		} else {
+			document.addEventListener('DOMContentLoaded', startSetup);
+		}
 	</script>
 </body>
 </html>
