@@ -930,8 +930,12 @@
 			if (metadata.claimed_free === true) {
 				const btnFree = document.getElementById('btn-free');
 				if (btnFree) {
-					btnFree.disabled = true;
 					btnFree.textContent = "Token Reclamado";
+					btnFree.style.background = "hsl(0 0% 75%)";
+					btnFree.style.color = "hsl(0 0% 40%)";
+					btnFree.style.borderColor = "hsl(0 0% 75%)";
+					btnFree.style.cursor = "pointer";
+					btnFree.onclick = () => showNotification("Ya has activado tu Token de Prueba Gratis de bienvenida en esta cuenta.", "info");
 					btnFree.title = "El token de prueba gratuita ya ha sido activado en tu cuenta.";
 				}
 			}
@@ -1044,8 +1048,18 @@
 		// Reclamar Token de Prueba Gratis (3 diseños)
 		async function claimFreeToken() {
 			const btn = document.getElementById('btn-free');
+			if (!currentUser) {
+				showNotification("Debes iniciar sesión para obtener el token de prueba gratis.", "error");
+				return;
+			}
+
+			const metadata = currentUser.user_metadata || {};
+			if (metadata.claimed_free === true) {
+				showNotification("Ya has activado tu Token de Prueba Gratis de bienvenida en esta cuenta.", "info");
+				return;
+			}
+
 			const originalText = btn.textContent;
-			
 			btn.disabled = true;
 			btn.innerHTML = '<span class="spinner"></span>';
 
