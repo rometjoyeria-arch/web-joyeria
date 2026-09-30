@@ -8,7 +8,7 @@
 	<meta name="description" content="Adquiere créditos para diseñar tus joyas personalizadas con inteligencia artificial en Romet Joyería.">
 	<link rel="stylesheet" crossorigin="" href="./index_files/index-xtSdOPat.css?v=2">
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-	<script src="./js/supabase-config.js?v=48"></script>
+	<script src="./js/supabase-config.js?v=50"></script>
 
 	<style>
 		@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap');
@@ -561,6 +561,12 @@
 			color: hsl(0 84% 40%);
 		}
 
+		.notification.info {
+			background: hsl(210 100% 97%);
+			border: 1px solid hsl(210 100% 85%);
+			color: hsl(210 100% 35%);
+		}
+
 		/* Promo Code Section */
 		.promo-container {
 			max-width: 600px;
@@ -917,7 +923,13 @@
 				return;
 			}
 			
-			currentUser = session.user;
+			try {
+				const { data: { user } } = await sb.auth.getUser();
+				currentUser = user || session.user;
+			} catch(e) {
+				currentUser = session.user;
+			}
+
 			initHeaderAuth();
 			updatePackageStatus();
 			handlePaymentResult();
@@ -1098,6 +1110,7 @@
 				btn.textContent = originalText;
 			}
 		}
+		window.claimFreeToken = claimFreeToken;
 
 		// ═══════════════════════════════════════════════
 		// Modales y formularios
