@@ -962,6 +962,7 @@
 			if (isClaimed) {
 				const btnFree = document.getElementById('btn-free');
 				if (btnFree) {
+					btnFree.disabled = true;
 					btnFree.textContent = "Token Reclamado";
 					btnFree.style.background = "hsl(0 0% 75%)";
 					btnFree.style.color = "hsl(0 0% 40%)";
@@ -1159,11 +1160,15 @@
 					if (updateRes && updateRes.user) {
 						currentUser = updateRes.user;
 					}
+					await sb.auth.refreshSession();
 				} catch(syncErr) {
 					console.warn("Aviso al sincronizar GoTrue metadata:", syncErr);
 				}
 
 				// 4. Asegurar estado de usuario local
+				if (!currentUser && session && session.user) {
+					currentUser = session.user;
+				}
 				if (currentUser) {
 					currentUser.user_metadata = {
 						...(currentUser.user_metadata || {}),
