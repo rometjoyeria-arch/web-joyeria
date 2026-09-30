@@ -8,7 +8,7 @@
 	<meta name="description" content="Purchase credits to design your custom jewelry with artificial intelligence at Romet Jewelry.">
 	<link rel="stylesheet" crossorigin="" href="../index_files/index-xtSdOPat.css?v=2">
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-	<script src="./js/supabase-config.js?v=50"></script>
+	<script src="./js/supabase-config.js?v=52"></script>
 
 	<style>
 		@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap');
@@ -1098,6 +1098,7 @@
 				if (error) throw error;
 				
 				showNotification("Success! Free Token activated. 3 designs added to your account.", "success");
+				alert("Success! Free Token activated. 3 designs added to your account.");
 				
 				if (updateRes?.user) {
 					currentUser = updateRes.user;
@@ -1116,6 +1117,7 @@
 			} catch(e) {
 				console.error("Error claiming free token:", e);
 				showNotification("Error processing request: " + e.message, "error");
+				alert("Error activating free token: " + (e.message || e));
 				if (btn) {
 					btn.disabled = false;
 					btn.textContent = originalText;
