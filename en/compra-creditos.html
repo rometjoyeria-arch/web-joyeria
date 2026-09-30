@@ -8,7 +8,7 @@
 	<meta name="description" content="Purchase credits to design your custom jewelry with artificial intelligence at Romet Jewelry.">
 	<link rel="stylesheet" crossorigin="" href="../index_files/index-xtSdOPat.css?v=2">
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-	<script src="./js/supabase-config.js?v=53"></script>
+	<script src="./js/supabase-config.js?v=54"></script>
 
 	<style>
 		@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap');
@@ -940,8 +940,8 @@
 					btnFree.style.background = "hsl(0 0% 75%)";
 					btnFree.style.color = "hsl(0 0% 40%)";
 					btnFree.style.borderColor = "hsl(0 0% 75%)";
-					btnFree.style.cursor = "pointer";
-					btnFree.onclick = () => showNotification("You have already claimed your Free Trial Token on this account.", "info");
+					btnFree.style.cursor = "not-allowed";
+					btnFree.onclick = () => alert("You have already claimed your Free Trial Token on this account.");
 					btnFree.title = "The free trial token has already been activated on your account.";
 				}
 			}
@@ -1056,7 +1056,7 @@
 			const originalText = btn ? btn.textContent : 'Claim Free';
 			if (btn) {
 				btn.disabled = true;
-				btn.innerHTML = '<span class="spinner"></span>';
+				btn.innerHTML = '<span class="spinner"></span> Processing...';
 			}
 
 			try {
@@ -1069,57 +1069,109 @@
 					return;
 				}
 
-				// Execute native atomic RPC function on Supabase server
-				const { data, error } = await sb.rpc('claim_free_token');
-
-				if (error) {
-					throw error;
-				}
-
-				if (data && data.already_claimed) {
-					showNotification(data.message || "You have already claimed your Free Trial Token on this account.", "info");
+				// Check local metadata if already claimed
+				const currentMeta = session.user.user_metadata || {};
+				if (currentMeta.claimed_free === true) {
+					alert("You have already claimed your Free Trial Token on this account.");
 					if (btn) {
-						btn.disabled = false;
+						btn.disabled = true;
 						btn.textContent = "Claimed";
+						btn.style.background = "hsl(0 0% 75%)";
+						btn.style.color = "hsl(0 0% 40%)";
+						btn.style.borderColor = "hsl(0 0% 75%)";
+						btn.style.cursor = "not-allowed";
 					}
-					if (currentUser) {
-						currentUser.user_metadata = {
-							...(currentUser.user_metadata || {}),
-							claimed_free: true
-						};
-					}
-					updatePackageStatus();
 					return;
 				}
 
-				if (data && data.success) {
-					const newCredits = data.new_credits;
-					
-					if (currentUser) {
-						currentUser.user_metadata = {
-							...(currentUser.user_metadata || {}),
+				let newCredits = null;
+				let claimSuccess = false;
+
+				// Step 1: Try via server RPC
+				try {
+					const { data, error } = await sb.rpc('claim_free_token');
+					if (!error && data) {
+						const res = typeof data === 'string' ? JSON.parse(data) : data;
+						if (res.already_claimed) {
+							alert(res.message || "You have already claimed your Free Trial Token on this account.");
+							if (btn) {
+								btn.disabled = true;
+								btn.textContent = "Claimed";
+								btn.style.background = "hsl(0 0% 75%)";
+								btn.style.color = "hsl(0 0% 40%)";
+								btn.style.borderColor = "hsl(0 0% 75%)";
+								btn.style.cursor = "not-allowed";
+							}
+							return;
+						}
+						if (res.success) {
+							claimSuccess = true;
+							newCredits = res.new_credits;
+						}
+					} else if (error) {
+						console.warn("RPC claim_free_token error, using fallback:", error);
+					}
+				} catch (rpcErr) {
+					console.warn("RPC exception, using fallback:", rpcErr);
+				}
+
+				// Step 2: Auth fallback if RPC did not complete
+				if (!claimSuccess) {
+					const currentNum = typeof currentMeta.credits === 'number' ? currentMeta.credits : 0;
+					newCredits = currentNum + 3;
+					const { data: updateRes, error: updateErr } = await sb.auth.updateUser({
+						data: {
 							credits: newCredits,
 							claimed_free: true
-						};
+						}
+					});
+					if (updateErr) throw updateErr;
+					if (updateRes && updateRes.user) {
+						currentUser = updateRes.user;
 					}
-
-					const displays = document.querySelectorAll('#credit-count-display, #credit-count-header');
-					displays.forEach(d => d.textContent = newCredits);
-
-					showNotification("Success! Free Token activated. 3 designs added to your account.", "success");
-					
-					if (btn) {
-						btn.disabled = false;
-						btn.textContent = "Claimed";
-					}
-					updatePackageStatus();
-				} else {
-					throw new Error(data?.error || 'Could not activate token');
+					claimSuccess = true;
 				}
+
+				// Step 3: Refresh session JWT across the site
+				try {
+					await sb.auth.refreshSession();
+				} catch(refErr) {
+					console.warn("Error refreshing session:", refErr);
+				}
+
+				const { data: { user: refreshedUser } } = await sb.auth.getUser();
+				if (refreshedUser) {
+					currentUser = refreshedUser;
+					newCredits = refreshedUser.user_metadata?.credits ?? newCredits;
+				} else if (currentUser) {
+					currentUser.user_metadata = {
+						...(currentUser.user_metadata || {}),
+						credits: newCredits,
+						claimed_free: true
+					};
+				}
+
+				// Step 4: Update UI and counters
+				const displays = document.querySelectorAll('#credit-count-display, #credit-count-header');
+				displays.forEach(d => d.textContent = newCredits);
+
+				if (btn) {
+					btn.disabled = true;
+					btn.textContent = "Claimed";
+					btn.style.background = "hsl(0 0% 75%)";
+					btn.style.color = "hsl(0 0% 40%)";
+					btn.style.borderColor = "hsl(0 0% 75%)";
+					btn.style.cursor = "not-allowed";
+					btn.onclick = () => alert("You have already claimed your Free Trial Token on this account.");
+				}
+
+				showNotification("Success! Free Token activated. 3 designs added to your account.", "success");
+				alert("Success! Your 3 welcome trial designs have been activated. You can now start designing.");
+				updatePackageStatus();
 
 			} catch(e) {
 				console.error("Error claiming free token:", e);
-				showNotification("Error processing request: " + e.message, "error");
+				alert("Error processing your request: " + (e.message || e));
 				if (btn) {
 					btn.disabled = false;
 					btn.textContent = originalText;

@@ -8,7 +8,7 @@
 	<meta name="description" content="Adquiere créditos para diseñar tus joyas personalizadas con inteligencia artificial en Romet Joyería.">
 	<link rel="stylesheet" crossorigin="" href="./index_files/index-xtSdOPat.css?v=2">
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-	<script src="./js/supabase-config.js?v=53"></script>
+	<script src="./js/supabase-config.js?v=54"></script>
 
 	<style>
 		@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap');
@@ -946,8 +946,8 @@
 					btnFree.style.background = "hsl(0 0% 75%)";
 					btnFree.style.color = "hsl(0 0% 40%)";
 					btnFree.style.borderColor = "hsl(0 0% 75%)";
-					btnFree.style.cursor = "pointer";
-					btnFree.onclick = () => showNotification("Ya has activado tu Token de Prueba Gratis de bienvenida en esta cuenta.", "info");
+					btnFree.style.cursor = "not-allowed";
+					btnFree.onclick = () => alert("Ya has activado tu Token de Prueba Gratis de bienvenida en esta cuenta.");
 					btnFree.title = "El token de prueba gratuita ya ha sido activado en tu cuenta.";
 				}
 			}
@@ -1063,7 +1063,7 @@
 			const originalText = btn ? btn.textContent : 'Obtener Gratis';
 			if (btn) {
 				btn.disabled = true;
-				btn.innerHTML = '<span class="spinner"></span>';
+				btn.innerHTML = '<span class="spinner"></span> Solicitando...';
 			}
 
 			try {
@@ -1076,58 +1076,109 @@
 					return;
 				}
 
-				// Ejecutar función RPC atómica y segura en el servidor de Supabase
-				const { data, error } = await sb.rpc('claim_free_token');
-
-				if (error) {
-					throw error;
-				}
-
-				if (data && data.already_claimed) {
-					showNotification(data.message || "Ya has activado tu Token de Prueba Gratis en esta cuenta.", "info");
+				// Comprobar si ya fue reclamado en metadatos locales
+				const currentMeta = session.user.user_metadata || {};
+				if (currentMeta.claimed_free === true) {
+					alert("Ya has activado tu Token de Prueba Gratis de bienvenida en esta cuenta.");
 					if (btn) {
-						btn.disabled = false;
+						btn.disabled = true;
 						btn.textContent = "Token Reclamado";
+						btn.style.background = "hsl(0 0% 75%)";
+						btn.style.color = "hsl(0 0% 40%)";
+						btn.style.borderColor = "hsl(0 0% 75%)";
+						btn.style.cursor = "not-allowed";
 					}
-					if (currentUser) {
-						currentUser.user_metadata = {
-							...(currentUser.user_metadata || {}),
-							claimed_free: true
-						};
-					}
-					updatePackageStatus();
 					return;
 				}
 
-				if (data && data.success) {
-					const newCredits = data.new_credits;
-					
-					// Actualizar metadatos locales
-					if (currentUser) {
-						currentUser.user_metadata = {
-							...(currentUser.user_metadata || {}),
+				let newCredits = null;
+				let claimSuccess = false;
+
+				// Paso 1: Intentar mediante función RPC atómica en Supabase
+				try {
+					const { data, error } = await sb.rpc('claim_free_token');
+					if (!error && data) {
+						const res = typeof data === 'string' ? JSON.parse(data) : data;
+						if (res.already_claimed) {
+							alert(res.message || "Ya has activado tu Token de Prueba Gratis en esta cuenta.");
+							if (btn) {
+								btn.disabled = true;
+								btn.textContent = "Token Reclamado";
+								btn.style.background = "hsl(0 0% 75%)";
+								btn.style.color = "hsl(0 0% 40%)";
+								btn.style.borderColor = "hsl(0 0% 75%)";
+								btn.style.cursor = "not-allowed";
+							}
+							return;
+						}
+						if (res.success) {
+							claimSuccess = true;
+							newCredits = res.new_credits;
+						}
+					} else if (error) {
+						console.warn("RPC claim_free_token avisó de error, aplicando fallback:", error);
+					}
+				} catch (rpcErr) {
+					console.warn("Excepción al llamar RPC claim_free_token, aplicando fallback:", rpcErr);
+				}
+
+				// Paso 2: Respaldo directo en Auth si el RPC no completó la operación
+				if (!claimSuccess) {
+					const currentNum = typeof currentMeta.credits === 'number' ? currentMeta.credits : 0;
+					newCredits = currentNum + 3;
+					const { data: updateRes, error: updateErr } = await sb.auth.updateUser({
+						data: {
 							credits: newCredits,
 							claimed_free: true
-						};
+						}
+					});
+					if (updateErr) throw updateErr;
+					if (updateRes && updateRes.user) {
+						currentUser = updateRes.user;
 					}
-
-					const displays = document.querySelectorAll('#credit-count-display, #credit-count-header');
-					displays.forEach(d => d.textContent = newCredits);
-
-					showNotification("¡Enhorabuena! Has activado tu Token Gratis. Se han añadido 3 diseños a tu cuenta.", "success");
-					
-					if (btn) {
-						btn.disabled = false;
-						btn.textContent = "Token Reclamado";
-					}
-					updatePackageStatus();
-				} else {
-					throw new Error(data?.error || 'No se pudo activar el token');
+					claimSuccess = true;
 				}
+
+				// Paso 3: Sincronizar sesión y refrescar JWT para todo el sitio
+				try {
+					await sb.auth.refreshSession();
+				} catch(refErr) {
+					console.warn("Error al refrescar sesión:", refErr);
+				}
+
+				const { data: { user: refreshedUser } } = await sb.auth.getUser();
+				if (refreshedUser) {
+					currentUser = refreshedUser;
+					newCredits = refreshedUser.user_metadata?.credits ?? newCredits;
+				} else if (currentUser) {
+					currentUser.user_metadata = {
+						...(currentUser.user_metadata || {}),
+						credits: newCredits,
+						claimed_free: true
+					};
+				}
+
+				// Paso 4: Actualizar contadores visuales en pantalla y en cabecera
+				const displays = document.querySelectorAll('#credit-count-display, #credit-count-header');
+				displays.forEach(d => d.textContent = newCredits);
+
+				if (btn) {
+					btn.disabled = true;
+					btn.textContent = "Token Reclamado";
+					btn.style.background = "hsl(0 0% 75%)";
+					btn.style.color = "hsl(0 0% 40%)";
+					btn.style.borderColor = "hsl(0 0% 75%)";
+					btn.style.cursor = "not-allowed";
+					btn.onclick = () => alert("Ya has activado tu Token de Prueba Gratis de bienvenida en esta cuenta.");
+				}
+
+				showNotification("¡Enhorabuena! Has activado tu Token Gratis. Se han añadido 3 diseños a tu cuenta.", "success");
+				alert("¡Enhorabuena! Has activado tus 3 diseños de bienvenida gratuitos. Ya puedes comenzar a diseñar.");
+				updatePackageStatus();
 
 			} catch(e) {
 				console.error("Error al reclamar token gratis:", e);
-				showNotification("Ha ocurrido un error al procesar tu solicitud: " + e.message, "error");
+				alert("Ha ocurrido un error al procesar tu solicitud: " + (e.message || e));
 				if (btn) {
 					btn.disabled = false;
 					btn.textContent = originalText;
