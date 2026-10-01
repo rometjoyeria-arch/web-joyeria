@@ -55,70 +55,13 @@
 			position: relative;
 			z-index: 10;
 			width: 100%;
-			max-width: 1100px;
+			max-width: 1260px;
 			margin: 0 auto;
 		}
 
-		.page-title {
+		.page-header-block {
 			text-align: center;
-			font-size: 2.5rem;
-			font-weight: 600;
-			letter-spacing: 0.15em;
-			text-transform: uppercase;
-			margin-bottom: 0.5rem;
-			color: hsl(0 0% 15%);
-		}
-
-		.page-subtitle {
-			text-align: center;
-			color: hsl(0 0% 40%);
-			font-size: 1.05rem;
-			letter-spacing: 0.1em;
 			margin-bottom: 3.5rem;
-			font-weight: 300;
-			max-width: 600px;
-			margin-left: auto;
-			margin-right: auto;
-		}
-
-		.accent-line {
-			width: 60px;
-			height: 1px;
-			background: hsl(0 0% 40%);
-			margin: 0 auto 1.5rem;
-		}
-
-		.pricing-grid-2 {
-			display: grid;
-			grid-template-columns: repeat(1, 1fr);
-			gap: 2rem;
-			max-width: 800px;
-			margin: 0 auto 4rem;
-		}
-
-		@media (min-width: 640px) {
-			.pricing-grid-2 {
-				grid-template-columns: repeat(2, 1fr);
-			}
-		}
-
-		.pricing-grid-3 {
-			display: grid;
-			grid-template-columns: repeat(1, 1fr);
-			gap: 2rem;
-			margin-bottom: 3.5rem;
-		}
-
-		@media (min-width: 768px) {
-			.pricing-grid-3 {
-				grid-template-columns: repeat(3, 1fr);
-			}
-		}
-
-		.section-block-header {
-			text-align: center;
-			margin-top: 1rem;
-			margin-bottom: 2.5rem;
 		}
 
 		.section-tag {
@@ -135,22 +78,53 @@
 			margin-bottom: 0.75rem;
 		}
 
-		.section-heading {
-			font-size: 2rem;
+		.page-title {
+			text-align: center;
+			font-size: 2.5rem;
 			font-weight: 600;
-			letter-spacing: 0.12em;
+			letter-spacing: 0.15em;
 			text-transform: uppercase;
-			color: hsl(0 0% 15%);
 			margin-bottom: 0.5rem;
+			color: hsl(0 0% 15%);
 		}
 
-		.section-subtext {
-			font-family: ui-sans-serif, system-ui, sans-serif;
-			font-size: 0.95rem;
-			color: hsl(0 0% 45%);
-			max-width: 600px;
+		.accent-line {
+			width: 60px;
+			height: 1px;
+			background: hsl(0 0% 40%);
+			margin: 0 auto 1.5rem;
+		}
+
+		.page-subtitle {
+			text-align: center;
+			color: hsl(0 0% 40%);
+			font-size: 1.05rem;
+			letter-spacing: 0.08em;
+			font-weight: 300;
+			max-width: 700px;
 			margin: 0 auto;
-			line-height: 1.5;
+			line-height: 1.6;
+		}
+
+		.pricing-grid-4 {
+			display: grid;
+			grid-template-columns: 1fr;
+			gap: 1.75rem;
+			margin-bottom: 4rem;
+			align-items: stretch;
+		}
+
+		@media (min-width: 640px) {
+			.pricing-grid-4 {
+				grid-template-columns: repeat(2, 1fr);
+			}
+		}
+
+		@media (min-width: 1024px) {
+			.pricing-grid-4 {
+				grid-template-columns: repeat(4, 1fr);
+				gap: 1.5rem;
+			}
 		}
 
 		.card-period-badge {
@@ -181,11 +155,20 @@
 		.pricing-card {
 			background: hsl(0 0% 95%);
 			border: 1px solid hsl(0 0% 80%);
-			padding: 3rem 2rem;
+			padding: 2.75rem 1.75rem 2.25rem;
 			display: flex;
 			flex-direction: column;
+			justify-content: space-between;
 			position: relative;
 			transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+			height: 100%;
+			box-sizing: border-box;
+		}
+
+		.card-body {
+			display: flex;
+			flex-direction: column;
+			flex: 1;
 		}
 
 		.pricing-card:hover {
@@ -674,74 +657,60 @@
 		<!-- Main -->
 		<main class="pricing-wrapper relative z-10">
 			<div class="pricing-container">
-				<h1 class="page-title">Acquire Designs</h1>
-				<div class="accent-line"></div>
-				<p class="page-subtitle">Get credits to unleash your imagination and generate exclusive designs with our Artificial Intelligence.</p>
-
-				<!-- Section 1: Individual Access & Designs -->
-				<div class="section-block-header">
-					<span class="section-tag">Single Packs</span>
-					<h2 class="section-heading">Individual Access & Designs</h2>
-					<p class="section-subtext">Start for free or purchase a dedicated design pack with unlimited time to use whenever you wish.</p>
+				<div class="page-header-block">
+					<span class="section-tag">Plans & Pricing</span>
+					<h1 class="page-title">Acquire Designs</h1>
+					<div class="accent-line"></div>
+					<p class="page-subtitle">Get credits to unleash your imagination and generate exclusive designs with our Artificial Intelligence. Choose between one-time packs or recurring professional subscriptions.</p>
 				</div>
 
-				<div class="pricing-grid-2">
-					<!-- Free Trial Token -->
-					<div class="pricing-card">
-						<h3 class="card-title">Free Trial Token</h3>
-						<div class="card-credits">3 Designs</div>
-						<div class="card-price">0 €</div>
-						<div class="card-period-badge">Welcome Trial</div>
-						<p class="card-description">Experience the magic of Romet Jewelry AI. Generate your first design sketches and experiment with different jewelry types and styles completely free of charge.</p>
-						<button id="btn-free" class="card-btn" onclick="claimFreeToken()">Get Free</button>
-					</div>
-
+				<!-- 4-Card Balanced Pricing Grid -->
+				<div class="pricing-grid-4">
 					<!-- Individual -->
 					<div class="pricing-card">
-						<h3 class="card-title">Individual</h3>
-						<div class="card-credits">3 Designs</div>
-						<div class="card-price">4,95 €</div>
-						<div class="card-period-badge unlimited">Unlimited Time</div>
-						<p class="card-description">The perfect choice to craft a unique piece or a meaningful gift. Get 3 high-resolution AI generations that never expire.</p>
+						<div class="card-body">
+							<h3 class="card-title">Individual</h3>
+							<div class="card-credits">3 Designs</div>
+							<div class="card-price">4,95 €</div>
+							<div class="card-period-badge unlimited">Unlimited Time</div>
+							<p class="card-description">The perfect choice to craft a unique piece or a meaningful gift. Get 3 high-resolution AI generations that never expire.</p>
+						</div>
 						<button id="btn-particular" class="card-btn" onclick="redirectToStripeCheckout('particular', this)">Buy</button>
 					</div>
-				</div>
 
-				<!-- Section 2: Professional Subscriptions -->
-				<div class="section-block-header">
-					<span class="section-tag">Monthly Plans</span>
-					<h2 class="section-heading">Professional Subscriptions</h2>
-					<p class="section-subtext">Designed for professional jewelers, bespoke studios, and jewelry brands requiring continuous creative output.</p>
-				</div>
-
-				<div class="pricing-grid-3">
 					<!-- Professional 15 -->
 					<div class="pricing-card">
-						<h3 class="card-title">Professional 15</h3>
-						<div class="card-credits">15 Designs / mo</div>
-						<div class="card-price">24,99 € <span>/ mo</span></div>
-						<div class="card-period-badge recurring">Monthly Recurring</div>
-						<p class="card-description">Continuous monthly access with 15 generations to develop seasonal collections and handle custom client commissions.</p>
+						<div class="card-body">
+							<h3 class="card-title">Professional 15</h3>
+							<div class="card-credits">15 Designs / mo</div>
+							<div class="card-price">24,99 € <span>/ mo</span></div>
+							<div class="card-period-badge recurring">Monthly Recurring</div>
+							<p class="card-description">Continuous monthly access with 15 generations to develop seasonal collections and handle custom client commissions.</p>
+						</div>
 						<button id="btn-prof15" class="card-btn" onclick="redirectToStripeCheckout('profesional15', this)">Subscribe</button>
 					</div>
 
 					<!-- Professional 30 -->
 					<div class="pricing-card">
-						<h3 class="card-title">Professional 30</h3>
-						<div class="card-credits">30 Designs / mo</div>
-						<div class="card-price">44,99 € <span>/ mo</span></div>
-						<div class="card-period-badge recurring">Monthly Recurring</div>
-						<p class="card-description">Complete creative agility for busy brands and workshops. Enjoy 30 monthly generations to iterate styles, gemstones, and fine details.</p>
+						<div class="card-body">
+							<h3 class="card-title">Professional 30</h3>
+							<div class="card-credits">30 Designs / mo</div>
+							<div class="card-price">44,99 € <span>/ mo</span></div>
+							<div class="card-period-badge recurring">Monthly Recurring</div>
+							<p class="card-description">Complete creative agility for busy brands and workshops. Enjoy 30 monthly generations to iterate styles, gemstones, and fine details.</p>
+						</div>
 						<button id="btn-prof30" class="card-btn" onclick="redirectToStripeCheckout('profesional30', this)">Subscribe</button>
 					</div>
 
 					<!-- Professionals Plus -->
 					<div class="pricing-card featured">
-						<h3 class="card-title">Professionals Plus</h3>
-						<div class="card-credits">Unlimited Designs</div>
-						<div class="card-price">99,00 € <span>/ mo</span></div>
-						<div class="card-period-badge recurring">Monthly Recurring</div>
-						<p class="card-description">Maximum freedom without limits. Generate unlimited jewelry designs for extensive commercial catalogs and enjoy priority support.</p>
+						<div class="card-body">
+							<h3 class="card-title">Professionals Plus</h3>
+							<div class="card-credits">Unlimited Designs</div>
+							<div class="card-price">99,00 € <span>/ mo</span></div>
+							<div class="card-period-badge recurring">Monthly Recurring</div>
+							<p class="card-description">Maximum freedom without limits. Generate unlimited jewelry designs for extensive commercial catalogs and enjoy priority support.</p>
+						</div>
 						<button id="btn-prof-plus" class="card-btn" onclick="redirectToStripeCheckout('profesionales_plus', this)">Subscribe</button>
 					</div>
 				</div>
@@ -933,40 +902,6 @@
 			if (!currentUser) return;
 			const metadata = currentUser.user_metadata || {};
 
-			let isClaimed = metadata.claimed_free === true;
-
-			// Check DB free_token_claims table if not recorded in local JWT
-			if (!isClaimed && currentUser.id) {
-				try {
-					const sb = getSupabase();
-					const { data: claimRow } = await sb
-						.from('free_token_claims')
-						.select('user_id')
-						.eq('user_id', currentUser.id)
-						.maybeSingle();
-					if (claimRow && claimRow.user_id) {
-						isClaimed = true;
-						if (currentUser.user_metadata) currentUser.user_metadata.claimed_free = true;
-					}
-				} catch (err) {
-					console.warn("Notice checking free token status in DB:", err);
-				}
-			}
-
-			if (isClaimed) {
-				const btnFree = document.getElementById('btn-free');
-				if (btnFree) {
-					btnFree.disabled = true;
-					btnFree.textContent = "Claimed";
-					btnFree.style.background = "hsl(0 0% 75%)";
-					btnFree.style.color = "hsl(0 0% 40%)";
-					btnFree.style.borderColor = "hsl(0 0% 75%)";
-					btnFree.style.cursor = "not-allowed";
-					btnFree.onclick = () => alert("You have already claimed your Free Trial Token on this account.");
-					btnFree.title = "The free trial token has already been activated on your account.";
-				}
-			}
-
 			// Highlight active subscription if present
 			if (metadata.is_unlimited === true || metadata.plan === 'profesionales_plus') {
 				const btnPlus = document.getElementById('btn-prof-plus');
@@ -1072,134 +1007,7 @@
 			}
 		}
 
-		// Claim Free Trial Token (3 designs)
-		async function claimFreeToken() {
-			const btn = document.getElementById('btn-free');
-			const originalText = btn ? btn.textContent : 'Claim Free';
-			if (btn) {
-				btn.disabled = true;
-				btn.innerHTML = '<span class="spinner"></span> Processing...';
-			}
 
-			try {
-				await ensureSupabaseReady();
-				const sb = getSupabase();
-				const session = await getSession();
-				if (!session || !session.user) {
-					sessionStorage.setItem('redirectAfterLogin', window.location.href);
-					window.location.href = './login.html';
-					return;
-				}
-
-				// 1. Fast local verification: alert immediately if already claimed
-				const currentMeta = session.user.user_metadata || {};
-				if (currentMeta.claimed_free === true) {
-					alert("You have already claimed your Free Trial Token on this account.");
-					if (btn) {
-						btn.disabled = true;
-						btn.textContent = "Claimed";
-						btn.style.background = "hsl(0 0% 75%)";
-						btn.style.color = "hsl(0 0% 40%)";
-						btn.style.borderColor = "hsl(0 0% 75%)";
-						btn.style.cursor = "not-allowed";
-						btn.onclick = () => alert("You have already claimed your Free Trial Token on this account.");
-					}
-					return;
-				}
-
-				// 2. Execute atomic RPC function on PostgreSQL server
-				const { data: rpcData, error: rpcErr } = await sb.rpc('claim_free_token');
-				if (rpcErr) {
-					throw new Error(rpcErr.message || 'Error connecting to server');
-				}
-
-				const res = typeof rpcData === 'string' ? JSON.parse(rpcData) : rpcData;
-
-				if (res.already_claimed) {
-					alert(res.message || "You have already claimed your Free Trial Token on this account.");
-					if (btn) {
-						btn.disabled = true;
-						btn.textContent = "Claimed";
-						btn.style.background = "hsl(0 0% 75%)";
-						btn.style.color = "hsl(0 0% 40%)";
-						btn.style.borderColor = "hsl(0 0% 75%)";
-						btn.style.cursor = "not-allowed";
-						btn.onclick = () => alert("You have already claimed your Free Trial Token on this account.");
-					}
-					if (currentUser) {
-						currentUser.user_metadata = {
-							...(currentUser.user_metadata || {}),
-							claimed_free: true
-						};
-					}
-					updatePackageStatus();
-					return;
-				}
-
-				if (!res.success) {
-					throw new Error(res.error || res.message || 'Could not claim token');
-				}
-
-				const targetCredits = Number(res.new_credits) || 3;
-
-				// 3. Synchronize GoTrue SDK and localStorage via updateUser
-				// This guarantees the JWT in client and localStorage are immediately updated with 3 credits
-				try {
-					const { data: updateRes } = await sb.auth.updateUser({
-						data: {
-							credits: targetCredits,
-							claimed_free: true
-						}
-					});
-					if (updateRes && updateRes.user) {
-						currentUser = updateRes.user;
-					}
-					await sb.auth.refreshSession();
-				} catch(syncErr) {
-					console.warn("Notice syncing GoTrue metadata:", syncErr);
-				}
-
-				// 4. Ensure local user state is updated
-				if (!currentUser && session && session.user) {
-					currentUser = session.user;
-				}
-				if (currentUser) {
-					currentUser.user_metadata = {
-						...(currentUser.user_metadata || {}),
-						credits: targetCredits,
-						claimed_free: true
-					};
-				}
-
-				// 5. Update UI and counters on screen and header
-				const displays = document.querySelectorAll('#credit-count-display, #credit-count-header');
-				displays.forEach(d => d.textContent = targetCredits);
-
-				// 6. Update button to claimed and locked state
-				if (btn) {
-					btn.disabled = true;
-					btn.textContent = "Claimed";
-					btn.style.background = "hsl(0 0% 75%)";
-					btn.style.color = "hsl(0 0% 40%)";
-					btn.style.borderColor = "hsl(0 0% 75%)";
-					btn.style.cursor = "not-allowed";
-					btn.onclick = () => alert("You have already claimed your Free Trial Token on this account.");
-				}
-
-				showNotification("Success! Free Token activated. 3 designs added to your account.", "success");
-				alert("Success! Your 3 welcome trial designs have been activated. You can now start designing.");
-				updatePackageStatus();
-
-			} catch(e) {
-				console.error("Error claiming free token:", e);
-				alert("Error processing your request: " + (e.message || e));
-				if (btn) {
-					btn.disabled = false;
-					btn.textContent = originalText;
-				}
-			}
-		}
-		window.claimFreeToken = claimFreeToken;
 
 		// ═══════════════════════════════════════════════
 		// Modals & Forms
