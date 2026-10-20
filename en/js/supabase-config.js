@@ -464,8 +464,8 @@ window.showOutOfCreditsModal = function() {
 
 // Direct Stripe Checkout links
 const STRIPE_CHECKOUT_LINKS = {
-	'particular': 'https://buy.stripe.com/28E14o0HJbu33vzcis4F200',
-	'profesional15': 'https://buy.stripe.com/3cIeVe76741B7LPfuE4F202',
+	'particular': 'https://buy.stripe.com/aFaaEY2PR41B9TXaak4F205',
+	'profesional15': 'https://buy.stripe.com/28EeVe9ef9lV3vzgyI4F203',
 	'profesional30': 'https://buy.stripe.com/3cIeVe76741B7LPfuE4F202',
 	'profesionales_plus': 'https://buy.stripe.com/7sY00kduv7dN1nr3LW4F201',
 	'custom_design': 'https://buy.stripe.com/8x2fZi3TV9lVaY12HS4F204',
@@ -511,7 +511,7 @@ window.redirectToStripeCheckout = async function(plan, element, lang = 'en', des
 			const session = await getSession();
 			if (session && session.user) {
 				if (session.user.id) {
-					const refId = designId ? `${session.user.id}:${designId}` : session.user.id;
+					const refId = designId ? `${session.user.id}:${plan}:${designId}` : `${session.user.id}:${plan}`;
 					redirectUrl.searchParams.set('client_reference_id', refId);
 				}
 				if (session.user.email) {

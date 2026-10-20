@@ -141,9 +141,12 @@ Deno.serve(async (req: Request) => {
       const session = event.data.object;
       let userId = session.metadata?.user_id;
 
-      // Soporte para enlaces directos de pago de Stripe (Payment Links) con client_reference_id
-      if (!userId && session.client_reference_id) {
-        userId = session.client_reference_id.split(':')[0];
+      // Soporte para enlaces directos de pago de Stripe (Payment Links) con client_reference_id (formato: userId:plan o userId)
+      let planFromRef: string | null = null;
+      if (session.client_reference_id) {
+        const parts = session.client_reference_id.split(':');
+        if (!userId && parts[0]) userId = parts[0];
+        if (parts[1]) planFromRef = parts[1];
       }
 
       // Si aún no hay userId, buscar por email del cliente
@@ -160,8 +163,29 @@ Deno.serve(async (req: Request) => {
       const subscriptionId = session.subscription ? String(session.subscription) : null;
       let lineDescription = '';
 
-      // Si amountTotal viene en 0 pero hay suscripción, consultar la suscripción en Stripe API para conocer el precio exacto
-      if (amountTotal === 0 && subscriptionId && stripeSecretKey) {
+      // Deducir plan directamente de client_reference_id si está presente
+      let deducedFromRef: { plan: string; creditsToAdd: number; isUnlimited: boolean; isCustomDesign: boolean } | null = null;
+      if (planFromRef) {
+        if (planFromRef === 'particular') {
+          deducedFromRef = { plan: 'particular', creditsToAdd: 3, isUnlimited: false, isCustomDesign: false };
+          if (amountTotal === 0) amountTotal = 495;
+        } else if (planFromRef === 'profesional15') {
+          deducedFromRef = { plan: 'profesional15', creditsToAdd: 15, isUnlimited: false, isCustomDesign: false };
+          if (amountTotal === 0) amountTotal = 2499;
+        } else if (planFromRef === 'profesional30') {
+          deducedFromRef = { plan: 'profesional30', creditsToAdd: 30, isUnlimited: false, isCustomDesign: false };
+          if (amountTotal === 0) amountTotal = 4499;
+        } else if (planFromRef === 'profesionales_plus') {
+          deducedFromRef = { plan: 'profesionales_plus', creditsToAdd: 0, isUnlimited: true, isCustomDesign: false };
+          if (amountTotal === 0) amountTotal = 9900;
+        } else if (planFromRef === 'custom_design') {
+          deducedFromRef = { plan: 'custom_design', creditsToAdd: 0, isUnlimited: false, isCustomDesign: true };
+          if (amountTotal === 0) amountTotal = 14990;
+        }
+      }
+
+      // Si amountTotal viene en 0 pero hay suscripción y no vino plan en ref, consultar la suscripción en Stripe API
+      if (amountTotal === 0 && !deducedFromRef && subscriptionId && stripeSecretKey) {
         try {
           const subRes = await fetch(`https://api.stripe.com/v1/subscriptions/${subscriptionId}`, {
             headers: { 'Authorization': `Bearer ${stripeSecretKey}` }
@@ -184,8 +208,8 @@ Deno.serve(async (req: Request) => {
         }
       }
 
-      const deduced = deducePlanFromDetails(amountTotal, lineDescription);
-      const plan = session.metadata?.plan || (deduced.plan !== 'unknown' ? deduced.plan : null);
+      const deduced = deducedFromRef || deducePlanFromDetails(amountTotal, lineDescription);
+      const plan = deducedFromRef?.plan || session.metadata?.plan || (deduced.plan !== 'unknown' ? deduced.plan : null);
       const creditsToAdd = session.metadata?.credits_to_add 
         ? parseInt(session.metadata.credits_to_add) 
         : deduced.creditsToAdd;
