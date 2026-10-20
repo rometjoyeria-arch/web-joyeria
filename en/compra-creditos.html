@@ -715,16 +715,6 @@
 					</div>
 				</div>
 
-				<!-- Promo Code Section -->
-				<div class="promo-container">
-					<h3 class="promo-title">Do you have a promo code?</h3>
-					<p class="promo-desc">Enter your promo code to get 10 free credits instantly added to your account.</p>
-					<div class="promo-form-group">
-						<input type="text" id="promo-code" class="promo-input" placeholder="PROMO CODE">
-						<button id="btn-promo" class="promo-btn" onclick="redeemPromoCode()">Redeem</button>
-					</div>
-				</div>
-
 				<!-- Enterprise Section -->
 				<div class="enterprise-card">
 					<h2 class="enterprise-title">Brands & Businesses</h2>
@@ -921,89 +911,6 @@
 					btn30.textContent = "Active Subscription";
 					btn30.style.background = "hsl(150 70% 30%)";
 				}
-			}
-
-			if (metadata.claimed_joyeria10 === true) {
-				const btnPromo = document.getElementById('btn-promo');
-				const inputPromo = document.getElementById('promo-code');
-				if (btnPromo) {
-					btnPromo.disabled = true;
-					btnPromo.textContent = "Redeemed";
-				}
-				if (inputPromo) {
-					inputPromo.disabled = true;
-					inputPromo.placeholder = "JOYERIA10";
-					inputPromo.value = "JOYERIA10";
-				}
-			}
-		}
-
-		// Redeem Promo Code
-		async function redeemPromoCode() {
-			if (!currentUser) {
-				showNotification("Please log in to redeem a promo code.", "error");
-				return;
-			}
-
-			const btn = document.getElementById('btn-promo');
-			const input = document.getElementById('promo-code');
-			const code = input.value.trim().toUpperCase();
-			const originalText = btn.textContent;
-
-			if (!code) {
-				showNotification("Please enter a promo code.", "error");
-				return;
-			}
-
-			if (code !== 'JOYERIA10') {
-				showNotification("The promotional code entered is invalid or expired.", "error");
-				return;
-			}
-
-			btn.disabled = true;
-			btn.innerHTML = '<span class="spinner"></span>';
-
-			try {
-				const sb = getSupabase();
-				const metadata = currentUser.user_metadata || {};
-				if (metadata.claimed_joyeria10 === true) {
-					showNotification("You have already redeemed JOYERIA10 on this account.", "error");
-					btn.disabled = true;
-					btn.textContent = "Redeemed";
-					return;
-				}
-
-				const credits = await getCredits();
-				const currentNum = typeof credits === 'number' ? credits : 0;
-				const newCredits = currentNum + 10;
-
-				const { data: updateRes, error } = await sb.auth.updateUser({
-					data: {
-						credits: newCredits,
-						claimed_joyeria10: true
-					}
-				});
-
-				if (error) throw error;
-
-				showNotification("Code redeemed successfully! 10 credits added to your account.", "success");
-
-				if (updateRes?.user) {
-					currentUser = updateRes.user;
-				} else {
-					const { data: { user } } = await sb.auth.getUser();
-					if (user) currentUser = user;
-				}
-
-				const displays = document.querySelectorAll('#credit-count-display, #credit-count-header');
-				displays.forEach(d => d.textContent = newCredits);
-				updatePackageStatus();
-
-			} catch(e) {
-				console.error("Error redeeming promo code:", e);
-				showNotification("An error occurred while processing your request: " + e.message, "error");
-				btn.disabled = false;
-				btn.textContent = originalText;
 			}
 		}
 
