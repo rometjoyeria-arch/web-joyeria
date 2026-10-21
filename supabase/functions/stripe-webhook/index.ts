@@ -66,16 +66,18 @@ async function verifyStripeSignature(
 }
 
 function deducePlanFromAmount(amountCents: number) {
-  if (amountCents === 495) {
+  // 4,99€ (particular — pago único, 3 créditos)
+  if (amountCents === 495 || amountCents === 499) {
     return { plan: 'particular', creditsToAdd: 3, isUnlimited: false, isCustomDesign: false };
-  } else if (amountCents === 499) {
-    return { plan: '10_designs', creditsToAdd: 10, isUnlimited: false, isCustomDesign: false };
+  // 24,99€ (profesional15 — suscripción, 15 créditos/mes)
   } else if (amountCents === 2490 || amountCents === 2499) {
     return { plan: 'profesional15', creditsToAdd: 15, isUnlimited: false, isCustomDesign: false };
+  // 44,99€ (profesional30 — suscripción, 30 créditos/mes)
   } else if (amountCents === 4490 || amountCents === 4499) {
     return { plan: 'profesional30', creditsToAdd: 30, isUnlimited: false, isCustomDesign: false };
+  // 99€ (profesionales_plus — suscripción ilimitada, 150 créditos/mes)
   } else if (amountCents === 9900) {
-    return { plan: 'profesionales_plus', creditsToAdd: 0, isUnlimited: true, isCustomDesign: false };
+    return { plan: 'profesionales_plus', creditsToAdd: 150, isUnlimited: true, isCustomDesign: false };
   } else if (amountCents === 14990 || amountCents === 14999 || amountCents === 4990) {
     return { plan: 'custom_design', creditsToAdd: 0, isUnlimited: false, isCustomDesign: true };
   }
@@ -85,7 +87,7 @@ function deducePlanFromAmount(amountCents: number) {
 function deducePlanFromDetails(amountCents: number, description?: string) {
   const desc = (description || '').toLowerCase();
   if (desc.includes('plus') || desc.includes('ilimitad') || desc.includes('unlimited')) {
-    return { plan: 'profesionales_plus', creditsToAdd: 0, isUnlimited: true, isCustomDesign: false };
+    return { plan: 'profesionales_plus', creditsToAdd: 150, isUnlimited: true, isCustomDesign: false };
   }
   if (desc.includes('30 diseño') || desc.includes('30 design') || desc.includes('profesional 30')) {
     return { plan: 'profesional30', creditsToAdd: 30, isUnlimited: false, isCustomDesign: false };
@@ -176,7 +178,7 @@ Deno.serve(async (req: Request) => {
           deducedFromRef = { plan: 'profesional30', creditsToAdd: 30, isUnlimited: false, isCustomDesign: false };
           if (amountTotal === 0) amountTotal = 4499;
         } else if (planFromRef === 'profesionales_plus') {
-          deducedFromRef = { plan: 'profesionales_plus', creditsToAdd: 0, isUnlimited: true, isCustomDesign: false };
+          deducedFromRef = { plan: 'profesionales_plus', creditsToAdd: 150, isUnlimited: true, isCustomDesign: false };
           if (amountTotal === 0) amountTotal = 9900;
         } else if (planFromRef === 'custom_design') {
           deducedFromRef = { plan: 'custom_design', creditsToAdd: 0, isUnlimited: false, isCustomDesign: true };
@@ -208,13 +210,28 @@ Deno.serve(async (req: Request) => {
         }
       }
 
-      const deduced = deducedFromRef || deducePlanFromDetails(amountTotal, lineDescription);
-      const plan = deducedFromRef?.plan || session.metadata?.plan || (deduced.plan !== 'unknown' ? deduced.plan : null);
-      const creditsToAdd = session.metadata?.credits_to_add 
+      let deduced = deducedFromRef || deducePlanFromDetails(amountTotal, lineDescription);
+      let plan = deducedFromRef?.plan || session.metadata?.plan || (deduced.plan !== 'unknown' ? deduced.plan : null);
+      let creditsToAdd = session.metadata?.credits_to_add 
         ? parseInt(session.metadata.credits_to_add) 
         : deduced.creditsToAdd;
-      const isUnlimited = session.metadata?.is_unlimited === 'true' || deduced.isUnlimited;
-      const isCustomDesign = deduced.isCustomDesign || plan === 'custom_design';
+      let isUnlimited = session.metadata?.is_unlimited === 'true' || deduced.isUnlimited;
+      let isCustomDesign = deduced.isCustomDesign || plan === 'custom_design';
+
+      // 🚨 BLINDAJE ABSOLUTO: Si por cualquier motivo (enlace directo, caché del navegador, trial de 0€)
+      // el plan no vino identificado, NUNCA dejamos al usuario que pagó con 0 créditos:
+      if (!isUnlimited && !isCustomDesign && creditsToAdd === 0) {
+        if (subscriptionId || session.mode === 'subscription') {
+          plan = plan || 'profesional15';
+          creditsToAdd = 15;
+          console.warn(`[FALLBACK ACTIVATED] Suscripción sin plan explícito. Asignando 'profesional15' (15 créditos).`);
+        } else {
+          plan = plan || 'particular';
+          creditsToAdd = 3;
+          if (amountTotal === 0) amountTotal = 495;
+          console.warn(`[FALLBACK ACTIVATED] Pago único sin plan explícito. Asignando 'particular' (3 créditos).`);
+        }
+      }
 
       if (!userId) {
         console.error('Missing userId for checkout session:', session.id, 'customer:', customerEmail);
@@ -249,6 +266,8 @@ Deno.serve(async (req: Request) => {
       }
 
       if (isUnlimited) {
+        newCredits = currentCredits + creditsToAdd;
+        newMetadata.credits = newCredits;
         newMetadata.is_unlimited = true;
         if (subscriptionId) {
           newMetadata.subscription_id = subscriptionId;
@@ -375,6 +394,8 @@ Deno.serve(async (req: Request) => {
           };
 
           if (deduced.isUnlimited) {
+            newCredits = currentCredits + deduced.creditsToAdd;
+            updatedMetadata.credits = newCredits;
             updatedMetadata.is_unlimited = true;
           } else if (deduced.creditsToAdd > 0) {
             newCredits = currentCredits + deduced.creditsToAdd;
