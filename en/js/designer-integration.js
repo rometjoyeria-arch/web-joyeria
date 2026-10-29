@@ -252,8 +252,11 @@
 				numero_redisenio: currentRedesignCount + 1,
 			});
 
-			if (isPaidRedesign && typeof window.consumeCredit === 'function') {
-				await window.consumeCredit();
+			if (isPaidRedesign) {
+				if (typeof window.consumeCredit === 'function') {
+					await window.consumeCredit();
+				}
+				sessionStorage.setItem('redesignCount', '0');
 			} else if (isFreeRedesign) {
 				const newCount = currentRedesignCount + 1;
 				sessionStorage.setItem('redesignCount', newCount.toString());

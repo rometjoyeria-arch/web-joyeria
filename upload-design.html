@@ -570,8 +570,11 @@
 						numero_redisenio: currentRedesignCount + 1,
 					});
 
-					if (isPaidRedesign && typeof consumeCredit === 'function') {
-						await consumeCredit();
+					if (isPaidRedesign) {
+						if (typeof consumeCredit === 'function') {
+							await consumeCredit();
+						}
+						sessionStorage.setItem('redesignCount', '0');
 					} else if (isFreeRedesign) {
 						// Only increment counter on success
 						const newCount = currentRedesignCount + 1;
