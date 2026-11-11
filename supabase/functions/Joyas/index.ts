@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 // ═══════════════════════════════════════════════════════════
-// ROMET JOYERÍA — Edge Function v87 (vistas coherentes 3D, anti-fantasía, conteo exacto y entorno 360°)
+// ROMET JOYERÍA — Edge Function v88 (Top-level count mandate, layout binding & panel locks)
 // Glosario maestro ampliado de joyería (+45 términos técnicos y visuales)
 // Detección tolerante a tildes, plurales y sinónimos de taller
 // 3 modos de prompt + emails directos Resend + restricciones geométricas
@@ -694,100 +694,125 @@ function detectarTerminos(...textos: (string | null | undefined)[]): string {
   return `\n\nJEWELRY TERMINOLOGY & STRUCTURAL SPECIFICATIONS (the client used professional jewelry workshop terms — follow these definitions strictly with zero deviations):\n${definiciones.map(d => "- " + d).join("\n")}`;
 }
 
-function detectarRestriccionesEspecificas(...textos: (string | null | undefined)[]): string {
+interface RestriccionesResult {
+  mandatoTop: string;
+  alertasTexto: string;
+  lockPanel1: string;
+}
+
+function generarInstruccionConteo(valor: number, elemento: string, tieneEntorno: boolean): { mandato: string; alerta: string; lockPanel1: string } {
+  const seq = Array.from({ length: valor }, (_, i) => `#${i + 1}`).join(", ");
+
+  if (tieneEntorno) {
+    const mandato = `⚠️ ABSOLUTE MANDATE — FULL 360° HALO OF EXACTLY ${valor} ${elemento.toUpperCase()}:
+The client explicitly demands a central gemstone encircled by a full, continuous 360-degree closed circular halo of EXACTLY ${valor} ${elemento} (${seq}).
+- POSITIONAL LAYOUT: The ${valor} accent stones must be evenly spaced in an unbroken circle around the center stone like clock markers.
+- STRICT COUNT LOCK: Count every single accent stone: exactly ${valor}. Do NOT render fewer or more. Every one of the ${valor} surrounding stones must be clearly visible and distinct.`;
+
+    const alerta = `EXACT 360° PERIMETER HALO (${valor} ${elemento}): Symmetrically position EXACTLY ${valor} ${elemento} around the central stone. Count: ${seq}.`;
+    const lockPanel1 = `— ⚠️ COUNT LOCK: MUST clearly display the complete 360° perimeter of EXACTLY ${valor} ${elemento} (${seq}) encircling the center stone.`;
+    return { mandato, alerta, lockPanel1 };
+  } else {
+    let simetriaDesc = "";
+    if (valor % 2 === 1) {
+      const half = (valor - 1) / 2;
+      simetriaDesc = `1 center stone flanked by ${half} stone${half > 1 ? 's' : ''} on the left and ${half} stone${half > 1 ? 's' : ''} on the right (${half} + 1 + ${half} = ${valor} stones in a line)`;
+    } else {
+      const half = valor / 2;
+      simetriaDesc = `symmetrical layout with ${half} stones on the left side and ${half} stones on the right side (${half} + ${half} = ${valor} stones in a line)`;
+    }
+
+    const mandato = `⚠️ ABSOLUTE MANDATE — EXACTLY ${valor} ${elemento.toUpperCase()}:
+The client explicitly demands that the piece features a linear row of EXACTLY ${valor} ${elemento} (${seq}).
+- SYMMETRICAL LAYOUT: ${simetriaDesc}.
+- ANTI-DEFAULT OVERRIDE: Do NOT generate a generic 3-stone or 5-stone piece! The model's tendency to default to 5 stones is STRICTLY FORBIDDEN. Render EXACTLY ${valor} individual, countable stones.
+- CALIBRATED PROPORTIONS: Scale down the diameter of each individual stone so that all ${valor} stones fit comfortably across the front visible section without being hidden or wrapping around to the rear.
+- ALL ${valor} STONES MUST BE VISIBLE SIMULTANEOUSLY in the front view: [${Array.from({ length: valor }, (_, i) => `Stone ${i + 1}`).join("][")}].`;
+
+    const alerta = `EXACT NUMERICAL COUNT (${valor} ${elemento}): Render EXACTLY ${valor} ${elemento} in a continuous row: ${simetriaDesc}. Count: ${seq}. Prohibit defaulting to 5 stones.`;
+    const lockPanel1 = `— ⚠️ COUNT LOCK: MUST clearly show all ${valor} individual stones visible simultaneously side-by-side in this view: [${Array.from({ length: valor }, (_, i) => `${i + 1}`).join("][")}]. Count is strictly ${valor}, never 5.`;
+    return { mandato, alerta, lockPanel1 };
+  }
+}
+
+function detectarRestriccionesEspecificas(...textos: (string | null | undefined)[]): RestriccionesResult {
   const textoCompleto = textos.filter(Boolean).join(" ").toLowerCase();
   const alertas: string[] = [];
 
   // Detección de "entorno" / "alrededor" / "orla" / "contorno"
   const tieneEntorno = /\b(?:en\s+el\s+)?entorno\b|\balrededor\b|\borla\b|\brodeand[oas]{1,2}\b|\bcontorno\b|\bcircundand[oas]{1,2}\b/i.test(textoCompleto);
 
-  // Buscar dígitos (ej. 8, 6, 10...)
-  const digitosMatches = [...textoCompleto.matchAll(/\b(\d+)\s+([a-záéíóúñ]+)?/gi)];
-  let conteoEntornoDetectado: number | null = null;
-  let elementoEntorno = "gemstones";
+  let conteoDetectado: number | null = null;
+  let elementoDetectado = "gemstones";
 
+  // Buscar dígitos (ej. 7, 8, 6, 10...)
+  const digitosMatches = [...textoCompleto.matchAll(/\b(\d+)\s+([a-záéíóúñ]+)?/gi)];
   if (digitosMatches.length > 0) {
-    digitosMatches.forEach(m => {
+    for (const m of digitosMatches) {
       const val = parseInt(m[1], 10);
-      const elemento = m[2] || "elements";
-      if (val > 0 && val <= 50) {
-        const seq = Array.from({ length: Math.min(val, 20) }, (_, i) => i + 1).join(", ");
-        alertas.push(`EXACT NUMERICAL COUNT (${val} ${elemento}): You MUST render EXACTLY ${val} ${elemento} (count: ${seq}). Do NOT render ${val - 1}, ${val + 1}, or any approximate amount. Count each element one by one: exactly ${val}.`);
-        if (tieneEntorno && !conteoEntornoDetectado) {
-          conteoEntornoDetectado = val;
-          elementoEntorno = elemento;
-        }
+      const elem = m[2] || "elements";
+      if (val >= 2 && val <= 30) {
+        conteoDetectado = val;
+        elementoDetectado = elem;
+        break;
       }
-    });
+    }
   }
 
-  // Buscar números escritos en español (cero a veinte)
-  const numerosEscritos = [
-    { palabras: ["cero"], valor: 0 },
-    { palabras: ["uno", "una", "un"], valor: 1 },
-    { palabras: ["dos"], valor: 2 },
-    { palabras: ["tres"], valor: 3 },
-    { palabras: ["cuatro"], valor: 4 },
-    { palabras: ["cinco"], valor: 5 },
-    { palabras: ["seis"], valor: 6 },
-    { palabras: ["siete"], valor: 7 },
-    { palabras: ["ocho"], valor: 8 },
-    { palabras: ["nueve"], valor: 9 },
-    { palabras: ["diez"], valor: 10 },
-    { palabras: ["once"], valor: 11 },
-    { palabras: ["doce"], valor: 12 },
-    { palabras: ["trece"], valor: 13 },
-    { palabras: ["catorce"], valor: 14 },
-    { palabras: ["quince"], valor: 15 },
-    { palabras: ["dieciseis", "dieciséis"], valor: 16 },
-    { palabras: ["diecisiete"], valor: 17 },
-    { palabras: ["dieciocho"], valor: 18 },
-    { palabras: ["diecinueve"], valor: 19 },
-    { palabras: ["veinte"], valor: 20 },
-  ];
+  // Si no hay dígitos, buscar números escritos en español
+  if (!conteoDetectado) {
+    const numerosEscritos = [
+      { palabras: ["dos"], valor: 2 },
+      { palabras: ["tres"], valor: 3 },
+      { palabras: ["cuatro"], valor: 4 },
+      { palabras: ["cinco"], valor: 5 },
+      { palabras: ["seis"], valor: 6 },
+      { palabras: ["siete"], valor: 7 },
+      { palabras: ["ocho"], valor: 8 },
+      { palabras: ["nueve"], valor: 9 },
+      { palabras: ["diez"], valor: 10 },
+      { palabras: ["once"], valor: 11 },
+      { palabras: ["doce"], valor: 12 },
+      { palabras: ["trece"], valor: 13 },
+      { palabras: ["catorce"], valor: 14 },
+      { palabras: ["quince"], valor: 15 },
+      { palabras: ["dieciseis", "dieciséis"], valor: 16 },
+      { palabras: ["diecisiete"], valor: 17 },
+      { palabras: ["dieciocho"], valor: 18 },
+      { palabras: ["diecinueve"], valor: 19 },
+      { palabras: ["veinte"], valor: 20 },
+    ];
 
-  numerosEscritos.forEach(({ palabras, valor }) => {
-    for (const palabra of palabras) {
-      if (palabra === "un" || palabra === "una") {
-        const regexArticulo = new RegExp(`\\b${palabra}\\s+(?:piedra|gema|brillante|diamante|rubi|zafiro|esmeralda|joya|cuajo|flor)\\b`, "i");
-        if (regexArticulo.test(textoCompleto)) {
-          alertas.push(`EXACT NUMERICAL COUNT: Exactly 1 primary focal stone/element.`);
-        }
-        continue;
-      }
-
-      const regexContexto = new RegExp(`\\b${palabra}\\s+([a-záéíóúñ]+)`, "i");
-      const match = regexContexto.exec(textoCompleto);
-      if (match) {
-        const elemento = match[1];
-        const seq = Array.from({ length: Math.min(valor, 20) }, (_, i) => i + 1).join(", ");
-        alertas.push(`EXACT NUMERICAL COUNT ("${palabra} ${elemento}"): You MUST render EXACTLY ${valor} ${elemento} (count: ${seq}). Strictly ${valor}. Never add extra or fewer elements.`);
-        if (tieneEntorno && !conteoEntornoDetectado) {
-          conteoEntornoDetectado = valor;
-          elementoEntorno = elemento;
-        }
-        break;
-      } else {
-        const regexSola = new RegExp(`\\b${palabra}\\b`, "i");
-        if (regexSola.test(textoCompleto)) {
-          const seq = Array.from({ length: Math.min(valor, 20) }, (_, i) => i + 1).join(", ");
-          alertas.push(`EXACT NUMERICAL COUNT ("${palabra}"): You MUST render EXACTLY ${valor} items (count: ${seq}). Strictly ${valor}.`);
-          if (tieneEntorno && !conteoEntornoDetectado) {
-            conteoEntornoDetectado = valor;
-          }
+    for (const { palabras, valor } of numerosEscritos) {
+      for (const palabra of palabras) {
+        const regexContexto = new RegExp(`\\b${palabra}\\s+([a-záéíóúñ]+)`, "i");
+        const match = regexContexto.exec(textoCompleto);
+        if (match) {
+          conteoDetectado = valor;
+          elementoDetectado = match[1];
           break;
+        } else {
+          const regexSola = new RegExp(`\\b${palabra}\\b`, "i");
+          if (regexSola.test(textoCompleto)) {
+            conteoDetectado = valor;
+            break;
+          }
         }
       }
+      if (conteoDetectado) break;
     }
-  });
+  }
 
-  // Instrucción enfática para "entorno" / "alrededor" / "en todo el contorno"
-  if (tieneEntorno) {
-    if (conteoEntornoDetectado) {
-      alertas.push(`FULL 360° PERIMETER HALO ("ENTORNO / ALREDEDOR"): The client explicitly commanded that elements be placed in the "entorno" / "alrededor". You MUST position EXACTLY ${conteoEntornoDetectado} ${elementoEntorno} in a continuous, evenly spaced 360-degree closed circular ring or halo ENTIRELY SURROUNDING the central gemstone, distributed uniformly all the way around the entire circumference. NOT a partial cluster, NOT grouped on one side: FULL 360° CONTINUOUS PERIMETER.`);
-    } else {
-      alertas.push(`FULL 360° PERIMETER HALO ("ENTORNO / ALREDEDOR"): The client specified "entorno" or "alrededor". All accent stones or elements MUST form an unbroken, continuous 360-degree halo surrounding the center piece symmetrically on all sides (full perimeter).`);
-    }
+  let mandatoTop = "";
+  let lockPanel1 = "";
+
+  if (conteoDetectado && conteoDetectado >= 2) {
+    const res = generarInstruccionConteo(conteoDetectado, elementoDetectado, tieneEntorno);
+    mandatoTop = res.mandato;
+    alertas.push(res.alerta);
+    lockPanel1 = res.lockPanel1;
+  } else if (tieneEntorno) {
+    alertas.push(`FULL 360° PERIMETER HALO ("ENTORNO / ALREDEDOR"): All accent stones or elements MUST form an unbroken, continuous 360-degree halo surrounding the center piece symmetrically on all sides (full perimeter).`);
   }
 
   // Buscar palabras de geometría/forma y acabados en español
@@ -844,12 +869,12 @@ function detectarRestriccionesEspecificas(...textos: (string | null | undefined)
     alertas.push("CRITICAL RESTORATION CONSTRAINT: The client explicitly states that a gemstone/jewel was removed or is missing. You MUST RESTORE AND ADD the gemstone into the center setting of the piece, with high brilliance, transparent light refraction, vivid color, and proper prongs/bezel!");
   }
 
-  if (alertas.length === 0) return "";
-
-  // Filtrar duplicados
   const alertasUnicas = [...new Set(alertas)];
+  const alertasTexto = alertasUnicas.length > 0
+    ? `\n\n⚠️ EXTRA PRIORITY GEOMETRIC & NUMERICAL CONSTRAINTS (the client explicitly requested these details - you MUST execute them with absolute precision):\n${alertasUnicas.map(a => "- " + a).join("\n")}`
+    : "";
 
-  return `\n\n⚠️ EXTRA PRIORITY GEOMETRIC & NUMERICAL CONSTRAINTS (the client explicitly requested these details - you MUST execute them with absolute precision):\n${alertasUnicas.map(a => "- " + a).join("\n")}`;
+  return { mandatoTop, alertasTexto, lockPanel1 };
 }
 
 interface GemaInfo {
@@ -1140,7 +1165,7 @@ serve(async (req) => {
 
     const reglasVistas = `FOUR-VIEW COMPOSITE IMAGE — CRITICALLY IMPORTANT:
 - Generate ONE wide horizontal image divided into FOUR equal vertical panels side by side
-- 1st panel (left): FRONT view (piece alone, facing viewer directly, upright, pure white background)
+- 1st panel (left): FRONT view (piece alone, facing viewer directly, upright, pure white background${restriccionesGeometriaYNumeros.lockPanel1 ? " " + restriccionesGeometriaYNumeros.lockPanel1 : ""})
 ${vistaPanel2}
 - 3rd panel (center-right): SIDE/PROFILE view (piece alone, rotated 90°, showing depth, band thickness, and clasp/hinge profile, pure white background)
 - 4th panel (right): ON-MODEL view (showing the exact same piece being worn by a generic professional model, ${bodyPartDesc})
@@ -1179,7 +1204,7 @@ ${vistaPanel2}
     if (esRetoque) {
       // MODO 2/4: Retoque de imagen existente
       prompt = `You are a professional fine jewelry designer performing a PRECISE RETOUCH on an existing design.
-
+${restriccionesGeometriaYNumeros.mandatoTop ? "\n" + restriccionesGeometriaYNumeros.mandatoTop + "\n" : ""}
 The attached image shows the CURRENT design.
 ${hasOriginalImage ? "A second attached image shows the ORIGINAL client reference piece for comparison.\n" : ""}
 ⚠️ OVERRIDE PRIORITY FOR REQUESTED CHANGES:
@@ -1201,7 +1226,7 @@ ${especificaciones}
 ⚠️ REQUESTED CHANGES — apply ONLY these specific modifications, keep all other features identical to the attached image:
 "${cambios_solicitados || sugerencias}"
 ${glosarioInyectado}
-${restriccionesGeometriaYNumeros}
+${restriccionesGeometriaYNumeros.alertasTexto}
 
 ${reglasEstilo}
 
@@ -1217,7 +1242,9 @@ CRITICAL: The result must be immediately recognizable as the SAME piece from the
       // MODO 3: El cliente sube una foto de referencia
       const pideSilueta = /\b(?:silueta|lisa|liso|plana|plano|recorte|sin\s+cara|sin\s+rostro)\b/i.test(textoCompletoParaCat);
 
-      prompt = `You are a professional fine jewelry designer. The attached images are references uploaded by the client (a design they like, a sketch, or a portrait photo of a person/family member).
+      prompt = `You are a professional fine jewelry designer.
+${restriccionesGeometriaYNumeros.mandatoTop ? "\n" + restriccionesGeometriaYNumeros.mandatoTop + "\n" : ""}
+The attached images are references uploaded by the client (a design they like, a sketch, or a portrait photo of a person/family member).
 
 Study the references carefully and reproduce their key elements faithfully as a professional jewelry piece:
 ${pideSilueta ? `- FLAT SILHOUETTE / SMOOTH CUTOUT OUTLINE (EXPLICIT CLIENT COMMAND): The client explicitly requested a flat, smooth silhouette cutout of the uploaded image ("solo la silueta y totalmente lisa"). Render ONLY the clean, flat 2D outer silhouette profile contour in solid, mirror-polished precious metal. DO NOT sculpt or engrave any internal facial features, eyes, nose, mouth, hair textures, or 3D bas-relief onto the face/motif! The front surface of the silhouette plate MUST remain 100% FLAT, SMOOTH, AND FEATURELESS, exactly as commanded.` : `- EXACT 1-TO-1 PORTRAIT ENGRAVINGS: If any of the references show a person's face or portrait (e.g., a family member, child, or parent) and this is a medallion/cameo, feature a masterfully sculpted, high-fidelity 3D bas-relief engraving of that exact person's face on the polished metal surface. Capturing their exact likeness is critical.`}
@@ -1229,7 +1256,7 @@ ${tieneCategoria ? "" : "- PIECE TYPE & METAL: Faithful reproduction of the uplo
 
 ${especificaciones}
 ${glosarioInyectado}
-${restriccionesGeometriaYNumeros}
+${restriccionesGeometriaYNumeros.alertasTexto}
 
 ${reglasEstilo}
 
@@ -1241,11 +1268,13 @@ ${reglasRender}`;
 
     } else {
       // MODO 1: Diseño desde cero
-      prompt = `You are a professional fine jewelry designer. Generate a photorealistic jewelry piece based on the specifications below.
+      prompt = `You are a professional fine jewelry designer.
+${restriccionesGeometriaYNumeros.mandatoTop ? "\n" + restriccionesGeometriaYNumeros.mandatoTop + "\n" : ""}
+Generate a photorealistic jewelry piece based on the specifications below.
 
 ${especificaciones}
 ${glosarioInyectado}
-${restriccionesGeometriaYNumeros}
+${restriccionesGeometriaYNumeros.alertasTexto}
 
 ${reglasEstilo}
 
@@ -1323,7 +1352,7 @@ ${reglasRender}`;
     parts.push({ text: prompt });
 
     const modo = esRetoque ? "retoque" : esImagenSubida ? "imagen_subida" : "desde_cero";
-    console.log(`v87 — mode: ${modo}, model: ${GEMINI_MODEL}, hasRefImage: ${!!imagenParaGemini}`);
+    console.log(`v88 — mode: ${modo}, model: ${GEMINI_MODEL}, hasRefImage: ${!!imagenParaGemini}`);
 
     const geminiRes = await fetch(GEMINI_URL, {
       method: "POST",
@@ -1522,7 +1551,7 @@ ${reglasRender}`;
     );
 
   } catch (error: any) {
-    console.error("v87 ERROR:", error.message);
+    console.error("v88 ERROR:", error.message);
     return new Response(
       JSON.stringify({ success: false, error: error.message }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
